@@ -1,28 +1,6 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle yes :comments link :noeval :mkdirp yes
 
-* Preamble
-I'm a Doom emacs user, and that's what I'll still be using in my day to day.
-This config will try to emulate that experience as much as I can since I don't want to have to context switch between different keybindings and stuff. Also tries to keep terminal emacs in mind, so no C-S chords
-
-This is mainly a learning exercise for myself to explore more of vanilla emacs, and also if there's ever a scenario where I could install emacs but not any external packages then it'll be really convenient to have this config around (or just a really crappy machine).
-
-The goal of this is to try and not use any external package, and to try and keep the config simple and light weight. I don't want to re-create doom nor do I want this to become another "distribution".
-
-So I'm limiting myself to a single file, try and have no more than 1000 lines of code, without doing some weird nasty/complicated code just to get within that arbitrary limit.
-
-Main use case of this config will be to edit code. I might allow myself some org specific stuff though (cause org is amazing)
-
-* Contributions
-This is mainly just going to be my own personal config that I'll update from time to time but I recognize that maybe there are others that might be interested in something like this or it's my hubris talking (I'm the best!).
-
-I have a pretty crappy laptop that I like to bring around, and while it /can/ run Doom, something lighter weight like this would help a lot.
-
-I'm not really going to be reviewing PRs and what not, though if you feel like it, I'm not going to stop you.
-If you want to use this I suggest forking it and making your changes to your own copy would probably be the best option
-
-Feel free to leave issues as well but again, not sure if I'll ever get to them.
-
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
 #+begin_src elisp
