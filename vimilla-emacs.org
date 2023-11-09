@@ -1,0 +1,335 @@
+#+title: Minimalistic Vim Flavoured Emacs Config
+#+PROPERTY: header-args :tangle yes :comments link :noeval :mkdirp yes
+
+* Preamble
+I'm a Doom emacs user, and that's what I'll still be using in my day to day.
+This config will try to emulate that experience as much as I can since I don't want to have to context switch between different keybindings and stuff. Also tries to keep terminal emacs in mind, so no C-S chords
+
+This is mainly a learning exercise for myself to explore more of vanilla emacs, and also if there's ever a scenario where I could install emacs but not any external packages then it'll be really convenient to have this config around (or just a really crappy machine).
+
+The goal of this is to try and not use any external package, and to try and keep the config simple and light weight. I don't want to re-create doom nor do I want this to become another "distribution".
+
+So I'm limiting myself to a single file, try and have no more than 1000 lines of code, without doing some weird nasty/complicated code just to get within that arbitrary limit.
+
+Main use case of this config will be to edit code. I might allow myself some org specific stuff though (cause org is amazing)
+
+* Contributions
+This is mainly just going to be my own personal config that I'll update from time to time but I recognize that maybe there are others that might be interested in something like this or it's my hubris talking (I'm the best!).
+
+I have a pretty crappy laptop that I like to bring around, and while it /can/ run Doom, something lighter weight like this would help a lot.
+
+I'm not really going to be reviewing PRs and what not, though if you feel like it, I'm not going to stop you.
+If you want to use this I suggest forking it and making your changes to your own copy would probably be the best option
+
+Feel free to leave issues as well but again, not sure if I'll ever get to them.
+
+* Mac settings
+if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
+#+begin_src elisp
+  (setq mac-option-modifier 'meta)
+#+end_src
+
+* General Settings
+enable fido-vertical mode, viper mode, global hl and visual lines
+#+begin_src elisp
+  (add-to-list 'completion-styles 'substring)
+  (fido-vertical-mode)
+  (viper-mode)
+  (global-hl-line-mode)
+  (global-visual-line-mode)
+
+  (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
+  (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
+
+  (setq visual-bell t)
+  (setq ring-bell-function 'ignore)
+  (setq scroll-preserve-screen-position t)
+#+end_src
+
+* Tab bar
+basically minimal projectile and persp
+#+begin_src elisp
+  (defun find-git-dir (dir)
+   "Search up the directory tree looking for a .git folder."
+   (cond
+    ((eq major-mode 'dired-mode) "Dired")
+    ((not dir) "process")
+    ((string= dir "/") "no-git")
+    (t (vc-root-dir))))
+
+  (defun git-tabbar-buffer-groups ()
+    "Groups tabs in tabbar-mode by the git repository they are in."
+    (list (find-git-dir (buffer-file-name (current-buffer)))))
+  ;; (setq tabbar-buffer-groups-function 'git-tabbar-buffer-groups)
+#+end_src
+
+
+* Viper
+:PROPERTIES:
+:header-args: :tangle ~/.emacs.d/viper :comments link :noeval
+:END:
+viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
+
+** general
+want backspace in insert deletes to previous line when curr line is empty
+want some indication of which mode we're in outside of the modeline
+#+begin_src elisp
+  (setq viper-inhibit-startup-message 't)
+  (setq viper-expert-level '5)
+  (add-hook 'viper-insert-state-hook (lambda ()
+                                       (global-hl-line-mode -1)
+                                       ;; stole it from here https://github.com/syl20bnr/spacemacs/issues/7112#issuecomment-389855491
+                                       ;; for terminal (tested on iterm2), changes cursor to bar
+                                       (send-string-to-terminal "\033[6 q") 
+                                       (setq viper-ex-style-editing nil)))
+
+  ;; otherwise hl-line-mode stays off after running an ex command like :w
+  (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (send-string-to-terminal "\033[0 q"))) ;; 0 at the end for box
+  (add-hook 'viper-vi-state-hook (lambda ()
+                                   (global-hl-line-mode)
+                                   (set-face-attribute 'hl-line nil :background "LightCyan1")
+                                   (send-string-to-terminal "\033[0 q")))
+  (add-hook 'viper-emacs-state-hook (lambda ()
+                                      (global-hl-line-mode)
+                                      (set-face-attribute 'hl-line nil :background "LavenderBlush1")
+                                      (send-string-to-terminal "\033[0 q")))
+  (setq viper-insert-state-cursor-color nil)
+#+end_src
+
+qol to use c-h for help commands, and something for us to type faster
+#+begin_src elisp
+  (setq viper-want-ctl-h-help 't)
+  (setq viper-fast-keyseq-timeout 100)
+#+end_src
+
+better ESC key handling to exit visual mode and close mini buffer
+#+begin_src elisp
+  (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
+  (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
+#+end_src
+
+** pop mark navigation
+#+begin_src elisp
+    (define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
+                ;;(lambda () (interactive) (let ((current-prefix-arg t)) (set-mark-command current-prefix-arg))))
+#+end_src
+
+** respect visual lines cursor movement
+#+begin_src elisp
+(define-key viper-vi-basic-map "k" #'previous-line)
+(define-key viper-vi-basic-map "j" #'next-line)
+#+end_src
+
+** Window movement
+not necessary viper, but same idea
+#+begin_src elisp
+  (define-key global-map (kbd "C-w") nil)
+
+  (define-key global-map "\C-wv" #'split-window-horizontally)
+  (define-key global-map "\C-wq" #'delete-window)
+  (define-key global-map "\C-w\C-w" #'other-window)
+
+  (define-key global-map "\C-wl" #'windmove-right)
+  (define-key global-map "\C-w\C-l" #'windmove-right)
+
+  (define-key global-map "\C-wh" #'windmove-left)
+  (define-key global-map "\C-w\C-h" #'windmove-left)
+
+  (define-key global-map "\C-wk" #'windmove-up)
+  (define-key global-map "\C-w\C-k" #'windmove-up)
+
+  (define-key global-map "\C-wj" #'windmove-down)
+  (define-key global-map "\C-w\C-j" #'windmove-down)
+
+  (define-key global-map "\C-w=" #'balance-windows)
+#+end_src
+
+** pseudo visual mode
+*** pseudo visual line
+have a variable for us to know if we're in the a pseudo line selection or normal selection
+#+begin_src elisp  
+  (setq my/line-selection-p nil)
+  (defun my/select-current-line-and-forward-line (arg)
+    "Select the current line and move the cursor by ARG lines IF
+  no region is selected.
+
+  If a region is already selected when calling this command, only move
+  the cursor by ARG lines."
+    (interactive "p")
+    (setq my/line-selection-p t)
+    (when (not (use-region-p))
+      (forward-line 0)
+      (set-mark-command nil))
+    (forward-line arg))
+
+  (defun my/set-mark-command (arg)
+    "set mark, and also set my/line-selection-p to nil"
+    (interactive "P")
+    (setq my/line-selection-p nil)
+    (set-mark-command arg))
+#+end_src
+
+v or V will set that line selection var accordingly
+deactivate mark on esc
+#+begin_src elisp
+  (define-key viper-vi-basic-map "v" nil)
+  (define-key viper-vi-basic-map "v" #'my/set-mark-command)
+  (define-key viper-vi-basic-map "V" nil)
+  (define-key viper-vi-basic-map "V" #'my/select-current-line-and-forward-line)
+#+end_src
+
+*** better yanking/killing for visual selection
+#+begin_src elisp
+    (defun my/region-or-interactive-cmd-with-arg* (should-shift-end region-fn interactive-cmd arg)
+      "helper function for region command or motion command"
+      (if (use-region-p)
+          (let ((end (if (or my/line-selection-p (= (region-end) (point-max)))
+                         (region-end)
+                       (+ (region-end) 1))))
+            (funcall region-fn (region-beginning) end))
+        (funcall interactive-cmd arg)))
+
+    (defun viper-delete-region-or-motion-command (arg)
+      "convenience function for deleting a region"
+      (interactive "P") 
+      (my/region-or-interactive-cmd-with-arg* my/line-selection-p #'kill-region #'viper-command-argument arg))
+
+    (defun viper-yank-region-or-motion-command (arg)
+      "convenience function for yanking a region"
+      (interactive "P") 
+      (my/region-or-interactive-cmd-with-arg* my/line-selection-p #'copy-region-as-kill #'viper-command-argument arg))
+
+    (defun viper-paste-into-region (arg)
+      "if region is active, delete region before pasting"
+      (interactive "P")
+      (when (use-region-p)
+          (let ((end (if (or my/line-selection-p (= (region-end) (point-max)))
+                         (region-end)
+                       (+ (region-end) 1))))
+            (delete-region (region-beginning) end)
+            (backward-char)))
+        (viper-put-back arg))
+
+    (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
+    (define-key viper-vi-basic-map "y" #'viper-yank-region-or-motion-command)
+    (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+#+end_src
+
+** undo
+thank god for undo-only but emacs > 28 only
+need to remap isearch-backward since i wanna use C-r for redo
+#+begin_src elisp
+  (define-key viper-vi-basic-map "u" #'undo-only)
+  (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)
+  (define-key viper-vi-basic-map (kbd "C-M-r")  #'isearch-backward)
+#+end_src
+
+** "g" prefix commands
+#+begin_src elisp
+  (define-prefix-command 'my-vi-g-prefix-map)
+  (define-key viper-vi-basic-map "g" #'my-vi-g-prefix-map)
+  (define-key 'my-vi-g-prefix-map "g" #'beginning-of-buffer)
+#+end_src
+
+*** movement since we have visual lines
+#+begin_src elisp
+  (define-key 'my-vi-g-prefix-map "k" #'viper-previous-line)
+  (define-key 'my-vi-g-prefix-map "j" #'viper-next-line)
+#+end_src
+
+*** tab bar movement
+#+begin_src elisp
+  (define-key 'my-vi-g-prefix-map "t" #'tab-bar-switch-to-next-tab)
+  (define-key 'my-vi-g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
+#+end_src
+
+
+** pseudo "leader" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-leader-prefix-map)
+  (define-key viper-vi-basic-map " " #'my-vi-leader-prefix-map)
+  (define-key my-vi-leader-prefix-map "," #'ido-switch-buffer)
+  (define-key my-vi-leader-prefix-map "u" #'universal-argument)
+
+
+  (define-key my-vi-leader-prefix-map "F" #'project-find-file)
+  (define-key my-vi-leader-prefix-map "G" #'vc-git-grep) ;; good enough
+#+end_src
+
+*** "open" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-open-prefix-map)
+  (define-key my-vi-leader-prefix-map "o" #'my-vi-open-prefix-map)
+  (define-key my-vi-open-prefix-map "e" #'eshell)
+  (define-key my-vi-open-prefix-map "s" #'shell)
+#+end_src
+
+*** "project" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-project-prefix-map)
+  (define-key my-vi-leader-prefix-map "p" #'my-vi-project-prefix-map)
+  (define-key my-vi-project-prefix-map "e" #'project-eshell)
+  (define-key my-vi-project-prefix-map "s" #'project-shell)
+#+end_src
+
+*** "help" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-help-prefix-map)
+  (define-key my-vi-leader-prefix-map "h" #'my-vi-help-prefix-map)
+  (define-key my-vi-help-prefix-map "k" #'describe-key)
+  (define-key my-vi-help-prefix-map "f" #'describe-function)
+  (define-key my-vi-help-prefix-map "v" #'describe-variable)
+#+end_src
+
+*** "buffer" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-buffer-prefix-map)
+  (define-key my-vi-leader-prefix-map "b" #'my-vi-buffer-prefix-map)
+  (define-key my-vi-buffer-prefix-map "r" #'revert-buffer)
+  (define-key my-vi-buffer-prefix-map "p" #'previous-buffer)
+  (define-key my-vi-buffer-prefix-map "n" #'next-buffer)
+#+end_src
+
+*** "tab" bar prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-tabbar-prefix-map)
+  (define-key my-vi-leader-prefix-map "\t" #'my-vi-tabbar-prefix-map)
+  (define-key my-vi-tabbar-prefix-map "n" #'tab-bar-new-tab)
+  (define-key my-vi-tabbar-prefix-map "d" #'tab-bar-close-tab)
+#+end_src 
+
+** pseudo "files" "f" prefix
+#+begin_src elisp
+    (define-prefix-command 'my-vi-files-prefix-map)
+    (define-key my-vi-leader-prefix-map "f" #'my-vi-files-prefix-map)
+    (define-key my-vi-files-prefix-map "f" #'find-file)
+#+end_src
+
+** code folding
+#+begin_src elisp
+  (hs-minor-mode)
+  (define-key viper-vi-basic-map "zC" #'hs-hide-all)
+  (define-key viper-vi-basic-map "zO" #'hs-show-all)
+  (define-key viper-vi-basic-map "zo" #'hs-show-block)
+  (define-key viper-vi-basic-map "zc" #'hs-hide-block)
+  (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
+#+end_src
+
+** eglot
+#+begin_src elisp
+  (define-key 'my-vi-g-prefix-map "d" #'xref-find-definitions)
+  (define-key 'my-vi-g-prefix-map "D" #'xref-find-references)
+#+end_src
+
+#+begin_src elisp
+    (define-prefix-command 'my-vi-code-prefix-map)
+    (define-key my-vi-leader-prefix-map "c" #'my-vi-code-prefix-map)
+    (define-key my-vi-code-prefix-map "f" #'eglot-format-buffer)
+    (define-key my-vi-code-prefix-map "x" #'flymake-show-project-diagnostics)
+#+end_src
+
+* Org
+#+begin_src elisp
+  (setq org-startup-indented t)
+  (setq org-indent-indentation-per-level 4)
+#+end_src
