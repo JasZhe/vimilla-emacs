@@ -48,29 +48,60 @@ basically minimal projectile and persp
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
+
 ** general
+hacky global var to have a "global" viper state
+is this better than the default behavior?
+Maybe.. maybe not but now this should enable viper mode even on major modes not specified by viper itself
+#+begin_src elisp
+
+  (setq my/global-viper-state 'vi)
+  (defun set-global-viper-state (arg)
+    (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
+          ((eq my/global-viper-state 'emacs) (viper-change-state-to-emacs))
+          ((eq my/global-viper-state 'ins) (viper-change-state-to-insert))
+          (t (viper-change-state-to-vi))
+    ))
+  (add-to-list 'window-state-change-functions #'set-global-viper-state)
+#+end_src
+
 want backspace in insert deletes to previous line when curr line is empty
 want some indication of which mode we're in outside of the modeline
+
+stole the terminal code for cursor from here https://github.com/syl20bnr/spacemacs/issues/7112#issuecomment-389855491
+works on iterm2 at least, 0 for box, 6 for bar cursor
 #+begin_src elisp
   (setq viper-inhibit-startup-message 't)
   (setq viper-expert-level '5)
+
+  ;; prefer the following to be in whatever state I'm already in
+  (delete 'Custom-mode viper-emacs-state-mode-list)
+  (delete 'dired-mode viper-emacs-state-mode-list)
+  (delete 'occur-mode viper-emacs-state-mode-list)
+
   (add-hook 'viper-insert-state-hook (lambda ()
                                        (global-hl-line-mode -1)
-                                       ;; stole it from here https://github.com/syl20bnr/spacemacs/issues/7112#issuecomment-389855491
-                                       ;; for terminal (tested on iterm2), changes cursor to bar
-                                       (send-string-to-terminal "\033[6 q") 
+                                       (setq my/global-viper-state 'ins)
+                                       (send-string-to-terminal "\033[6 q")
                                        (setq viper-ex-style-editing nil)))
 
   ;; otherwise hl-line-mode stays off after running an ex command like :w
-  (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (send-string-to-terminal "\033[0 q"))) ;; 0 at the end for box
+  (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (send-string-to-terminal "\033[0 q")))
+
+  (add-hook 'viper-minibuffer-exit-hook #'viper-change-state-to-vi)
   (add-hook 'viper-vi-state-hook (lambda ()
                                    (global-hl-line-mode)
+                                   (setq my/global-viper-state 'vi)
                                    (set-face-attribute 'hl-line nil :background "LightCyan1")
                                    (send-string-to-terminal "\033[0 q")))
   (add-hook 'viper-emacs-state-hook (lambda ()
                                       (global-hl-line-mode)
+                                      (setq my/global-viper-state 'emacs)
                                       (set-face-attribute 'hl-line nil :background "LavenderBlush1")
                                       (send-string-to-terminal "\033[0 q")))
+
+  (add-hook 'minibuffer-mode-hook #'viper-change-state-to-insert)
+  (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
   (setq viper-insert-state-cursor-color nil)
 #+end_src
 
