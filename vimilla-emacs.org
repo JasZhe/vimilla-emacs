@@ -393,6 +393,11 @@ need to remap isearch-backward since i wanna use C-r for redo
     (define-key my-vi-code-prefix-map "x" #'flymake-show-project-diagnostics)
 #+end_src
 
+* development
+** go us treesit
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+#+end_src
 * Org
 #+begin_src elisp
   (setq org-startup-indented t)
