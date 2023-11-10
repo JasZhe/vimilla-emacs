@@ -2,47 +2,9 @@
 (setq mac-option-modifier 'meta)
 ;; Mac settings:1 ends here
 
-;; [[file:vimilla-emacs.org::*Mac settings][Mac settings:2]]
-(defface font-lock-func-face 
-    '((nil (:foreground "#7F0055" :weight bold))
-      (t (:bold t :italic t)))
-  "Font Lock mode face used for function calls."
-  :group 'font-lock-highlighting-faces)
-
-(font-lock-add-keywords 
- 'emacs-lisp-mode
- '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-    1 'font-lock-constant-face)) 'append)
-
-(defun my-fl (_limit)                                                          
-  (let ((opoint  (point))                                                      
-        (found   nil))                                                         
-    (with-syntax-table emacs-lisp-mode-syntax-table                            
-      (while (not found)                                                       
-        (cond ((condition-case ()                                              
-                   (save-excursion                                             
-                     (skip-chars-forward "'")                                  
-                     (setq opoint  (point))                                    
-                     (let ((obj  (read (current-buffer))))                     
-                       (and (symbolp obj)  (fboundp obj)                       
-                            (progn (set-match-data (list opoint (point))) t))))
-                 (error nil))                                                  
-               (forward-sexp 1)                                                
-               (setq opoint  (point)                                           
-                     found   t))                                               
-              (t                                                               
-               (if (looking-at "\\(\\sw\\|\\s_\\)")                            
-                   (forward-sexp 1)                                            
-                 (forward-char 1)))))                                          
-      found)))
-
-;; (add-hook 'emacs-lisp-mode-hook
-;; 	  (lambda ()
-;; 	    (font-lock-add-keywords nil
-;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
-;; Mac settings:2 ends here
-
 ;; [[file:vimilla-emacs.org::*General Settings][General Settings:1]]
+(setq viper-mode t)
+(require 'viper)
 (add-to-list 'completion-styles 'substring)
 (fido-vertical-mode)
 (viper-mode)
@@ -79,6 +41,46 @@
 (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
 (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 ;; xref:1 ends here
+
+;; [[file:vimilla-emacs.org::*some more basic elisp highlighting][some more basic elisp highlighting:1]]
+(defface font-lock-func-face 
+    '((nil (:foreground "#7F0055" :weight bold))
+      (t (:bold t :italic t)))
+  "Font Lock mode face used for function calls."
+  :group 'font-lock-highlighting-faces)
+
+(font-lock-add-keywords
+ 'emacs-lisp-mode
+ '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+    1 'font-lock-constant-face)) 'append)
+
+(defun my-fl (_limit)
+  (let ((opoint  (point))
+        (found   nil))
+    (with-syntax-table emacs-lisp-mode-syntax-table
+      (while (not found)
+        (cond ((condition-case ()
+                   (save-excursion
+                     (skip-chars-forward "'")
+                     (setq opoint  (point))
+                     (let ((obj  (read (current-buffer))))
+                       (and (symbolp obj)  (fboundp obj)
+                            (progn (set-match-data (list opoint (point))) t))))
+                 (error nil))
+               (forward-sexp 1)
+               (setq opoint  (point)
+                     found   t))
+              (t
+               (if (looking-at "\\(\\sw\\|\\s_\\)")
+                   (forward-sexp 1)
+                 (forward-char 1)))))
+      found)))
+
+;; (add-hook 'emacs-lisp-mode-hook
+;; 	  (lambda ()
+;; 	    (font-lock-add-keywords nil
+;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
+;; some more basic elisp highlighting:1 ends here
 
 ;; [[file:vimilla-emacs.org::*Tab bar][Tab bar:1]]
 (defun find-git-dir (dir)

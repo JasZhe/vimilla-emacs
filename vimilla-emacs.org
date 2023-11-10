@@ -7,52 +7,14 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
   (setq mac-option-modifier 'meta)
 #+end_src
 
-#+begin_src elisp
-    (defface font-lock-func-face 
-      '((nil (:foreground "#7F0055" :weight bold))
-        (t (:bold t :italic t)))
-    "Font Lock mode face used for function calls."
-    :group 'font-lock-highlighting-faces)
-
-  (font-lock-add-keywords 
-   'emacs-lisp-mode
-   '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-      1 'font-lock-constant-face)) 'append)
-
-  (defun my-fl (_limit)                                                          
-    (let ((opoint  (point))                                                      
-          (found   nil))                                                         
-      (with-syntax-table emacs-lisp-mode-syntax-table                            
-        (while (not found)                                                       
-          (cond ((condition-case ()                                              
-                     (save-excursion                                             
-                       (skip-chars-forward "'")                                  
-                       (setq opoint  (point))                                    
-                       (let ((obj  (read (current-buffer))))                     
-                         (and (symbolp obj)  (fboundp obj)                       
-                              (progn (set-match-data (list opoint (point))) t))))
-                   (error nil))                                                  
-                 (forward-sexp 1)                                                
-                 (setq opoint  (point)                                           
-                       found   t))                                               
-                (t                                                               
-                 (if (looking-at "\\(\\sw\\|\\s_\\)")                            
-                     (forward-sexp 1)                                            
-                   (forward-char 1)))))                                          
-        found)))
-
-  ;; (add-hook 'emacs-lisp-mode-hook
-  ;; 	  (lambda ()
-  ;; 	    (font-lock-add-keywords nil
-  ;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
-#+end_src
-
 * General Settings
 enable fido-vertical mode, viper mode, global hl and visual lines
 stole the completing read stuff from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
 
 #+begin_src elisp
+  (setq viper-mode t)
+  (require 'viper)
   (add-to-list 'completion-styles 'substring)
   (fido-vertical-mode)
   (viper-mode)
@@ -91,7 +53,48 @@ luckily this is built in lol
 #+begin_src elisp                                                           
   (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-#+end_src                                                                     
+#+end_src
+
+** some more basic elisp highlighting
+#+begin_src elisp
+    (defface font-lock-func-face 
+      '((nil (:foreground "#7F0055" :weight bold))
+        (t (:bold t :italic t)))
+    "Font Lock mode face used for function calls."
+    :group 'font-lock-highlighting-faces)
+
+  (font-lock-add-keywords
+   'emacs-lisp-mode
+   '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+      1 'font-lock-constant-face)) 'append)
+
+  (defun my-fl (_limit)
+    (let ((opoint  (point))
+          (found   nil))
+      (with-syntax-table emacs-lisp-mode-syntax-table
+        (while (not found)
+          (cond ((condition-case ()
+                     (save-excursion
+                       (skip-chars-forward "'")
+                       (setq opoint  (point))
+                       (let ((obj  (read (current-buffer))))
+                         (and (symbolp obj)  (fboundp obj)
+                              (progn (set-match-data (list opoint (point))) t))))
+                   (error nil))
+                 (forward-sexp 1)
+                 (setq opoint  (point)
+                       found   t))
+                (t
+                 (if (looking-at "\\(\\sw\\|\\s_\\)")
+                     (forward-sexp 1)
+                   (forward-char 1)))))
+        found)))
+
+  ;; (add-hook 'emacs-lisp-mode-hook
+  ;; 	  (lambda ()
+  ;; 	    (font-lock-add-keywords nil
+  ;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
+#+end_src
            
 * Tab bar
 basically minimal projectile and persp
@@ -156,23 +159,23 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (add-hook 'viper-insert-state-hook (lambda ()
                                        (global-hl-line-mode -1)
                                        (setq my/global-viper-state 'ins)
-                                       (send-string-to-terminal "\033[6 q")
+                                       (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                        (setq viper-ex-style-editing nil)))
 
   ;; otherwise hl-line-mode stays off after running an ex command like :w
-  (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (send-string-to-terminal "\033[0 q")))
+  (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
   (add-hook 'viper-minibuffer-exit-hook #'viper-change-state-to-vi)
   (add-hook 'viper-vi-state-hook (lambda ()
                                    (global-hl-line-mode)
                                    (setq my/global-viper-state 'vi)
                                    (set-face-attribute 'hl-line nil :background "LightCyan1")
-                                   (send-string-to-terminal "\033[0 q")))
+                                   (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
   (add-hook 'viper-emacs-state-hook (lambda ()
                                       (global-hl-line-mode)
                                       (setq my/global-viper-state 'emacs)
                                       (set-face-attribute 'hl-line nil :background "LavenderBlush1")
-                                      (send-string-to-terminal "\033[0 q")))
+                                      (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
   (add-hook 'minibuffer-mode-hook #'viper-change-state-to-insert)
   (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
