@@ -47,34 +47,10 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 #+end_src
 
 ** xref
+luckily this is built in lol
 #+begin_src elisp                                                           
-  (defun my/icomplete-xref (fetcher alist)
-    (let* ((xrefs                                
-            (or                                  
-             (assoc-default 'fetched-xrefs alist)
-             (funcall fetcher)))                 
-           (xref-alist (xref--analyze xrefs)))
-      (setq my/xref-items nil)
-      (mapcar (lambda (xref)
-                (let* ((item (xref-item-location xref))
-                       (file (xref-file-location-file item))
-                       (line (xref-file-location-line item))
-                       (summ (xref-item-summary xref))
-                       (comp-item (format "%s   %s   %s" summ file line)))
-                  (setq my/xref-items
-                        (append my/xref-items
-                                (list comp-item)))
-                  ))
-              (cdr xrefs))
-      (setq my/xref-result (completing-read "xref: " my/xref-items))
-      (let* ((items (split-string my/xref-result "   "))
-             (file (nth 1 items))
-             (line (string-to-number (nth 2 items))))
-
-        (find-file file)
-        (goto-line line))
-    ))
-  (setq xref-show-xrefs-function #'my/icomplete-xref)
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 #+end_src                                                                     
            
 * Tab bar
@@ -188,6 +164,8 @@ better ESC key handling to exit visual mode and close mini buffer
 #+end_src
 
 ** Window movement
+TODO resizing functions
+also zz and stuff to center screen
 not necessary viper, but same idea
 #+begin_src elisp
   (define-key global-map (kbd "C-w") nil)
@@ -214,6 +192,8 @@ not necessary viper, but same idea
   (define-key global-map "\C-w\C-o" #'delete-other-windows)
 #+end_src
 
+TODO testing more cases
+figure out why comment region busted
 ** pseudo visual mode
 *** pseudo visual line
 have a variable for us to know if we're in the a pseudo line selection or normal selection
@@ -379,8 +359,8 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key 'my-vi-g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
 #+end_src
 
-
 ** pseudo "leader" prefix
+TODO imenu keybinding
 #+begin_src elisp
   (define-prefix-command 'my-vi-leader-prefix-map)
   (define-key viper-vi-basic-map " " #'my-vi-leader-prefix-map)
