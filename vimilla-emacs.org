@@ -9,6 +9,9 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
 
 * General Settings
 enable fido-vertical mode, viper mode, global hl and visual lines
+stole the completing read stuff from:
+https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
+
 #+begin_src elisp
   (add-to-list 'completion-styles 'substring)
   (fido-vertical-mode)
@@ -19,10 +22,30 @@ enable fido-vertical mode, viper mode, global hl and visual lines
   (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
   (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
 
+  (setq scroll-margin 8)
   (setq visual-bell t)
   (setq ring-bell-function 'ignore)
   (setq scroll-preserve-screen-position t)
 #+end_src
+
+** in buffer completion
+#+begin_src elisp
+ (defun completing-read-in-region (start end collection &optional predicate)
+    "Prompt for completion of region in the minibuffer if non-unique.
+   Use as a value for `completion-in-region-function'."
+    (let* ((initial (buffer-substring-no-properties start end))
+           (all (completion-all-completions initial collection predicate
+                                            (length initial)))
+           (completion (cond
+                        ((atom all) nil)
+                        ((and (consp all) (atom (cdr all))) (car all))
+                        (t (completing-read
+                            "Completion: " collection predicate t initial)))))
+      (cond (completion (completion--replace start end completion) t)
+            (t (message "No completion") nil)))) 
+#+end_src
+
+** xref
 
 * Tab bar
 basically minimal projectile and persp
@@ -380,7 +403,7 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
 #+end_src
 
-** eglot
+** eglot/xref
 #+begin_src elisp
   (define-key 'my-vi-g-prefix-map "d" #'xref-find-definitions)
   (define-key 'my-vi-g-prefix-map "D" #'xref-find-references)
