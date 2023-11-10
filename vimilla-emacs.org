@@ -339,6 +339,7 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key my-vi-buffer-prefix-map "r" #'revert-buffer)
   (define-key my-vi-buffer-prefix-map "p" #'previous-buffer)
   (define-key my-vi-buffer-prefix-map "n" #'next-buffer)
+  (define-key my-vi-buffer-prefix-map "i" #'ibuffer)
 #+end_src
 
 *** "tab" bar prefix
