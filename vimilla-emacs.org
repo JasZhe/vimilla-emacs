@@ -175,6 +175,9 @@ not necessary viper, but same idea
   (define-key global-map "\C-w\C-j" #'windmove-down)
 
   (define-key global-map "\C-w=" #'balance-windows)
+
+  (define-key global-map "\C-wo" #'delete-other-windows)
+  (define-key global-map "\C-w\C-o" #'delete-other-windows)
 #+end_src
 
 ** pseudo visual mode
