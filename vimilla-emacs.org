@@ -159,24 +159,34 @@ not necessary viper, but same idea
 have a variable for us to know if we're in the a pseudo line selection or normal selection
 #+begin_src elisp  
   (setq my/line-selection-p nil)
-  (defun my/select-current-line-and-forward-line (arg)
-    "Select the current line and move the cursor by ARG lines IF
-  no region is selected.
 
-  If a region is already selected when calling this command, only move
-  the cursor by ARG lines."
+  (defun my/select-lines (arg)
+    "go to beginning of line and select rectangle mark and also set line selection flag"
     (interactive "p")
     (setq my/line-selection-p t)
-    (when (not (use-region-p))
-      (forward-line 0)
-      (set-mark-command nil))
-    (forward-line arg))
+    (beginning-of-line)
+    (rectangle-mark-mode arg)
+    (end-of-visual-line))
+
+  ;;(advice-mapc `(lambda (fun props) (advice-remove 'rectangle-previous-line fun)) 'rectangle-previous-line)
+  ;;(advice-mapc `(lambda (fun props) (advice-remove 'rectangle-next-line fun)) 'rectangle-next-line)
+
+  (advice-add 'rectangle-previous-line :after                                             
+              (lambda (&rest args) (when my/line-selection-p (end-of-line))))
+  (advice-add 'rectangle-next-line :after
+              (lambda (&rest args) (when my/line-selection-p (end-of-line))))
 
   (defun my/set-mark-command (arg)
-    "set mark, and also set my/line-selection-p to nil"
+    "set mark, and also unset line selection flag"
     (interactive "P")
     (setq my/line-selection-p nil)
     (set-mark-command arg))
+
+  (defun my/visual-block (arg)
+    "set rectangle mark, and also unset line selection flag"
+    (interactive "P")
+    (setq my/line-selection-p nil)
+    (rectangle-mark-mode arg))
 #+end_src
 
 v or V will set that line selection var accordingly
@@ -185,44 +195,73 @@ deactivate mark on esc
   (define-key viper-vi-basic-map "v" nil)
   (define-key viper-vi-basic-map "v" #'my/set-mark-command)
   (define-key viper-vi-basic-map "V" nil)
-  (define-key viper-vi-basic-map "V" #'my/select-current-line-and-forward-line)
+  (define-key viper-vi-basic-map "V" #'my/select-lines)
+  
+  (define-key viper-vi-basic-map "\C-v" #'my/visual-block)
+#+end_src
+
+*** viper-ex to automatically use region if active
+#+begin_src elisp
+  ;;(advice-mapc `(lambda (fun props) (advice-remove 'viper-ex fun)) 'viper-ex)
+  (advice-add 'viper-ex :around
+              (lambda (orig-fun &rest args)
+                (let ((current-prefix-arg t))
+                  (if (use-region-p) (apply orig-fun current-prefix-arg args)
+                    (apply orig-fun args)))))
+#+end_src
+
+*** join lines on selected region
+if the region exists then we jump to the beginning of the region and merge the number of lines selected
+#+begin_src elisp
+  ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
+  (advice-add 'viper-join-lines :around
+              (lambda (orig-fun arg &rest args)
+                (interactive "P")
+                (if (use-region-p)
+                    (let* ((start (region-beginning))
+                          (end (region-end))
+                          (numlines (count-lines start end)))
+                      (goto-char start)
+                      (apply orig-fun `(,numlines)))
+                  (apply orig-fun `(,arg)))))
 #+end_src
 
 *** better yanking/killing for visual selection
 #+begin_src elisp
-    (defun my/region-or-interactive-cmd-with-arg* (should-shift-end region-fn interactive-cmd arg)
-      "helper function for region command or motion command"
-      (if (use-region-p)
-          (let ((end (if (or my/line-selection-p (= (region-end) (point-max)))
-                         (region-end)
-                       (+ (region-end) 1))))
-            (funcall region-fn (region-beginning) end))
-        (funcall interactive-cmd arg)))
-
     (defun viper-delete-region-or-motion-command (arg)
-      "convenience function for deleting a region"
-      (interactive "P") 
-      (my/region-or-interactive-cmd-with-arg* my/line-selection-p #'kill-region #'viper-command-argument arg))
+       "convenience function for deleting a region, including rectangles"
+       (interactive "P")
+       (if (use-region-p)
+           (progn
+             (unless rectangle-mark-mode (forward-char))
+             (kill-region (region-beginning) (region-end) (use-region-p)))
+         (viper-command-argument arg)))
 
     (defun viper-yank-region-or-motion-command (arg)
-      "convenience function for yanking a region"
-      (interactive "P") 
-      (my/region-or-interactive-cmd-with-arg* my/line-selection-p #'copy-region-as-kill #'viper-command-argument arg))
+       "convenience function for yanking a region, including rectangles"
+       (interactive "P")
+       (if (use-region-p)
+           (progn
+             (unless rectangle-mark-mode (forward-char))
+             (copy-region-as-kill (region-beginning) (region-end) t)
+             (unless rectangle-mark-mode (backward-char))
+             )
+         (viper-command-argument arg)))
 
     (defun viper-paste-into-region (arg)
-      "if region is active, delete region before pasting"
+      "if region is active, delete region before pasting
+  respects rectangle mode in a similar way to vim/doom"
       (interactive "P")
       (when (use-region-p)
-          (let ((end (if (or my/line-selection-p (= (region-end) (point-max)))
-                         (region-end)
-                       (+ (region-end) 1))))
-            (delete-region (region-beginning) end)
-            (backward-char)))
-        (viper-put-back arg))
+        (unless rectangle-mark-mode (forward-char))
+        (let ((start (region-beginning)))
+          (delete-active-region)
+          (goto-char start)))
+          (yank arg))
 
-    (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
-    (define-key viper-vi-basic-map "y" #'viper-yank-region-or-motion-command)
-    (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+     (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
+     (define-key viper-vi-basic-map "y" #'viper-yank-region-or-motion-command)
+     (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
 
 ** undo
