@@ -75,10 +75,11 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (setq viper-expert-level '5)
 
   ;; prefer the following to be in whatever state I'm already in
-  (delete 'Custom-mode viper-emacs-state-mode-list)
-  (delete 'dired-mode viper-emacs-state-mode-list)
-  (delete 'occur-mode viper-emacs-state-mode-list)
-
+  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))
+  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))
+  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))
+  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))
+  
   (add-hook 'viper-insert-state-hook (lambda ()
                                        (global-hl-line-mode -1)
                                        (setq my/global-viper-state 'ins)
