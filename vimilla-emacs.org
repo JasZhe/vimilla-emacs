@@ -189,6 +189,7 @@ not necessary viper, but same idea
 have a variable for us to know if we're in the a pseudo line selection or normal selection
 #+begin_src elisp  
   (setq my/line-selection-p nil)
+  (setq my/lines-selected 0)
 
   (defun my/select-lines (arg)
     "go to beginning of line and select rectangle mark and also set line selection flag"
@@ -264,11 +265,14 @@ if the region exists then we jump to the beginning of the region and merge the n
        (if (use-region-p)
            (let ((start (region-beginning)) (end (region-end)))
              (if rectangle-mark-mode
-                 (progn
-                   (kill-rectangle start end arg))
+                   (if my/line-selection-p
+                       (progn
+                         (setq my/lines-selected (count-lines start end))
+                         (kill-rectangle start end))
+                     (kill-rectangle start end arg))
                  (progn
                    (forward-char)
-                   (kill-region start end (use-region-p))))
+                   (kill-region start end t)))
              (delete-blank-lines))
          (viper-command-argument arg)))
 
@@ -278,7 +282,11 @@ if the region exists then we jump to the beginning of the region and merge the n
        (if (use-region-p)
            (let ((start (region-beginning)) (end (region-end)))
              (if rectangle-mark-mode
-                 (copy-rectangle-as-kill start end)
+                 (if my/line-selection-p
+                     (progn 
+                       (setq my/lines-selected (count-lines start end)) 
+                       (copy-rectangle-as-kill start end))
+                   (copy-rectangle-as-kill start end))
                (progn
                    (forward-char)
                    (copy-region-as-kill start end t)
@@ -297,9 +305,15 @@ if the region exists then we jump to the beginning of the region and merge the n
           (goto-char start)
           (delete-blank-lines)))
       (if killed-rectangle
-          (progn
-            (yank-rectangle)
-            (setq killed-rectangle nil))
+          (if my/line-selection-p
+              (progn
+                (forward-line)
+                (open-line my/lines-selected)
+                (yank-rectangle)
+                (forward-line))
+            (progn
+              (yank-rectangle)
+              (setq killed-rectangle nil)))
         (yank arg)))
 
      (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
