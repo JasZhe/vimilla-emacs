@@ -288,6 +288,8 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key my-vi-help-prefix-map "k" #'describe-key)
   (define-key my-vi-help-prefix-map "f" #'describe-function)
   (define-key my-vi-help-prefix-map "v" #'describe-variable)
+  (define-key my-vi-help-prefix-map "m" #'describe-mode)
+  (define-key my-vi-help-prefix-map "o" #'describe-symbol)
 #+end_src
 
 *** "buffer" prefix
