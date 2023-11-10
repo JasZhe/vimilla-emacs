@@ -36,33 +36,8 @@
 ;; in buffer completion:1 ends here
 
 ;; [[file:vimilla-emacs.org::*xref][xref:1]]
-(defun my/icomplete-xref (fetcher alist)
-  (let* ((xrefs                                
-          (or                                  
-           (assoc-default 'fetched-xrefs alist)
-           (funcall fetcher)))                 
-         (xref-alist (xref--analyze xrefs)))
-    (setq my/xref-items nil)
-    (mapcar (lambda (xref)
-              (let* ((item (xref-item-location xref))
-                     (file (xref-file-location-file item))
-                     (line (xref-file-location-line item))
-                     (summ (xref-item-summary xref))
-                     (comp-item (format "%s   %s   %s" summ file line)))
-                (setq my/xref-items
-                      (append my/xref-items
-                              (list comp-item)))
-                ))
-            (cdr xrefs))
-    (setq my/xref-result (completing-read "xref: " my/xref-items))
-    (let* ((items (split-string my/xref-result "   "))
-           (file (nth 1 items))
-           (line (string-to-number (nth 2 items))))
-
-      (find-file file)
-      (goto-line line))
-  ))
-(setq xref-show-xrefs-function #'my/icomplete-xref)
+(setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 ;; xref:1 ends here
 
 ;; [[file:vimilla-emacs.org::*Tab bar][Tab bar:1]]
