@@ -232,20 +232,28 @@ if the region exists then we jump to the beginning of the region and merge the n
        "convenience function for deleting a region, including rectangles"
        (interactive "P")
        (if (use-region-p)
-           (progn
-             (unless rectangle-mark-mode (forward-char))
-             (kill-region (region-beginning) (region-end) (use-region-p)))
+           (let ((start (region-beginning)) (end (region-end)))
+             (if rectangle-mark-mode
+                 (progn
+                   (kill-rectangle start end arg))
+                 (progn
+                   (forward-char)
+                   (kill-region start end (use-region-p))))
+             (delete-blank-lines))
          (viper-command-argument arg)))
 
-    (defun viper-yank-region-or-motion-command (arg)
+    (defun viper-copy-region-or-motion-command (arg)
        "convenience function for yanking a region, including rectangles"
        (interactive "P")
        (if (use-region-p)
-           (progn
-             (unless rectangle-mark-mode (forward-char))
-             (copy-region-as-kill (region-beginning) (region-end) t)
-             (unless rectangle-mark-mode (backward-char))
-             )
+           (let ((start (region-beginning)) (end (region-end)))
+             (if rectangle-mark-mode
+                 (copy-rectangle-as-kill start end)
+               (progn
+                   (forward-char)
+                   (copy-region-as-kill start end t)
+                   (backward-char))
+               ))
          (viper-command-argument arg)))
 
     (defun viper-paste-into-region (arg)
@@ -256,11 +264,16 @@ if the region exists then we jump to the beginning of the region and merge the n
         (unless rectangle-mark-mode (forward-char))
         (let ((start (region-beginning)))
           (delete-active-region)
-          (goto-char start)))
-          (yank arg))
+          (goto-char start)
+          (delete-blank-lines)))
+      (if killed-rectangle
+          (progn
+            (yank-rectangle)
+            (setq killed-rectangle nil))
+        (yank arg)))
 
      (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
-     (define-key viper-vi-basic-map "y" #'viper-yank-region-or-motion-command)
+     (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
      (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
 
