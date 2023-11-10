@@ -2,6 +2,46 @@
 (setq mac-option-modifier 'meta)
 ;; Mac settings:1 ends here
 
+;; [[file:vimilla-emacs.org::*Mac settings][Mac settings:2]]
+(defface font-lock-func-face 
+    '((nil (:foreground "#7F0055" :weight bold))
+      (t (:bold t :italic t)))
+  "Font Lock mode face used for function calls."
+  :group 'font-lock-highlighting-faces)
+
+(font-lock-add-keywords 
+ 'emacs-lisp-mode
+ '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+    1 'font-lock-constant-face)) 'append)
+
+(defun my-fl (_limit)                                                          
+  (let ((opoint  (point))                                                      
+        (found   nil))                                                         
+    (with-syntax-table emacs-lisp-mode-syntax-table                            
+      (while (not found)                                                       
+        (cond ((condition-case ()                                              
+                   (save-excursion                                             
+                     (skip-chars-forward "'")                                  
+                     (setq opoint  (point))                                    
+                     (let ((obj  (read (current-buffer))))                     
+                       (and (symbolp obj)  (fboundp obj)                       
+                            (progn (set-match-data (list opoint (point))) t))))
+                 (error nil))                                                  
+               (forward-sexp 1)                                                
+               (setq opoint  (point)                                           
+                     found   t))                                               
+              (t                                                               
+               (if (looking-at "\\(\\sw\\|\\s_\\)")                            
+                   (forward-sexp 1)                                            
+                 (forward-char 1)))))                                          
+      found)))
+
+;; (add-hook 'emacs-lisp-mode-hook
+;; 	  (lambda ()
+;; 	    (font-lock-add-keywords nil
+;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
+;; Mac settings:2 ends here
+
 ;; [[file:vimilla-emacs.org::*General Settings][General Settings:1]]
 (add-to-list 'completion-styles 'substring)
 (fido-vertical-mode)
@@ -60,6 +100,18 @@
 ;; go us treesit:1 ends here
 
 ;; [[file:vimilla-emacs.org::*Org][Org:1]]
+(defface org-block-begin-line
+  '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
+  "Face used for the line delimiting the begin of source blocks.")
+
+(defface org-block-background
+  '((t (:background "#FFFFEA")))
+  "Face used for the source block background.")
+
+(defface org-block-end-line
+  '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
+  "Face used for the line delimiting the end of source blocks.")
+
 (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 4)
 ;; Org:1 ends here
