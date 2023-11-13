@@ -407,9 +407,14 @@ TODO imenu keybinding
 #+begin_src elisp
   (define-prefix-command 'my-vi-leader-prefix-map)
   (define-key viper-vi-basic-map " " #'my-vi-leader-prefix-map)
-  (define-key my-vi-leader-prefix-map "," #'ido-switch-buffer)
-  (define-key my-vi-leader-prefix-map "u" #'universal-argument)
 
+  (define-key my-vi-leader-prefix-map ","
+              (lambda (arg)
+                "switch to project buffer, with prefix argument, switch to any buffer"
+                (interactive "P")
+                (if arg (ido-switch-buffer)
+                  (project-switch-to-buffer (project--read-project-buffer)))))
+  (define-key my-vi-leader-prefix-map "u" #'universal-argument)
 
   (define-key my-vi-leader-prefix-map "F" #'project-find-file)
   (define-key my-vi-leader-prefix-map "G" #'vc-git-grep) ;; good enough
@@ -427,6 +432,7 @@ TODO imenu keybinding
 #+begin_src elisp
   (define-prefix-command 'my-vi-project-prefix-map)
   (define-key my-vi-leader-prefix-map "p" #'my-vi-project-prefix-map)
+  (define-key my-vi-project-prefix-map "p" #'project-switch-project)
   (define-key my-vi-project-prefix-map "e" #'project-eshell)
   (define-key my-vi-project-prefix-map "s" #'project-shell)
 #+end_src
