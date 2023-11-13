@@ -496,6 +496,7 @@ TODO imenu keybinding
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 #+end_src
 * Org
+
 #+begin_src elisp
   (defface org-block-begin-line
     '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
@@ -511,4 +512,15 @@ TODO imenu keybinding
 
   (setq org-startup-indented t)
   (setq org-indent-indentation-per-level 4)
+
+  ;; allow dabbrev expand on tab when in insert mode
+  (defun line-before-point-empty-p ()
+    (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
+
+  (define-key org-mode-map "\t"
+              (lambda (arg)
+                (interactive "P")
+                (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
+                    (dabbrev-expand arg)
+                  (org-cycle arg))))
 #+end_src
