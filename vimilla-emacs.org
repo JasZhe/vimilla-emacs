@@ -15,6 +15,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 #+begin_src elisp
   (setq viper-mode t)
   (require 'viper)
+  (require 'rect)
   (add-to-list 'completion-styles 'substring)
   (fido-vertical-mode)
   (viper-mode)
@@ -30,8 +31,18 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
   (setq scroll-preserve-screen-position t)
 #+end_src
 
+** Searching
+#+begin_src elisp
+  (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char) 
+  (advice-add #'isearch-printing-char :after
+             (lambda (&rest args)
+                (if isearch-regexp (isearch-occur isearch-regexp)
+                  (isearch-occur isearch-string))))
+#+end_src
+
 ** in buffer completion
 #+begin_src elisp
+  (setq enable-recursive-minibuffers t)
   (defun completing-read-in-region (start end collection &optional predicate)
      "Prompt for completion of region in the minibuffer if non-unique.
     Use as a value for `completion-in-region-function'."
