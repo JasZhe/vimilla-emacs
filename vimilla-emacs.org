@@ -575,6 +575,9 @@ pretty handy tbh
 * Org
 
 #+begin_src elisp
+
+  (setq org-directory "~/orgmode/")
+  (setq org-attach-id-dir (concat (file-name-as-directory org-directory) ".attach"))
   (defface org-block-begin-line
     '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
     "Face used for the line delimiting the begin of source blocks.")
