@@ -519,6 +519,24 @@ TODO imenu keybinding
   (define-key my-vi-search-prefix-map "i" #'imenu)
 #+end_src
 
+*** "notes" prefix
+in lieu of org-roam, use bookmarks
+pretty handy tbh
+#+begin_src
+  (define-prefix-command 'my-vi-notes-prefix-map)
+  (define-key my-vi-leader-prefix-map "n" #'my-vi-notes-prefix-map)
+
+  (setq bookmark-save-flag 1)
+  (setq bookmark-use-annotations t)
+  (define-prefix-command 'my-vi-roam-prefix-map)
+  (define-key my-vi-notes-prefix-map "r" #'my-vi-roam-prefix-map)
+  (define-key my-vi-roam-prefix-map "f" #'bookmark-jump)
+  (define-key my-vi-roam-prefix-map "l" #'list-bookmarks)
+  (define-key my-vi-roam-prefix-map "i" #'bookmark-set)
+  (define-key my-vi-roam-prefix-map "n" #'bookmark-set)
+  (define-key my-vi-roam-prefix-map "d" #'bookmark-delete)
+#+end_src
+
 ** pseudo "files" "f" prefix
 #+begin_src elisp
     (define-prefix-command 'my-vi-files-prefix-map)
