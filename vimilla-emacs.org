@@ -522,7 +522,7 @@ TODO imenu keybinding
 *** "notes" prefix
 in lieu of org-roam, use bookmarks
 pretty handy tbh
-#+begin_src
+#+begin_src elisp
   (define-prefix-command 'my-vi-notes-prefix-map)
   (define-key my-vi-leader-prefix-map "n" #'my-vi-notes-prefix-map)
 
