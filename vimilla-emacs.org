@@ -33,9 +33,9 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 
 ** Searching
 #+begin_src elisp
-  (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char) 
+  (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char)
   (advice-add #'isearch-printing-char :after
-             (lambda (&rest args)
+              (lambda (&rest args)
                 (if isearch-regexp (isearch-occur isearch-regexp)
                   (isearch-occur isearch-string))))
 #+end_src
@@ -61,9 +61,21 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 
 ** xref
 luckily this is built in lol
-#+begin_src elisp                                                           
-  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+#+begin_src elisp
+  (use-package xref
+    :config
+    (progn
+      (setq xref-search-program 'ripgrep)
+      (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)      
+      (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+      )
+    )
+
+  (defun iproject-search () (interactive)                                                                        
+         (let ((shk-search-string isearch-string))                                                     
+           (project-find-regexp (if isearch-regexp shk-search-string (regexp-quote shk-search-string)))
+           (isearch-abort)))
+  (define-key isearch-mode-map (kbd "M-s g") #'iproject-search)
 #+end_src
 
 ** some more basic elisp highlighting
@@ -450,7 +462,7 @@ TODO imenu keybinding
   (define-key my-vi-leader-prefix-map "u" #'universal-argument)
 
   (define-key my-vi-leader-prefix-map "F" #'project-find-file)
-  (define-key my-vi-leader-prefix-map "G" #'vc-git-grep) ;; good enough
+  (define-key my-vi-leader-prefix-map "G" #'project-find-regexp) ;; good enough
 #+end_src
 
 *** "open" prefix
@@ -498,6 +510,14 @@ TODO imenu keybinding
   (define-key my-vi-tabbar-prefix-map "n" #'tab-bar-new-tab)
   (define-key my-vi-tabbar-prefix-map "d" #'tab-bar-close-tab)
 #+end_src 
+
+*** "search" prefix
+#+begin_src elisp
+  (define-prefix-command 'my-vi-search-prefix-map)
+  (define-key my-vi-leader-prefix-map "s" #'my-vi-search-prefix-map)
+  (define-key my-vi-search-prefix-map "s" #'isearch-forward)
+  (define-key my-vi-search-prefix-map "i" #'imenu)
+#+end_src
 
 ** pseudo "files" "f" prefix
 #+begin_src elisp
@@ -556,10 +576,18 @@ TODO imenu keybinding
   (defun line-before-point-empty-p ()
     (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
 
-  (define-key org-mode-map "\t"
-              (lambda (arg)
-                (interactive "P")
-                (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
-                    (dabbrev-expand arg)
-                  (org-cycle arg))))
+  (use-package org
+    :config
+    (define-key org-mode-map "\t"
+                (lambda (arg)
+                  (interactive "P")
+                  (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
+                      (dabbrev-expand arg)
+                    (org-cycle arg)))))
 #+end_src
+
+
+* Local variables                                                        
+;; Local Variables:                                                      
+;; eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
+;; End:                                                                  
