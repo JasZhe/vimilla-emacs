@@ -132,7 +132,7 @@ basically minimal projectile and persp
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
 
-** general
+** vi state stuff
 hacky global var to have a "global" viper state
 is this better than the default behavior?
 Maybe.. maybe not but now this should enable viper mode even on major modes not specified by viper itself
@@ -156,16 +156,6 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
 #+begin_src elisp
   (setq viper-inhibit-startup-message 't)
   (setq viper-expert-level '5)
-
-  ;; prefer the following to be in whatever state I'm already in
-  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))
-  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))
-  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))
-  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))
-  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-
-  ;; then remove all emacs states and replace with insert states
-  (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
 
   (add-hook 'viper-insert-state-hook (lambda ()
                                        (global-hl-line-mode -1)
@@ -193,12 +183,29 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (setq viper-insert-state-cursor-color nil)
 #+end_src
 
+*** want better normal state bindings in the "emacs state" buffers
+#+begin_src elisp
+
+  ;; prefer the following to be in whatever state I'm already in                                       
+  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
+  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
+  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))                  
+  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))                   
+  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
+
+  ;; then remove all emacs states and replace with insert states                                       
+  (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
+
+  
+#+end_src
+** help commands
 qol to use c-h for help commands, and something for us to type faster
 #+begin_src elisp
   (setq viper-want-ctl-h-help 't)
   (setq viper-fast-keyseq-timeout 100)
 #+end_src
 
+** better esp handling
 better ESC key handling to exit visual mode and close mini buffer
 #+begin_src elisp
   (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
@@ -215,6 +222,17 @@ better ESC key handling to exit visual mode and close mini buffer
 #+begin_src elisp
 (define-key viper-vi-basic-map "k" #'previous-line)
 (define-key viper-vi-basic-map "j" #'next-line)
+#+end_src
+
+** forward "enter" and "q" in vi state
+good enough solution without getting too complicated
+we never really type these in normal mode anyways
+and these are pretty useful in some buffers
+
+default behavior of the enter key is pretty meh anyways
+#+begin_src elisp
+  (define-key viper-vi-basic-map (kbd "RET") nil)
+  (define-key viper-vi-basic-map "q" nil)
 #+end_src
 
 ** Window movement
@@ -246,9 +264,13 @@ not necessary viper, but same idea
   (define-key global-map "\C-w\C-o" #'delete-other-windows)
 #+end_src
 
-TODO testing more cases
-figure out why comment region busted
+
+** custom minor mode to emulator vim visual mode
+TODO
+
 ** pseudo visual mode
+TODO testing more cases             
+figure out why comment region busted
 *** pseudo visual line
 have a variable for us to know if we're in the a pseudo line selection or normal selection
 #+begin_src elisp  
