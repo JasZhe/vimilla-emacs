@@ -1,4 +1,5 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
+
 #+PROPERTY: header-args :tangle yes :comments link :noeval :mkdirp yes
 
 * Mac settings
@@ -16,7 +17,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
   (setq viper-mode t)
   (require 'viper)
   (require 'rect)
-  (icomplete-vertical-mode)
+  (fido-vertical-mode)
   (viper-mode)
   (global-hl-line-mode)
   (global-visual-line-mode)
