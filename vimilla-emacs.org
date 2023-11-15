@@ -11,11 +11,35 @@ maybe something in rust since rust-ts-mode is built in
 
 * TODO look into using emacsclient for git rebase and stuff
 something like this
+
+mainly for these two:
+git fetch
+git rebase
+
+and need to figure out keymappings
 #+begin_src elisp :tangle no
-    (defun my/vc-git-editor-command (command)
-      "command is a git subcommand that requires an editor.
-  example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\""
-      (async-shell-command "GIT_EDITOR=\"emacsclient\" bash -c \"git rebase -i HEAD~3\""))
+  (defun my/vc-git-editor-command (command)
+    "command is a git subcommand that requires an editor.
+  example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
+    (async-shell-command
+     (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\"")))
+
+  (defun my/vc-git-rebase-i (branch)
+    (interactive)
+    (let (revision (read-string "revision: "))
+      (my/vc-git-editor-command (concat "rebase -i " revision))))
+
+  (defun my/vc-git-rebase-abort ()
+    (interactive)
+    (async-shell-command "rebase --abort"))
+  
+  (defun my/vc-git-rebase-continue ()                  
+    (interactive)                                 
+    (async-shell-command "rebase --continue"))
+
+  (defun my/vc-git-fetch ()                  
+    (interactive)                                  
+    (async-shell-command "git fetch"))
 #+end_src
 
 * Mac settings
