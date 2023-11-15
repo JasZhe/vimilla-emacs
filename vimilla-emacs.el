@@ -20,13 +20,34 @@
 (setq scroll-preserve-screen-position t)
 ;; General Settings:1 ends here
 
-;; [[file:vimilla-emacs.org::*Searching][Searching:1]]
-(advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char)
-(advice-add #'isearch-printing-char :after
-            (lambda (&rest args)
-              (if isearch-regexp (isearch-occur isearch-regexp)
-                (isearch-occur isearch-string))))
-;; Searching:1 ends here
+;; [[file:vimilla-emacs.org::*advice to highlight matches with viper search][advice to highlight matches with viper search:1]]
+(advice-add #'viper-search :after
+            (lambda (string &rest args)
+              (hi-lock-face-buffer string)))
+;; advice to highlight matches with viper search:1 ends here
+
+;; [[file:vimilla-emacs.org::*optional incremental occur, similar to swiper][optional incremental occur, similar to swiper:1]]
+;; keep highlighting after isearch
+(setq lazy-highlight-cleanup nil)
+
+;; be explicit about using this advice
+(setq my/ioccur-p nil)
+(defun my/ioccur (arg)
+  (interactive "P")
+  (setq my/ioccur-p t)
+  (isearch-forward arg))
+
+(add-hook 'isearch-mode-hook
+         (lambda ()
+            (if my/ioccur-p
+                (advice-add #'isearch-printing-char :after
+                            (lambda (&rest args)
+                              (if isearch-regexp (isearch-occur isearch-regexp)
+                                (isearch-occur isearch-string))))
+              (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
+
+(add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
+;; optional incremental occur, similar to swiper:1 ends here
 
 ;; [[file:vimilla-emacs.org::*in buffer completion][in buffer completion:1]]
 (setq enable-recursive-minibuffers t)
@@ -55,12 +76,6 @@
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
     )
   )
-
-(defun iproject-search () (interactive)                                                                        
-       (let ((shk-search-string isearch-string))                                                     
-         (project-find-regexp (if isearch-regexp shk-search-string (regexp-quote shk-search-string)))
-         (isearch-abort)))
-(define-key isearch-mode-map (kbd "M-s g") #'iproject-search)
 ;; xref:1 ends here
 
 ;; [[file:vimilla-emacs.org::*some more basic elisp highlighting][some more basic elisp highlighting:1]]
@@ -149,10 +164,13 @@
   (progn
     (setq org-goto-interface 'outline-path-completionp)
     (setq org-outline-path-complete-in-steps nil)
+    (setq org-return-follows-link t)
+
     (setq my-org-modifier-map (make-sparse-keymap))
     (define-key my-org-modifier-map " si" #'org-goto)
     (define-key my-org-modifier-map " msl" #'org-demote-subtree)
     (define-key my-org-modifier-map " msh" #'org-promote-subtree)
+    (define-key my-org-modifier-map " oaa" #'org-agenda)
     (viper-modify-major-mode 'org-mode 'vi-state my-org-modifier-map)
 
     (define-key org-mode-map "\t"
