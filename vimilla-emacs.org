@@ -1,5 +1,13 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
-#+PROPERTY: header-args :tangle yes :comments link :mkdirp yes
+#+PROPERTY: header-args :tangle yes :comments link :mkdirp yes :results silent
+
+* TODO clean things up ask for feedback on reddit?
+
+* TODO flesh out some org commands
+
+* TODO use this on some actual coding project
+maybe clojure stuff
+maybe something in rust since rust-ts-mode is built in
 
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
