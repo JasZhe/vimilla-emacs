@@ -1,6 +1,5 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
-
-#+PROPERTY: header-args :tangle yes :comments link :noeval :mkdirp yes
+#+PROPERTY: header-args :tangle yes :comments link :mkdirp yes
 
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
@@ -139,7 +138,7 @@ basically minimal projectile and persp
 
 * Viper
 :PROPERTIES:
-:header-args: :tangle ~/.emacs.d/viper :comments link :noeval
+:header-args: :tangle ~/.emacs.d/viper :comments link 
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
