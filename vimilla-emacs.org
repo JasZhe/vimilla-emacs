@@ -738,7 +738,8 @@ otherwise this works lol
 #+begin_src elisp
 
   (setq org-directory "~/orgmode/")
-  (setq org-attach-id-dir (concat (file-name-as-directory org-directory) ".attach"))
+  (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
+  (setq org-attach-use-interitance t)
   (defface org-block-begin-line
     '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
     "Face used for the line delimiting the begin of source blocks.")
@@ -761,16 +762,18 @@ otherwise this works lol
   (use-package org
     :config
     (progn
+      (setq org-image-actual-width '(300))
       (setq org-goto-interface 'outline-path-completionp)
       (setq org-outline-path-complete-in-steps nil)
       (setq org-return-follows-link t)
+      (setq my/org-vi-state-modify-map (make-sparse-keymap))
 
-      (setq my-org-modifier-map (make-sparse-keymap))
-      (define-key my-org-modifier-map " si" #'org-goto)
-      (define-key my-org-modifier-map " msl" #'org-demote-subtree)
-      (define-key my-org-modifier-map " msh" #'org-promote-subtree)
-      (define-key my-org-modifier-map " oaa" #'org-agenda)
-      (viper-modify-major-mode 'org-mode 'vi-state my-org-modifier-map)
+      (define-key my/org-vi-state-modify-map "zi" #'org-toggle-inline-images)
+      (define-key my/org-vi-state-modify-map " si" #'org-goto)
+      (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
+      (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
+      (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
+      (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)
 
       (define-key org-mode-map "\t"
                   (lambda (arg)
