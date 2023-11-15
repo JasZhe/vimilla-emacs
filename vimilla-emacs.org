@@ -39,12 +39,36 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 #+end_src
 
 ** Searching
+*** advice to highlight matches with viper search
 #+begin_src elisp
-  (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char)
-  (advice-add #'isearch-printing-char :after
-              (lambda (&rest args)
-                (if isearch-regexp (isearch-occur isearch-regexp)
-                  (isearch-occur isearch-string))))
+  (advice-add #'viper-search :after
+              (lambda (string &rest args)
+                (hi-lock-face-buffer string)))
+#+end_src
+
+*** optional incremental occur, similar to swiper
+[[*better escape handling][advice to turn off highlighting on escape]]
+#+begin_src elisp
+  ;; keep highlighting after isearch
+  (setq lazy-highlight-cleanup nil)
+
+  ;; be explicit about using this advice
+  (setq my/ioccur-p nil)
+  (defun my/ioccur (arg)
+    (interactive "P")
+    (setq my/ioccur-p t)
+    (isearch-forward arg))
+
+  (add-hook 'isearch-mode-hook
+           (lambda ()
+              (if my/ioccur-p
+                  (advice-add #'isearch-printing-char :after
+                              (lambda (&rest args)
+                                (if isearch-regexp (isearch-occur isearch-regexp)
+                                  (isearch-occur isearch-string))))
+                (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
+
+  (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 #+end_src
 
 ** in buffer completion
@@ -77,12 +101,6 @@ luckily this is built in lol
       (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
       )
     )
-
-  (defun iproject-search () (interactive)                                                                        
-         (let ((shk-search-string isearch-string))                                                     
-           (project-find-regexp (if isearch-regexp shk-search-string (regexp-quote shk-search-string)))
-           (isearch-abort)))
-  (define-key isearch-mode-map (kbd "M-s g") #'iproject-search)
 #+end_src
 
 ** some more basic elisp highlighting
@@ -146,7 +164,7 @@ basically minimal projectile and persp
 
 * Viper
 :PROPERTIES:
-:header-args: :tangle ~/.emacs.d/viper :comments link 
+:header-args: :tangle ~/.emacs.d/viper :comments link :results silent
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
@@ -222,24 +240,39 @@ qol to use c-h for help commands, and something for us to type faster
   (setq viper-fast-keyseq-timeout 100)
 #+end_src
 
-** better esp handling
+** better escape handling
 better ESC key handling to exit visual mode and close mini buffer
 #+begin_src elisp
+  ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-intercept-ESC-key fun)) 'viper-intercept-ESC-key)
   (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
   (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
   (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (cua-clear-rectangle-mark))))
+  (advice-add 'viper-intercept-ESC-key :after (lambda () (lazy-highlight-cleanup t)))
+  (advice-add 'viper-intercept-ESC-key :after (lambda ()
+                                                (dolist (hist viper-search-history)
+                                                  (hi-lock-unface-buffer hist))))
 #+end_src
 
 ** pop mark navigation
 #+begin_src elisp
-    (define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
-                ;;(lambda () (interactive) (let ((current-prefix-arg t)) (set-mark-command current-prefix-arg))))
+  ;; add to global marks when window stuff happens so we can switch back to prev position
+  (setq window-scroll-functions nil)
+  ;; not perfect but good enough
+  (add-to-list 'window-scroll-functions (lambda (window _)
+                                          (when (eq window (selected-window))
+                                            (push-mark nil t nil))))
+  (setq window-buffer-change-functions nil)
+  (add-to-list 'window-buffer-change-functions (lambda (_)
+                                                   (with-current-buffer (other-buffer)
+                                                     (push-mark nil t nil))))
+  (define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
+  ;;(lambda () (interactive) (let ((current-prefix-arg t)) (set-mark-command current-prefix-arg))))
 #+end_src
 
 ** respect visual lines cursor movement
 #+begin_src elisp
-(define-key viper-vi-basic-map "k" #'previous-line)
-(define-key viper-vi-basic-map "j" #'next-line)
+  (define-key viper-vi-basic-map "k" #'previous-line)
+  (define-key viper-vi-basic-map "j" #'next-line)
 #+end_src
 
 ** forward "enter" and "q" in vi state
@@ -482,9 +515,6 @@ if the region exists then we jump to the beginning of the region and merge the n
   (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
 
-#+RESULTS:
-: viper-paste-into-region
-
 ** undo
 thank god for undo-only but emacs > 28 only
 need to remap isearch-backward since i wanna use C-r for redo
@@ -498,7 +528,7 @@ need to remap isearch-backward since i wanna use C-r for redo
 #+begin_src elisp
   (setq my/g-prefix-map (make-sparse-keymap))
   (define-key viper-vi-basic-map "g" my/g-prefix-map)
-  (define-key my/g-prefix-map "g" #'beginning-of-buffer)
+  (define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
 #+end_src
 
 *** movement since we have visual lines
@@ -573,7 +603,7 @@ TODO imenu keybinding
 
 *** "search" prefix
 #+begin_src elisp
-  (define-key my/leader-prefix-map "ss" #'isearch-forward)
+  (define-key my/leader-prefix-map "ss" #'my/ioccur)
   (define-key my/leader-prefix-map "si" #'imenu)
 #+end_src
 
