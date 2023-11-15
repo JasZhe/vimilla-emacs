@@ -665,10 +665,13 @@ respect scroll margin
     (progn
       (setq org-goto-interface 'outline-path-completionp)
       (setq org-outline-path-complete-in-steps nil)
+      (setq org-return-follows-link t)
+
       (setq my-org-modifier-map (make-sparse-keymap))
       (define-key my-org-modifier-map " si" #'org-goto)
       (define-key my-org-modifier-map " msl" #'org-demote-subtree)
       (define-key my-org-modifier-map " msh" #'org-promote-subtree)
+      (define-key my-org-modifier-map " oaa" #'org-agenda)
       (viper-modify-major-mode 'org-mode 'vi-state my-org-modifier-map)
 
       (define-key org-mode-map "\t"
