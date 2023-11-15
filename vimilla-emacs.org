@@ -275,34 +275,95 @@ not necessary viper, but same idea
   (define-key global-map "\C-w\C-o" #'delete-other-windows)
 #+end_src
 
-
-** custom minor mode to emulator vim visual mode
-TODO
-
 ** pseudo visual mode
-TODO testing more cases             
-figure out why comment region busted
+*** hacky advice for next/previous line to emulate visual mode
+basically a bunch of mark manipualtion essentially.
+
+a lot of the problem is just around making sure that starting line is always marked, similar to vim
+#+begin_src elisp
+  (setq selected-start-line -1)
+  (add-hook 'activate-mark-hook (lambda () (setq selected-start-line (line-number-at-pos))))
+  ;; (advice-mapc `(lambda (fun props) (advice-remove 'next-line fun)) 'next-line)
+  (advice-add 'next-line :around
+              (lambda (orig-fun &rest args)
+                (interactive)
+                ;; because now we're not getting the last newline
+                (if (< (line-number-at-pos) selected-start-line)
+                    (setq extra-line-after-yank t)
+                  (setq extra-line-after-yank nil))
+	      
+                (if my/line-selection-p
+                    (cond
+                     ((= (line-number-at-pos) selected-start-line)
+                      (progn
+                        (beginning-of-line)
+                        (set-mark-command nil)
+                        (end-of-line)
+                        (apply orig-fun args)
+                        (end-of-line)
+                        ))
+                     ((= (+ (line-number-at-pos) 1) selected-start-line)
+                      (progn
+                        (apply orig-fun args)
+                        (beginning-of-line)
+                        (set-mark-command nil)
+                        (end-of-line)))
+                     ((< (line-number-at-pos) selected-start-line)
+                      (apply orig-fun args))
+                     (t 
+                      (progn
+                        (apply orig-fun args)
+                        (end-of-line)))
+                     )
+                  (apply orig-fun args))))
+
+  (advice-add 'previous-line :around
+              (lambda (orig-fun &rest args)
+                (interactive)
+                (if (< (line-number-at-pos) selected-start-line)
+                    (setq extra-line-after-yank t)
+                  (setq extra-line-after-yank nil))
+                (if my/line-selection-p
+                    (cond 
+                     ((= (line-number-at-pos) selected-start-line)
+                      (progn
+                        (end-of-line)
+                        (set-mark-command nil)
+                        (beginning-of-line)
+                        (apply orig-fun args)
+                        (beginning-of-line)))
+                     ((> (line-number-at-pos) selected-start-line)
+                      (apply orig-fun args)
+                      (end-of-line))		   
+                     ((= (- (line-number-at-pos) 1) selected-start-line)
+                      (progn 
+                      (apply orig-fun args)
+                      (end-of-line)
+                      (set-mark-command nil)
+                      (beginning-of-line)))
+                     (t
+                      (progn
+                        (apply orig-fun args)
+                        (beginning-of-line))))
+                  (apply orig-fun args))))
+  ;; (advice-mapc `(lambda (fun props) (advice-remove 'previous-line fun)) 'previous-line)
+#+end_src
+
 *** pseudo visual line
 have a variable for us to know if we're in the a pseudo line selection or normal selection
 #+begin_src elisp  
   (setq my/line-selection-p nil)
   (setq my/lines-selected 0)
 
+  (add-hook 'deactivate-mark-hook (lambda () (setq my/line-selection-p nil)))
+
   (defun my/select-lines (arg)
     "go to beginning of line and select rectangle mark and also set line selection flag"
     (interactive "p")
     (setq my/line-selection-p t)
     (beginning-of-line)
-    (rectangle-mark-mode arg)
-    (end-of-visual-line))
-
-  ;;(advice-mapc `(lambda (fun props) (advice-remove 'rectangle-previous-line fun)) 'rectangle-previous-line)
-  ;;(advice-mapc `(lambda (fun props) (advice-remove 'rectangle-next-line fun)) 'rectangle-next-line)
-
-  (advice-add 'rectangle-previous-line :after                                             
-              (lambda (&rest args) (when my/line-selection-p (end-of-line))))
-  (advice-add 'rectangle-next-line :after
-              (lambda (&rest args) (when my/line-selection-p (end-of-line))))
+    (set-mark-command nil)
+    (end-of-line))
 
   (defun my/set-mark-command (arg)
     "set mark, and also unset line selection flag"
@@ -324,7 +385,6 @@ deactivate mark on esc
   (define-key viper-vi-basic-map "v" #'my/set-mark-command)
   (define-key viper-vi-basic-map "V" nil)
   (define-key viper-vi-basic-map "V" #'my/select-lines)
-  
   (define-key viper-vi-basic-map "\C-v" #'my/visual-block)
 #+end_src
 
@@ -354,69 +414,69 @@ if the region exists then we jump to the beginning of the region and merge the n
                   (apply orig-fun `(,arg)))))
 #+end_src
 
-*** better yanking/killing for visual selection
+*** hacky stuff to make yanking/killing work for our line visual selection
 #+begin_src elisp
-    (defun viper-delete-region-or-motion-command (arg)
-       "convenience function for deleting a region, including rectangles"
-       (interactive "P")
-       (if (use-region-p)
-           (let ((start (region-beginning)) (end (region-end)))
-             (if rectangle-mark-mode
-                   (if my/line-selection-p
-                       (progn
-                         (setq my/lines-selected (count-lines start end))
-                         (kill-rectangle start end))
-                     (kill-rectangle start end arg))
-                 (progn
-                   (forward-char)
-                   (kill-region start end t)))
-             (delete-blank-lines))
-         (viper-command-argument arg)))
-
-    (defun viper-copy-region-or-motion-command (arg)
-       "convenience function for yanking a region, including rectangles"
-       (interactive "P")
-       (if (use-region-p)
-           (let ((start (region-beginning)) (end (region-end)))
-             (if rectangle-mark-mode
-                 (if my/line-selection-p
-                     (progn 
-                       (setq my/lines-selected (count-lines start end)) 
-                       (copy-rectangle-as-kill start end))
-                   (copy-rectangle-as-kill start end))
-               (progn
-                   (forward-char)
-                   (copy-region-as-kill start end t)
-                   (backward-char))
-               ))
-         (viper-command-argument arg)))
-
-    (defun viper-paste-into-region (arg)
-      "if region is active, delete region before pasting
-  respects rectangle mode in a similar way to vim/doom"
-      (interactive "P")
-      (when (use-region-p)
-        (unless rectangle-mark-mode (forward-char))
-        (let ((start (region-beginning)))
-          (delete-active-region)
-          (goto-char start)
-          (delete-blank-lines)))
-      (if killed-rectangle
-          (if my/line-selection-p
-              (progn
-                (forward-line)
-                (open-line my/lines-selected)
-                (yank-rectangle)
-                (forward-line))
+  (setq my/line-yank-p nil)
+  (defun viper-delete-region-or-motion-command (arg)
+    "convenience function for deleting a region, including rectangles"
+    (interactive "P")
+    (if (use-region-p)
+        (let ((start (region-beginning)) (end (region-end)))
+          (if rectangle-mark-mode
+              (kill-rectangle start end arg)
             (progn
-              (yank-rectangle)
-              (setq killed-rectangle nil)))
-        (yank arg)))
+              (forward-char)
+              (if my/line-selection-p
+                  (setq my/line-yank-p t)
+                (setq my/line-yank-p nil))
+              (kill-region start end t))))
+      (viper-command-argument arg)))
 
-     (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
-     (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
-     (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+  (defun viper-copy-region-or-motion-command (arg)
+    "convenience function for yanking a region, including rectangles"
+    (interactive "P")
+    (if (use-region-p)
+        (let ((start (region-beginning)) (end (region-end)))
+          (if rectangle-mark-mode
+              (copy-rectangle-as-kill start end)
+            (progn
+              (forward-char)
+              (if my/line-selection-p
+                  (setq my/line-yank-p t)
+                (setq my/line-yank-p nil))
+              (copy-region-as-kill start end t)
+              (backward-char))
+            ))
+      (viper-command-argument arg)))
+
+  (defun viper-paste-into-region (arg)
+    "if region is active, delete region before pasting
+  respects rectangle mode in a similar way to vim/doom"
+    (interactive "P")
+    (cond (my/line-yank-p
+           (progn
+             (viper-open-line nil)
+             (viper-change-state-to-vi)
+             (yank)
+             (forward-line)))
+          ((use-region-p)
+           (progn 
+             (unless rectangle-mark-mode (forward-char))
+             (let ((start (region-beginning)))
+               (delete-active-region)
+               (goto-char start)
+               (yank)
+               (delete-blank-lines))))
+          (killed-rectangle (yank-rectangle))
+          (t (yank arg))))
+
+  (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
+  (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
+  (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
+
+#+RESULTS:
+: viper-paste-into-region
 
 ** undo
 thank god for undo-only but emacs > 28 only
