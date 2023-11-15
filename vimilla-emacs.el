@@ -5,7 +5,7 @@
 ;; [[file:vimilla-emacs.org::*General Settings][General Settings:1]]
 (setq viper-mode t)
 (require 'viper)
-(add-to-list 'completion-styles 'substring)
+(require 'rect)
 (fido-vertical-mode)
 (viper-mode)
 (global-hl-line-mode)
@@ -20,7 +20,16 @@
 (setq scroll-preserve-screen-position t)
 ;; General Settings:1 ends here
 
+;; [[file:vimilla-emacs.org::*Searching][Searching:1]]
+(advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char)
+(advice-add #'isearch-printing-char :after
+            (lambda (&rest args)
+              (if isearch-regexp (isearch-occur isearch-regexp)
+                (isearch-occur isearch-string))))
+;; Searching:1 ends here
+
 ;; [[file:vimilla-emacs.org::*in buffer completion][in buffer completion:1]]
+(setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
    "Prompt for completion of region in the minibuffer if non-unique.
   Use as a value for `completion-in-region-function'."
@@ -38,8 +47,20 @@
 ;; in buffer completion:1 ends here
 
 ;; [[file:vimilla-emacs.org::*xref][xref:1]]
-(setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+(use-package xref
+  :config
+  (progn
+    (setq xref-search-program 'ripgrep)
+    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)      
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+    )
+  )
+
+(defun iproject-search () (interactive)                                                                        
+       (let ((shk-search-string isearch-string))                                                     
+         (project-find-regexp (if isearch-regexp shk-search-string (regexp-quote shk-search-string)))
+         (isearch-abort)))
+(define-key isearch-mode-map (kbd "M-s g") #'iproject-search)
 ;; xref:1 ends here
 
 ;; [[file:vimilla-emacs.org::*some more basic elisp highlighting][some more basic elisp highlighting:1]]
@@ -97,11 +118,13 @@
 ;; (setq tabbar-buffer-groups-function 'git-tabbar-buffer-groups)
 ;; Tab bar:1 ends here
 
-;; [[file:vimilla-emacs.org::*go us treesit][go us treesit:1]]
+;; [[file:vimilla-emacs.org::*go use treesit][go use treesit:1]]
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-;; go us treesit:1 ends here
+;; go use treesit:1 ends here
 
 ;; [[file:vimilla-emacs.org::*Org][Org:1]]
+(setq org-directory "~/orgmode/")
+(setq org-attach-id-dir (concat (file-name-as-directory org-directory) ".attach"))
 (defface org-block-begin-line
   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
   "Face used for the line delimiting the begin of source blocks.")
@@ -116,4 +139,26 @@
 
 (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 4)
+
+;; allow dabbrev expand on tab when in insert mode
+(defun line-before-point-empty-p ()
+  (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
+
+(use-package org
+  :config
+  (progn
+    (setq org-goto-interface 'outline-path-completionp)
+    (setq org-outline-path-complete-in-steps nil)
+    (setq my-org-modifier-map (make-sparse-keymap))
+    (define-key my-org-modifier-map " si" #'org-goto)
+    (define-key my-org-modifier-map " msl" #'org-demote-subtree)
+    (define-key my-org-modifier-map " msh" #'org-promote-subtree)
+    (viper-modify-major-mode 'org-mode 'vi-state my-org-modifier-map)
+
+    (define-key org-mode-map "\t"
+                (lambda (arg)
+                  (interactive "P")
+                  (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
+                      (dabbrev-expand arg)
+                    (org-cycle arg))))))
 ;; Org:1 ends here
