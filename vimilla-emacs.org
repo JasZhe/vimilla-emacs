@@ -9,6 +9,15 @@
 maybe clojure stuff
 maybe something in rust since rust-ts-mode is built in
 
+* TODO look into using emacsclient for git rebase and stuff
+something like this
+#+begin_src elisp :tangle no
+    (defun my/vc-git-editor-command (command)
+      "command is a git subcommand that requires an editor.
+  example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\""
+      (async-shell-command "GIT_EDITOR=\"emacsclient\" bash -c \"git rebase -i HEAD~3\""))
+#+end_src
+
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
 #+begin_src elisp
@@ -658,6 +667,41 @@ respect scroll margin
 #+begin_src elisp
     (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
     (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+#+end_src
+
+** TODO advise viper-brac/ket-function
+holy shit lol..
+viper-cmd.el:viper-brac-function or viper-ket-function
+
+basically dynamically binding the read-char to return the initial read-char in the viper call so that we don't double prompt user for read-char
+
+TODO: maybe make an easier way to add new bindings
+otherwise this works lol
+#+begin_src elisp :tangle no
+  (advice-mapc `(lambda (fun props) (advice-remove 'viper-brac-function fun)) 'viper-brac-function)
+  (advice-add 'viper-brac-function :around
+              (lambda (orig-fun &rest args)
+                (let ((char (read-char)))
+                  (cond ((viper= ?b char) (previous-buffer))
+                        (t
+                         ;; hack so that we can override read-char and only need input once
+                         (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
+                           (apply orig-fun args)
+                           )
+                         )
+                  ))))
+  (advice-mapc `(lambda (fun props) (advice-remove 'viper-key-function fun)) 'viper-key-function)
+  (advice-add 'viper-ket-function :around
+              (lambda (orig-fun &rest args)
+                (let ((char (read-char)))
+                  (cond ((viper= ?b char) (next-buffer))
+                        (t
+                         ;; hack so that we can override read-char and only need input once
+                         (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
+                           (apply orig-fun args)
+                           )
+                         )
+                  ))))
 #+end_src
 
 * development
