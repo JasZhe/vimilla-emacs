@@ -206,8 +206,6 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
 
   ;; then remove all emacs states and replace with insert states                                       
   (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
-
-  
 #+end_src
 ** help commands
 qol to use c-h for help commands, and something for us to type faster
@@ -500,7 +498,6 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key my/g-prefix-map "k" #'viper-previous-line)
   (define-key my/g-prefix-map "j" #'viper-next-line)
 #+end_src
-
 *** tab bar movement
 #+begin_src elisp
   (define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
@@ -673,7 +670,6 @@ respect scroll margin
                         (dabbrev-expand arg)
                       (org-cycle arg))))))
 #+end_src
-
 
 * Local variables                                                        
 ;; Local Variables:                                                      
