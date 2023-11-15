@@ -221,6 +221,7 @@ better ESC key handling to exit visual mode and close mini buffer
 #+begin_src elisp
   (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
   (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
+  (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (cua-clear-rectangle-mark))))
 #+end_src
 
 ** pop mark navigation
@@ -489,118 +490,118 @@ need to remap isearch-backward since i wanna use C-r for redo
 
 ** "g" prefix commands
 #+begin_src elisp
-  (define-prefix-command 'my-vi-g-prefix-map)
-  (define-key viper-vi-basic-map "g" #'my-vi-g-prefix-map)
-  (define-key 'my-vi-g-prefix-map "g" #'beginning-of-buffer)
+  (setq my/g-prefix-map (make-sparse-keymap))
+  (define-key viper-vi-basic-map "g" my/g-prefix-map)
+  (define-key my/g-prefix-map "g" #'beginning-of-buffer)
 #+end_src
 
 *** movement since we have visual lines
 #+begin_src elisp
-  (define-key 'my-vi-g-prefix-map "k" #'viper-previous-line)
-  (define-key 'my-vi-g-prefix-map "j" #'viper-next-line)
+  (define-key my/g-prefix-map "k" #'viper-previous-line)
+  (define-key my/g-prefix-map "j" #'viper-next-line)
 #+end_src
 
 *** tab bar movement
 #+begin_src elisp
-  (define-key 'my-vi-g-prefix-map "t" #'tab-bar-switch-to-next-tab)
-  (define-key 'my-vi-g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
+  (define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
+  (define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
+#+end_src
+
+*** cua mode for multiple cursors
+#+begin_src elisp
+  (define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
 #+end_src
 
 ** pseudo "leader" prefix
 TODO imenu keybinding
 #+begin_src elisp
-  (define-prefix-command 'my-vi-leader-prefix-map)
-  (define-key viper-vi-basic-map " " #'my-vi-leader-prefix-map)
+  (setq my/leader-prefix-map (make-sparse-keymap))
+  (define-key viper-vi-basic-map " " my/leader-prefix-map)
 
-  (define-key my-vi-leader-prefix-map ","
+  (define-key my/leader-prefix-map ","
               (lambda (arg)
                 "switch to project buffer, with prefix argument, switch to any buffer"
                 (interactive "P")
                 (if arg (ido-switch-buffer)
                   (project-switch-to-buffer (project--read-project-buffer)))))
-  (define-key my-vi-leader-prefix-map "u" #'universal-argument)
+  (define-key my/leader-prefix-map "u" #'universal-argument)
 
-  (define-key my-vi-leader-prefix-map "F" #'project-find-file)
-  (define-key my-vi-leader-prefix-map "G" #'project-find-regexp) ;; good enough
+  (define-key my/leader-prefix-map "F" #'project-find-file)
+  (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
 #+end_src
 
 *** "open" prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-open-prefix-map)
-  (define-key my-vi-leader-prefix-map "o" #'my-vi-open-prefix-map)
-  (define-key my-vi-open-prefix-map "e" #'eshell)
-  (define-key my-vi-open-prefix-map "s" #'shell)
+  (define-key my/leader-prefix-map "oe" #'eshell)
+  (define-key my/leader-prefix-map "os" #'shell)
 #+end_src
 
 *** "project" prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-project-prefix-map)
-  (define-key my-vi-leader-prefix-map "p" #'my-vi-project-prefix-map)
-  (define-key my-vi-project-prefix-map "p" #'project-switch-project)
-  (define-key my-vi-project-prefix-map "e" #'project-eshell)
-  (define-key my-vi-project-prefix-map "s" #'project-shell)
+  (define-key my/leader-prefix-map "pp" #'project-switch-project)
+  (define-key my/leader-prefix-map "pe" #'project-eshell)
+  (define-key my/leader-prefix-map "ps" #'project-shell)
 #+end_src
 
 *** "help" prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-help-prefix-map)
-  (define-key my-vi-leader-prefix-map "h" #'my-vi-help-prefix-map)
-  (define-key my-vi-help-prefix-map "k" #'describe-key)
-  (define-key my-vi-help-prefix-map "f" #'describe-function)
-  (define-key my-vi-help-prefix-map "v" #'describe-variable)
-  (define-key my-vi-help-prefix-map "m" #'describe-mode)
-  (define-key my-vi-help-prefix-map "o" #'describe-symbol)
+  (define-key my/leader-prefix-map "hk" #'describe-key)
+  (define-key my/leader-prefix-map "hf" #'describe-function)
+  (define-key my/leader-prefix-map "hv" #'describe-variable)
+  (define-key my/leader-prefix-map "hm" #'describe-mode)
+  (define-key my/leader-prefix-map "ho" #'describe-symbol)
 #+end_src
 
 *** "buffer" prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-buffer-prefix-map)
-  (define-key my-vi-leader-prefix-map "b" #'my-vi-buffer-prefix-map)
-  (define-key my-vi-buffer-prefix-map "r" #'revert-buffer)
-  (define-key my-vi-buffer-prefix-map "p" #'previous-buffer)
-  (define-key my-vi-buffer-prefix-map "n" #'next-buffer)
-  (define-key my-vi-buffer-prefix-map "i" #'ibuffer)
+  (define-key my/leader-prefix-map "br" #'revert-buffer)
+  (define-key my/leader-prefix-map "bp" #'previous-buffer)
+  (define-key my/leader-prefix-map "bn" #'next-buffer)
+  (define-key my/leader-prefix-map "bi" #'ibuffer)
 #+end_src
 
 *** "tab" bar prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-tabbar-prefix-map)
-  (define-key my-vi-leader-prefix-map "\t" #'my-vi-tabbar-prefix-map)
-  (define-key my-vi-tabbar-prefix-map "n" #'tab-bar-new-tab)
-  (define-key my-vi-tabbar-prefix-map "d" #'tab-bar-close-tab)
+  (define-key my/leader-prefix-map "\tn" #'tab-bar-new-tab)
+  (define-key my/leader-prefix-map "\td" #'tab-bar-close-tab)
 #+end_src 
 
 *** "search" prefix
 #+begin_src elisp
-  (define-prefix-command 'my-vi-search-prefix-map)
-  (define-key my-vi-leader-prefix-map "s" #'my-vi-search-prefix-map)
-  (define-key my-vi-search-prefix-map "s" #'isearch-forward)
-  (define-key my-vi-search-prefix-map "i" #'imenu)
+  (define-key my/leader-prefix-map "ss" #'isearch-forward)
+  (define-key my/leader-prefix-map "si" #'imenu)
 #+end_src
 
 *** "notes" prefix
 in lieu of org-roam, use bookmarks
 pretty handy tbh
 #+begin_src elisp
-  (define-prefix-command 'my-vi-notes-prefix-map)
-  (define-key my-vi-leader-prefix-map "n" #'my-vi-notes-prefix-map)
-
   (setq bookmark-save-flag 1)
   (setq bookmark-use-annotations t)
-  (define-prefix-command 'my-vi-roam-prefix-map)
-  (define-key my-vi-notes-prefix-map "r" #'my-vi-roam-prefix-map)
-  (define-key my-vi-roam-prefix-map "f" #'bookmark-jump)
-  (define-key my-vi-roam-prefix-map "l" #'list-bookmarks)
-  (define-key my-vi-roam-prefix-map "i" #'bookmark-set)
-  (define-key my-vi-roam-prefix-map "n" #'bookmark-set)
-  (define-key my-vi-roam-prefix-map "d" #'bookmark-delete)
+  (define-key my/leader-prefix-map "nrf" #'bookmark-jump)
+  (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
+  (define-key my/leader-prefix-map "nri" #'bookmark-set)
+  (define-key my/leader-prefix-map "nrn" #'bookmark-set)
+  (define-key my/leader-prefix-map "nrd" #'bookmark-delete)
 #+end_src
 
-** pseudo "files" "f" prefix
+*** pseudo "files" "f" prefix
 #+begin_src elisp
-    (define-prefix-command 'my-vi-files-prefix-map)
-    (define-key my-vi-leader-prefix-map "f" #'my-vi-files-prefix-map)
-    (define-key my-vi-files-prefix-map "f" #'find-file)
+    (define-key my/leader-prefix-map "ff" #'find-file)
+#+end_src
+
+** window positioning commands
+respect scroll margin
+#+begin_src elisp
+  (define-key viper-vi-basic-map "H"
+              (lambda (arg) (interactive "P")
+                (if arg (viper-window-top arg)
+                  (viper-window-top (+ scroll-margin 1)))))
+  (define-key viper-vi-basic-map "L"
+              (lambda (arg) (interactive "P")
+                (if arg (viper-window-bottom arg)
+                  (viper-window-bottom (+ scroll-margin 1)))))
+  (define-key viper-vi-basic-map "zz" #'recenter-top-bottom)
 #+end_src
 
 ** code folding
@@ -615,15 +616,13 @@ pretty handy tbh
 
 ** eglot/xref
 #+begin_src elisp
-  (define-key 'my-vi-g-prefix-map "d" #'xref-find-definitions)
-  (define-key 'my-vi-g-prefix-map "D" #'xref-find-references)
+  (define-key my/leader-prefix-map "d" #'xref-find-definitions)
+  (define-key my/leader-prefix-map "D" #'xref-find-references)
 #+end_src
 
 #+begin_src elisp
-    (define-prefix-command 'my-vi-code-prefix-map)
-    (define-key my-vi-leader-prefix-map "c" #'my-vi-code-prefix-map)
-    (define-key my-vi-code-prefix-map "f" #'eglot-format-buffer)
-    (define-key my-vi-code-prefix-map "x" #'flymake-show-project-diagnostics)
+    (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
+    (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
 #+end_src
 
 * development
