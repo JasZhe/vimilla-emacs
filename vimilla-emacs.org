@@ -627,7 +627,7 @@ pretty handy tbh
 #+end_src
 
 * development
-** go us treesit
+** go use treesit
 #+begin_src elisp
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 #+end_src
@@ -658,12 +658,21 @@ pretty handy tbh
 
   (use-package org
     :config
-    (define-key org-mode-map "\t"
-                (lambda (arg)
-                  (interactive "P")
-                  (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
-                      (dabbrev-expand arg)
-                    (org-cycle arg)))))
+    (progn
+      (setq org-goto-interface 'outline-path-completionp)
+      (setq org-outline-path-complete-in-steps nil)
+      (setq my-org-modifier-map (make-sparse-keymap))
+      (define-key my-org-modifier-map " si" #'org-goto)
+      (define-key my-org-modifier-map " msl" #'org-demote-subtree)
+      (define-key my-org-modifier-map " msh" #'org-promote-subtree)
+      (viper-modify-major-mode 'org-mode 'vi-state my-org-modifier-map)
+
+      (define-key org-mode-map "\t"
+                  (lambda (arg)
+                    (interactive "P")
+                    (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
+                        (dabbrev-expand arg)
+                      (org-cycle arg))))))
 #+end_src
 
 
