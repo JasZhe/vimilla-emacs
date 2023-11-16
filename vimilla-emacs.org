@@ -691,7 +691,7 @@ respect scroll margin
 
 ** code folding
 #+begin_src elisp
-  (hs-minor-mode)
+  (add-hook 'prog-mode-hook #'hs-minor-mode)
   (define-key viper-vi-basic-map "zC" #'hs-hide-all)
   (define-key viper-vi-basic-map "zO" #'hs-show-all)
   (define-key viper-vi-basic-map "zo" #'hs-show-block)
