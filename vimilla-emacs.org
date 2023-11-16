@@ -17,22 +17,23 @@ git fetch
 git rebase
 
 and need to figure out keymappings
-#+begin_src elisp :tangle no
+#+begin_src elisp
   (defun my/vc-git-editor-command (command)
     "command is a git subcommand that requires an editor.
   example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (async-shell-command
      (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\"")))
 
-  (defun my/vc-git-rebase-i (branch)
+  (defun my/vc-git-rebase-i (&optional branch)
+    "if branch isn't supplied from arg, prompt for it"
     (interactive)
-    (let (revision (read-string "revision: "))
+    (let ((revision (if branch branch (read-string "revision: "))))
       (my/vc-git-editor-command (concat "rebase -i " revision))))
 
   (defun my/vc-git-rebase-abort ()
     (interactive)
     (async-shell-command "rebase --abort"))
-  
+
   (defun my/vc-git-rebase-continue ()                  
     (interactive)                                 
     (async-shell-command "rebase --continue"))
@@ -658,6 +659,16 @@ pretty handy tbh
 #+begin_src elisp
     (define-key my/leader-prefix-map "ff" #'find-file)
 #+end_src
+*** eglot/xref
+#+begin_src elisp
+  (define-key my/leader-prefix-map "d" #'xref-find-definitions)
+  (define-key my/leader-prefix-map "D" #'xref-find-references)
+#+end_src
+
+#+begin_src elisp
+    (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
+    (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+#+end_src
 
 ** window positioning commands
 respect scroll margin
@@ -681,17 +692,6 @@ respect scroll margin
   (define-key viper-vi-basic-map "zo" #'hs-show-block)
   (define-key viper-vi-basic-map "zc" #'hs-hide-block)
   (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
-#+end_src
-
-** eglot/xref
-#+begin_src elisp
-  (define-key my/leader-prefix-map "d" #'xref-find-definitions)
-  (define-key my/leader-prefix-map "D" #'xref-find-references)
-#+end_src
-
-#+begin_src elisp
-    (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
-    (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
 #+end_src
 
 ** TODO advise viper-brac/ket-function
@@ -729,6 +729,15 @@ otherwise this works lol
                   ))))
 #+end_src
 
+** extra VC keybindings
+#+begin_src elisp
+  (define-key global-map "\C-xvf" #'vc-pull)
+  (define-key global-map "\C-xvF" #'my/vc-git-fetch)
+  
+  (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
+  (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
+  (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
+#+end_src
 * development
 ** go use treesit
 #+begin_src elisp
