@@ -632,6 +632,7 @@ TODO imenu keybinding
 #+begin_src elisp
   (define-key my/leader-prefix-map "\tn" #'tab-bar-new-tab)
   (define-key my/leader-prefix-map "\td" #'tab-bar-close-tab)
+  (define-key my/leader-prefix-map "\tr" #'tab-bar-rename-tab)
 #+end_src 
 
 *** "search" prefix
@@ -701,7 +702,7 @@ basically dynamically binding the read-char to return the initial read-char in t
 
 TODO: maybe make an easier way to add new bindings
 otherwise this works lol
-#+begin_src elisp :tangle no
+#+begin_src elisp
   (advice-mapc `(lambda (fun props) (advice-remove 'viper-brac-function fun)) 'viper-brac-function)
   (advice-add 'viper-brac-function :around
               (lambda (orig-fun &rest args)
