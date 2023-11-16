@@ -207,6 +207,8 @@ viper is the only built in thing that handles /some/ of the Doom/Vim stuff that 
 hacky global var to have a "global" viper state
 is this better than the default behavior?
 Maybe.. maybe not but now this should enable viper mode even on major modes not specified by viper itself
+*** global viper state
+TODO: add a hook on buffer creation to see if viper is enabled or not, and if not enable it, then switch to the global state?
 #+begin_src elisp
 
   (setq my/global-viper-state 'vi)
@@ -219,9 +221,24 @@ Maybe.. maybe not but now this should enable viper mode even on major modes not 
   (add-to-list 'window-state-change-functions #'set-global-viper-state)
 #+end_src
 
-want backspace in insert deletes to previous line when curr line is empty
-want some indication of which mode we're in outside of the modeline
+**** want better normal state bindings in the "emacs state" buffers
+TODO: maybe we just set all of these to nil since we have this pseudo global state?
+#+begin_src elisp
+  ;; prefer the following to be in whatever state I'm already in                                       
+  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
+  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
+  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))                  
+  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))                   
+  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
+  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
 
+
+  ;; then remove all emacs states and replace with insert states                                       
+  (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
+  (setq viper-emacs-state-mode-list nil)
+#+end_src
+
+*** hl line for diff modes, viper viper insert delets to prev line
 stole the terminal code for cursor from here https://github.com/syl20bnr/spacemacs/issues/7112#issuecomment-389855491
 works on iterm2 at least, 0 for box, 6 for bar cursor
 #+begin_src elisp
@@ -254,19 +271,7 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (setq viper-insert-state-cursor-color nil)
 #+end_src
 
-*** want better normal state bindings in the "emacs state" buffers
-#+begin_src elisp
-
-  ;; prefer the following to be in whatever state I'm already in                                       
-  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
-  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
-  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))                  
-  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))                   
-  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-
-  ;; then remove all emacs states and replace with insert states                                       
-  (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
-#+end_src
+*
 ** help commands
 qol to use c-h for help commands, and something for us to type faster
 #+begin_src elisp
