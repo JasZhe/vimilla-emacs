@@ -809,6 +809,20 @@ otherwise this works lol
                       (org-cycle arg))))))
 #+end_src
 
+* (blasphemy) external packages
+Need to install these seperately, but some configuration here
+
+** orderless
+I like orderless too much, and it's not too complicated of a package.
+#+begin_src elisp :tangle no
+  (require 'orderless)
+  (setq completion-styles '(orderless basic)
+        completion-category-overrides '((file (styles basic partial-completion))))
+  (defun my-icomplete-styles ()
+    (setq-local completion-styles '(orderless)))
+  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+#+end_src
+
 * Local variables                                                        
 ;; Local Variables:                                                      
 ;; eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
