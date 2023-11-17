@@ -1,5 +1,5 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
-#+PROPERTY: header-args :tangle yes :comments link :mkdirp yes :results silent
+#+PROPERTY: header-args :tangle init.el :comments link :mkdirp yes :results silent
 
 * TODO clean things up ask for feedback on reddit?
 
@@ -50,7 +50,7 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
 #+end_src
 
 * General Settings
-enable fido-vertical mode, viper mode, global hl and visual lines
+** enable fido-vertical mode, viper mode, global hl and visual lines
 stole the completing read stuff from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
 
@@ -198,7 +198,7 @@ basically minimal projectile and persp
 
 * Viper
 :PROPERTIES:
-:header-args: :tangle ~/.emacs.d/viper :comments link :results silent
+:header-args: :tangle viper :comments link :results silent
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
@@ -296,9 +296,9 @@ better ESC key handling to exit visual mode and close mini buffer
 #+begin_src elisp
   ;; add to global marks when window stuff happens so we can switch back to prev position
   (setq window-scroll-functions nil)
-  ;; not perfect but good enough
+  ;; not perfect but good enough, need to also make sure region not active, so we don't reset the region on scroll
   (add-to-list 'window-scroll-functions (lambda (window _)
-                                          (when (eq window (selected-window))
+                                          (when (and (not (region-active-p)) (eq window (selected-window)))
                                             (push-mark nil t nil))))
   (setq window-buffer-change-functions nil)
   (add-to-list 'window-buffer-change-functions (lambda (_)
@@ -564,6 +564,7 @@ need to remap isearch-backward since i wanna use C-r for redo
 #+end_src
 
 ** "g" prefix commands
+*** beginning of buffer
 #+begin_src elisp
   (setq my/g-prefix-map (make-sparse-keymap))
   (define-key viper-vi-basic-map "g" my/g-prefix-map)
@@ -676,7 +677,7 @@ pretty handy tbh
 #+end_src
 
 ** window positioning commands
-respect scroll margin
+*** respect scroll margin
 #+begin_src elisp
   (define-key viper-vi-basic-map "H"
               (lambda (arg) (interactive "P")
@@ -687,6 +688,16 @@ respect scroll margin
                 (if arg (viper-window-bottom arg)
                   (viper-window-bottom (+ scroll-margin 1)))))
   (define-key viper-vi-basic-map "zz" #'recenter-top-bottom)
+#+end_src
+
+*** goto line not deactivating mark
+#+begin_src elisp
+  (advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-line fun)) 'viper-goto-line)
+  (advice-add 'viper-goto-line :around
+              (lambda (orig-fun &rest args)
+                (cl-letf (((symbol-function 'deactivate-mark) (lambda (&optional _) nil)))
+                  (apply orig-fun args))))
+
 #+end_src
 
 ** code folding
