@@ -21,8 +21,10 @@ and need to figure out keymappings
   (defun my/vc-git-editor-command (command)
     "command is a git subcommand that requires an editor.
   example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
-    (async-shell-command
-     (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\"")))
+    (interactive "P")
+    (let ((command (if command command (read-string "command: git "))))
+      (async-shell-command
+       (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
 
   (defun my/vc-git-rebase-i (&optional branch)
     "if branch isn't supplied from arg, prompt for it"
