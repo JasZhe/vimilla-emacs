@@ -5,11 +5,8 @@
 
 * TODO flesh out some org commands
 
-* TODO use this on some actual coding project
-maybe clojure stuff
-maybe something in rust since rust-ts-mode is built in
 
-* TODO look into using emacsclient for git rebase and stuff
+* WIP look into using emacsclient for git rebase and stuff
 something like this
 
 mainly for these two:
@@ -51,8 +48,8 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
   (setq mac-option-modifier 'meta)
 #+end_src
 
-* General Settings
-** enable fido-vertical mode, viper mode, global hl and visual lines
+* misc startup tasks
+enable fido-vertical mode, viper mode, global hl and visual lines
 stole the completing read stuff from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
 
@@ -64,6 +61,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
   (viper-mode)
   (global-hl-line-mode)
   (global-visual-line-mode)
+  (setq column-number-mode t)
 
   (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
   (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
@@ -74,15 +72,15 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
   (setq scroll-preserve-screen-position t)
 #+end_src
 
-** Searching
-*** advice to highlight matches with viper search
+* in-buffer searching
+** advice to highlight matches with viper search
 #+begin_src elisp
   (advice-add #'viper-search :after
               (lambda (string &rest args)
                 (hi-lock-face-buffer string)))
 #+end_src
 
-*** optional incremental occur, similar to swiper
+** optional incremental occur, similar to swiper
 [[*better escape handling][advice to turn off highlighting on escape]]
 #+begin_src elisp
   ;; keep highlighting after isearch
@@ -107,26 +105,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
   (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 #+end_src
 
-** in buffer completion
-#+begin_src elisp
-  (setq enable-recursive-minibuffers t)
-  (defun completing-read-in-region (start end collection &optional predicate)
-     "Prompt for completion of region in the minibuffer if non-unique.
-    Use as a value for `completion-in-region-function'."
-     (let* ((initial (buffer-substring-no-properties start end))
-            (all (completion-all-completions initial collection predicate
-                                             (length initial)))
-            (completion (cond
-                         ((atom all) nil)
-                         ((and (consp all) (atom (cdr all))) (car all))
-                         (t (completing-read
-                             "Completion: " collection predicate t initial)))))
-       (cond (completion (completion--replace start end completion) t)
-             (t (message "No completion") nil))))
-   (setq completion-in-region-function #'completing-read-in-region)
-#+end_src
-
-** xref
+* xref completion settings
 luckily this is built in lol
 #+begin_src elisp
   (use-package xref
@@ -139,7 +118,64 @@ luckily this is built in lol
     )
 #+end_src
 
+* Window commands
+TODO resizing functions
+also zz and stuff to center screen
+not necessary viper, but same idea
+#+begin_src elisp
+  (winner-mode)
+
+  (define-key global-map (kbd "\C-w") nil)
+
+  (define-key global-map (kbd "\C-wu") #'winner-undo)
+  (define-key global-map (kbd "\C-wr") #'winner-redo)
+
+  (define-key global-map (kbd "\C-w<")
+              (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
+  (define-key global-map (kbd "\C-w>")
+              (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
+
+  (define-key global-map (kbd "\C-w-")
+              (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
+  (define-key global-map (kbd "\C-w+")
+              (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
+
+  (define-key global-map "\C-wv" #'split-window-horizontally)
+  (define-key global-map "\C-ws" #'split-window-vertically)
+
+  (define-key global-map "\C-wq" #'delete-window)
+  (define-key global-map "\C-w\C-w" #'other-window)
+
+  (define-key global-map "\C-wl" #'windmove-right)
+  (define-key global-map "\C-w\C-l" #'windmove-right)
+
+  (define-key global-map "\C-wh" #'windmove-left)
+  (define-key global-map "\C-w\C-h" #'windmove-left)
+
+  (define-key global-map "\C-wk" #'windmove-up)
+  (define-key global-map "\C-w\C-k" #'windmove-up)
+
+  (define-key global-map "\C-wj" #'windmove-down)
+  (define-key global-map "\C-w\C-j" #'windmove-down)
+
+  (define-key global-map "\C-w=" #'balance-windows)
+
+  (define-key global-map (kbd "\C-wo") #'maximize-window)
+  (define-key global-map "\C-w\C-o" #'delete-other-windows)
+#+end_src
+
+* development
+** enable which-function
+#+begin_src elisp
+(which-function-mode)
+#+end_src
+
+** go use treesit
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+#+end_src
 ** some more basic elisp highlighting
+
 #+begin_src elisp
     (defface font-lock-func-face 
       '((nil (:foreground "#7F0055" :weight bold))
@@ -180,6 +216,25 @@ luckily this is built in lol
   ;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
 #+end_src
            
+** in buffer completion
+#+begin_src elisp
+  (setq enable-recursive-minibuffers t)
+  (defun completing-read-in-region (start end collection &optional predicate)
+     "Prompt for completion of region in the minibuffer if non-unique.
+    Use as a value for `completion-in-region-function'."
+     (let* ((initial (buffer-substring-no-properties start end))
+            (all (completion-all-completions initial collection predicate
+                                             (length initial)))
+            (completion (cond
+                         ((atom all) nil)
+                         ((and (consp all) (atom (cdr all))) (car all))
+                         (t (completing-read
+                             "Completion: " collection predicate t initial)))))
+       (cond (completion (completion--replace start end completion) t)
+             (t (message "No completion") nil))))
+   (setq completion-in-region-function #'completing-read-in-region)
+#+end_src
+
 * Tab bar
 basically minimal projectile and persp
 #+begin_src elisp
@@ -198,12 +253,12 @@ basically minimal projectile and persp
 #+end_src
 
 
+
 * Viper
 :PROPERTIES:
 :header-args: :tangle viper :comments link :results silent
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
-
 
 ** vi state stuff
 hacky global var to have a "global" viper state
@@ -325,35 +380,6 @@ default behavior of the enter key is pretty meh anyways
 #+begin_src elisp
   (define-key viper-vi-basic-map (kbd "RET") nil)
   (define-key viper-vi-basic-map "q" nil)
-#+end_src
-
-** Window movement
-TODO resizing functions
-also zz and stuff to center screen
-not necessary viper, but same idea
-#+begin_src elisp
-  (define-key global-map (kbd "C-w") nil)
-
-  (define-key global-map "\C-wv" #'split-window-horizontally)
-  (define-key global-map "\C-wq" #'delete-window)
-  (define-key global-map "\C-w\C-w" #'other-window)
-
-  (define-key global-map "\C-wl" #'windmove-right)
-  (define-key global-map "\C-w\C-l" #'windmove-right)
-
-  (define-key global-map "\C-wh" #'windmove-left)
-  (define-key global-map "\C-w\C-h" #'windmove-left)
-
-  (define-key global-map "\C-wk" #'windmove-up)
-  (define-key global-map "\C-w\C-k" #'windmove-up)
-
-  (define-key global-map "\C-wj" #'windmove-down)
-  (define-key global-map "\C-w\C-j" #'windmove-down)
-
-  (define-key global-map "\C-w=" #'balance-windows)
-
-  (define-key global-map "\C-wo" #'delete-other-windows)
-  (define-key global-map "\C-w\C-o" #'delete-other-windows)
 #+end_src
 
 ** pseudo visual mode
@@ -618,6 +644,7 @@ TODO imenu keybinding
   (define-key my/leader-prefix-map "pp" #'project-switch-project)
   (define-key my/leader-prefix-map "pe" #'project-eshell)
   (define-key my/leader-prefix-map "ps" #'project-shell)
+  (define-key my/leader-prefix-map "pd" #'project-forget-project)
 #+end_src
 
 *** "help" prefix
@@ -656,6 +683,8 @@ pretty handy tbh
 #+begin_src elisp
   (setq bookmark-save-flag 1)
   (setq bookmark-use-annotations t)
+  (setq bookmark-show-annotations nil)
+
   (define-key my/leader-prefix-map "nrf" #'bookmark-jump)
   (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
   (define-key my/leader-prefix-map "nri" #'bookmark-set)
@@ -667,10 +696,13 @@ pretty handy tbh
 #+begin_src elisp
     (define-key my/leader-prefix-map "ff" #'find-file)
 #+end_src
-*** eglot/xref
+** eglot/xref
 #+begin_src elisp
-  (define-key my/leader-prefix-map "d" #'xref-find-definitions)
-  (define-key my/leader-prefix-map "D" #'xref-find-references)
+  (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
+  (define-key viper-vi-basic-map "gd" #'xref-find-definitions)
+
+  (define-key my/leader-prefix-map "cD" #'xref-find-references)
+  (define-key viper-vi-basic-map "gD" #'xref-find-references)
 #+end_src
 
 #+begin_src elisp
@@ -712,7 +744,7 @@ pretty handy tbh
   (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
 #+end_src
 
-** TODO advise viper-brac/ket-function
+** WIP advise viper-brac/ket-function
 holy shit lol..
 viper-cmd.el:viper-brac-function or viper-ket-function
 
@@ -756,17 +788,14 @@ otherwise this works lol
   (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
   (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
 #+end_src
-* development
-** go use treesit
-#+begin_src elisp
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-#+end_src
+
+
 * Org
 
 #+begin_src elisp
-
   (setq org-directory "~/orgmode/")
   (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
+  (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
   (setq org-attach-use-interitance t)
   (defface org-block-begin-line
     '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
@@ -798,9 +827,22 @@ otherwise this works lol
 
       (define-key my/org-vi-state-modify-map "zi" #'org-toggle-inline-images)
       (define-key my/org-vi-state-modify-map " si" #'org-goto)
+      (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
+
       (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
       (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
-      (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
+
+      (define-key my/org-vi-state-modify-map " maa" #'org-attach)
+      (define-key my/org-vi-state-modify-map " mA" #'org-archive-subtree)
+
+      (define-key my/org-vi-state-modify-map " mds" #'org-schedule)
+      (define-key my/org-vi-state-modify-map " mdd" #'org-deadline)
+
+      (define-key my/org-vi-state-modify-map " msr" #'org-refile)
+
+      (define-key my/org-vi-state-modify-map " mll" #'org-insert-link)
+      (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
+
       (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)
 
       (define-key org-mode-map "\t"
