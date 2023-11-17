@@ -95,31 +95,6 @@
 (define-key viper-vi-basic-map "q" nil)
 ;; forward "enter" and "q" in vi state:1 ends here
 
-;; [[file:vimilla-emacs.org::*Window movement][Window movement:1]]
-(define-key global-map (kbd "C-w") nil)
-
-(define-key global-map "\C-wv" #'split-window-horizontally)
-(define-key global-map "\C-wq" #'delete-window)
-(define-key global-map "\C-w\C-w" #'other-window)
-
-(define-key global-map "\C-wl" #'windmove-right)
-(define-key global-map "\C-w\C-l" #'windmove-right)
-
-(define-key global-map "\C-wh" #'windmove-left)
-(define-key global-map "\C-w\C-h" #'windmove-left)
-
-(define-key global-map "\C-wk" #'windmove-up)
-(define-key global-map "\C-w\C-k" #'windmove-up)
-
-(define-key global-map "\C-wj" #'windmove-down)
-(define-key global-map "\C-w\C-j" #'windmove-down)
-
-(define-key global-map "\C-w=" #'balance-windows)
-
-(define-key global-map "\C-wo" #'delete-other-windows)
-(define-key global-map "\C-w\C-o" #'delete-other-windows)
-;; Window movement:1 ends here
-
 ;; [[file:vimilla-emacs.org::*hacky advice for next/previous line to emulate visual mode][hacky advice for next/previous line to emulate visual mode:1]]
 (setq selected-start-line -1)
 (add-hook 'activate-mark-hook (lambda () (setq selected-start-line (line-number-at-pos))))
@@ -358,6 +333,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "pp" #'project-switch-project)
 (define-key my/leader-prefix-map "pe" #'project-eshell)
 (define-key my/leader-prefix-map "ps" #'project-shell)
+(define-key my/leader-prefix-map "pd" #'project-forget-project)
 ;; "project" prefix:1 ends here
 
 ;; [[file:vimilla-emacs.org::*"help" prefix]["help" prefix:1]]
@@ -389,6 +365,8 @@ respects rectangle mode in a similar way to vim/doom"
 ;; [[file:vimilla-emacs.org::*"notes" prefix]["notes" prefix:1]]
 (setq bookmark-save-flag 1)
 (setq bookmark-use-annotations t)
+(setq bookmark-show-annotations nil)
+
 (define-key my/leader-prefix-map "nrf" #'bookmark-jump)
 (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
 (define-key my/leader-prefix-map "nri" #'bookmark-set)
@@ -401,8 +379,11 @@ respects rectangle mode in a similar way to vim/doom"
 ;; pseudo "files" "f" prefix:1 ends here
 
 ;; [[file:vimilla-emacs.org::*eglot/xref][eglot/xref:1]]
-(define-key my/leader-prefix-map "d" #'xref-find-definitions)
-(define-key my/leader-prefix-map "D" #'xref-find-references)
+(define-key my/leader-prefix-map "cd" #'xref-find-definitions)
+(define-key viper-vi-basic-map "gd" #'xref-find-definitions)
+
+(define-key my/leader-prefix-map "cD" #'xref-find-references)
+(define-key viper-vi-basic-map "gD" #'xref-find-references)
 ;; eglot/xref:1 ends here
 
 ;; [[file:vimilla-emacs.org::*eglot/xref][eglot/xref:2]]

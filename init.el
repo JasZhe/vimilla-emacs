@@ -2,8 +2,10 @@
 (defun my/vc-git-editor-command (command)
   "command is a git subcommand that requires an editor.
 example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
-  (async-shell-command
-   (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\"")))
+  (interactive "P")
+  (let ((command (if command command (read-string "command: git "))))
+    (async-shell-command
+     (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
 
 (defun my/vc-git-rebase-i (&optional branch)
   "if branch isn't supplied from arg, prompt for it"
@@ -28,7 +30,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq mac-option-modifier 'meta)
 ;; Mac settings:1 ends here
 
-;; [[file:vimilla-emacs.org::*enable fido-vertical mode, viper mode, global hl and visual lines][enable fido-vertical mode, viper mode, global hl and visual lines:1]]
+;; [[file:vimilla-emacs.org::*misc startup tasks][misc startup tasks:1]]
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
@@ -36,6 +38,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (viper-mode)
 (global-hl-line-mode)
 (global-visual-line-mode)
+(setq column-number-mode t)
 
 (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
 (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
@@ -44,7 +47,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq visual-bell t)
 (setq ring-bell-function 'ignore)
 (setq scroll-preserve-screen-position t)
-;; enable fido-vertical mode, viper mode, global hl and visual lines:1 ends here
+;; misc startup tasks:1 ends here
 
 ;; [[file:vimilla-emacs.org::*advice to highlight matches with viper search][advice to highlight matches with viper search:1]]
 (advice-add #'viper-search :after
@@ -75,25 +78,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 ;; optional incremental occur, similar to swiper:1 ends here
 
-;; [[file:vimilla-emacs.org::*in buffer completion][in buffer completion:1]]
-(setq enable-recursive-minibuffers t)
-(defun completing-read-in-region (start end collection &optional predicate)
-   "Prompt for completion of region in the minibuffer if non-unique.
-  Use as a value for `completion-in-region-function'."
-   (let* ((initial (buffer-substring-no-properties start end))
-          (all (completion-all-completions initial collection predicate
-                                           (length initial)))
-          (completion (cond
-                       ((atom all) nil)
-                       ((and (consp all) (atom (cdr all))) (car all))
-                       (t (completing-read
-                           "Completion: " collection predicate t initial)))))
-     (cond (completion (completion--replace start end completion) t)
-           (t (message "No completion") nil))))
- (setq completion-in-region-function #'completing-read-in-region)
-;; in buffer completion:1 ends here
-
-;; [[file:vimilla-emacs.org::*xref][xref:1]]
+;; [[file:vimilla-emacs.org::*xref completion settings][xref completion settings:1]]
 (use-package xref
   :config
   (progn
@@ -102,7 +87,57 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
     )
   )
-;; xref:1 ends here
+;; xref completion settings:1 ends here
+
+;; [[file:vimilla-emacs.org::*Window commands][Window commands:1]]
+(winner-mode)
+
+(define-key global-map (kbd "\C-w") nil)
+
+(define-key global-map (kbd "\C-wu") #'winner-undo)
+(define-key global-map (kbd "\C-wr") #'winner-redo)
+
+(define-key global-map (kbd "\C-w<")
+            (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
+(define-key global-map (kbd "\C-w>")
+            (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
+
+(define-key global-map (kbd "\C-w-")
+            (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
+(define-key global-map (kbd "\C-w+")
+            (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
+
+(define-key global-map "\C-wv" #'split-window-horizontally)
+(define-key global-map "\C-ws" #'split-window-vertically)
+
+(define-key global-map "\C-wq" #'delete-window)
+(define-key global-map "\C-w\C-w" #'other-window)
+
+(define-key global-map "\C-wl" #'windmove-right)
+(define-key global-map "\C-w\C-l" #'windmove-right)
+
+(define-key global-map "\C-wh" #'windmove-left)
+(define-key global-map "\C-w\C-h" #'windmove-left)
+
+(define-key global-map "\C-wk" #'windmove-up)
+(define-key global-map "\C-w\C-k" #'windmove-up)
+
+(define-key global-map "\C-wj" #'windmove-down)
+(define-key global-map "\C-w\C-j" #'windmove-down)
+
+(define-key global-map "\C-w=" #'balance-windows)
+
+(define-key global-map (kbd "\C-wo") #'maximize-window)
+(define-key global-map "\C-w\C-o" #'delete-other-windows)
+;; Window commands:1 ends here
+
+;; [[file:vimilla-emacs.org::*enable which-function][enable which-function:1]]
+(which-function-mode)
+;; enable which-function:1 ends here
+
+;; [[file:vimilla-emacs.org::*go use treesit][go use treesit:1]]
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+;; go use treesit:1 ends here
 
 ;; [[file:vimilla-emacs.org::*some more basic elisp highlighting][some more basic elisp highlighting:1]]
 (defface font-lock-func-face 
@@ -144,6 +179,24 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
 ;; some more basic elisp highlighting:1 ends here
 
+;; [[file:vimilla-emacs.org::*in buffer completion][in buffer completion:1]]
+(setq enable-recursive-minibuffers t)
+(defun completing-read-in-region (start end collection &optional predicate)
+   "Prompt for completion of region in the minibuffer if non-unique.
+  Use as a value for `completion-in-region-function'."
+   (let* ((initial (buffer-substring-no-properties start end))
+          (all (completion-all-completions initial collection predicate
+                                           (length initial)))
+          (completion (cond
+                       ((atom all) nil)
+                       ((and (consp all) (atom (cdr all))) (car all))
+                       (t (completing-read
+                           "Completion: " collection predicate t initial)))))
+     (cond (completion (completion--replace start end completion) t)
+           (t (message "No completion") nil))))
+ (setq completion-in-region-function #'completing-read-in-region)
+;; in buffer completion:1 ends here
+
 ;; [[file:vimilla-emacs.org::*Tab bar][Tab bar:1]]
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
@@ -159,13 +212,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; (setq tabbar-buffer-groups-function 'git-tabbar-buffer-groups)
 ;; Tab bar:1 ends here
 
-;; [[file:vimilla-emacs.org::*go use treesit][go use treesit:1]]
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-;; go use treesit:1 ends here
-
 ;; [[file:vimilla-emacs.org::*Org][Org:1]]
 (setq org-directory "~/orgmode/")
 (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
+(setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
 (setq org-attach-use-interitance t)
 (defface org-block-begin-line
   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
@@ -197,9 +247,22 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
     (define-key my/org-vi-state-modify-map "zi" #'org-toggle-inline-images)
     (define-key my/org-vi-state-modify-map " si" #'org-goto)
+    (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
+
     (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
     (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
-    (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
+
+    (define-key my/org-vi-state-modify-map " maa" #'org-attach)
+    (define-key my/org-vi-state-modify-map " mA" #'org-archive-subtree)
+
+    (define-key my/org-vi-state-modify-map " mds" #'org-schedule)
+    (define-key my/org-vi-state-modify-map " mdd" #'org-deadline)
+
+    (define-key my/org-vi-state-modify-map " msr" #'org-refile)
+
+    (define-key my/org-vi-state-modify-map " mll" #'org-insert-link)
+    (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
+
     (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)
 
     (define-key org-mode-map "\t"
