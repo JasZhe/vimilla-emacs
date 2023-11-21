@@ -266,15 +266,16 @@ respects rectangle mode in a similar way to vim/doom"
            (viper-change-state-to-vi)
            (yank)
            (forward-line)))
-        ((use-region-p)
-         (progn 
-           (unless rectangle-mark-mode (forward-char))
+        ((and (not killed-rectangle) (use-region-p))
+         (progn
            (let ((start (region-beginning)))
+             (forward-char)
              (delete-active-region)
-             (goto-char start)
-             (yank)
-             (delete-blank-lines))))
-        (killed-rectangle (yank-rectangle))
+             (yank))))
+        (killed-rectangle
+         (progn 
+           (yank-rectangle)
+           (setq killed-rectangle nil)))
         (t (yank arg))))
 
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
@@ -365,7 +366,7 @@ respects rectangle mode in a similar way to vim/doom"
 ;; [[file:vimilla-emacs.org::*"notes" prefix]["notes" prefix:1]]
 (setq bookmark-save-flag 1)
 (setq bookmark-use-annotations t)
-(setq bookmark-show-annotations nil)
+(setq bookmark-automatically-show-annotations nil)
 
 (define-key my/leader-prefix-map "nrf" #'bookmark-jump)
 (define-key my/leader-prefix-map "nrl" #'list-bookmarks)

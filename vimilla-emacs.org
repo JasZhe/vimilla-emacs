@@ -523,63 +523,64 @@ if the region exists then we jump to the beginning of the region and merge the n
 
 *** hacky stuff to make yanking/killing work for our line visual selection
 #+begin_src elisp
-  (setq my/line-yank-p nil)
-  (defun viper-delete-region-or-motion-command (arg)
-    "convenience function for deleting a region, including rectangles"
-    (interactive "P")
-    (if (use-region-p)
-        (let ((start (region-beginning)) (end (region-end)))
-          (if rectangle-mark-mode
-              (kill-rectangle start end arg)
-            (progn
-              (forward-char)
-              (if my/line-selection-p
-                  (setq my/line-yank-p t)
-                (setq my/line-yank-p nil))
-              (kill-region start end t))))
-      (viper-command-argument arg)))
+    (setq my/line-yank-p nil)
+    (defun viper-delete-region-or-motion-command (arg)
+      "convenience function for deleting a region, including rectangles"
+      (interactive "P")
+      (if (use-region-p)
+          (let ((start (region-beginning)) (end (region-end)))
+            (if rectangle-mark-mode
+                (kill-rectangle start end arg)
+              (progn
+                (forward-char)
+                (if my/line-selection-p
+                    (setq my/line-yank-p t)
+                  (setq my/line-yank-p nil))
+                (kill-region start end t))))
+        (viper-command-argument arg)))
 
-  (defun viper-copy-region-or-motion-command (arg)
-    "convenience function for yanking a region, including rectangles"
-    (interactive "P")
-    (if (use-region-p)
-        (let ((start (region-beginning)) (end (region-end)))
-          (if rectangle-mark-mode
-              (copy-rectangle-as-kill start end)
-            (progn
-              (forward-char)
-              (if my/line-selection-p
-                  (setq my/line-yank-p t)
-                (setq my/line-yank-p nil))
-              (copy-region-as-kill start end t)
-              (backward-char))
-            ))
-      (viper-command-argument arg)))
+    (defun viper-copy-region-or-motion-command (arg)
+      "convenience function for yanking a region, including rectangles"
+      (interactive "P")
+      (if (use-region-p)
+          (let ((start (region-beginning)) (end (region-end)))
+            (if rectangle-mark-mode
+                (copy-rectangle-as-kill start end)
+              (progn
+                (forward-char)
+                (if my/line-selection-p
+                    (setq my/line-yank-p t)
+                  (setq my/line-yank-p nil))
+                (copy-region-as-kill start end t)
+                (backward-char))
+              ))
+        (viper-command-argument arg)))
 
-  (defun viper-paste-into-region (arg)
-    "if region is active, delete region before pasting
-  respects rectangle mode in a similar way to vim/doom"
-    (interactive "P")
-    (cond (my/line-yank-p
-           (progn
-             (viper-open-line nil)
-             (viper-change-state-to-vi)
-             (yank)
-             (forward-line)))
-          ((use-region-p)
-           (progn 
-             (unless rectangle-mark-mode (forward-char))
-             (let ((start (region-beginning)))
-               (delete-active-region)
-               (goto-char start)
+    (defun viper-paste-into-region (arg)
+      "if region is active, delete region before pasting
+    respects rectangle mode in a similar way to vim/doom"
+      (interactive "P")
+      (cond (my/line-yank-p
+             (progn
+               (viper-open-line nil)
+               (viper-change-state-to-vi)
                (yank)
-               (delete-blank-lines))))
-          (killed-rectangle (yank-rectangle))
-          (t (yank arg))))
+               (forward-line)))
+            ((and (not killed-rectangle) (use-region-p))
+             (progn
+               (let ((start (region-beginning)))
+                 (forward-char)
+                 (delete-active-region)
+                 (yank))))
+            (killed-rectangle
+             (progn 
+               (yank-rectangle)
+               (setq killed-rectangle nil)))
+            (t (yank arg))))
 
-  (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
-  (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
-  (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+    (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
+    (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
+    (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
 
 ** undo
@@ -683,7 +684,7 @@ pretty handy tbh
 #+begin_src elisp
   (setq bookmark-save-flag 1)
   (setq bookmark-use-annotations t)
-  (setq bookmark-show-annotations nil)
+  (setq bookmark-automatically-show-annotations nil)
 
   (define-key my/leader-prefix-map "nrf" #'bookmark-jump)
   (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
@@ -860,11 +861,23 @@ Need to install these seperately, but some configuration here
 I like orderless too much, and it's not too complicated of a package.
 #+begin_src elisp :tangle no
   (require 'orderless)
-  (setq completion-styles '(orderless basic)
-        completion-category-overrides '((file (styles basic partial-completion))))
-  (defun my-icomplete-styles ()
-    (setq-local completion-styles '(orderless)))
+  (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
+  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
   (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+  (define-key minibuffer-local-completion-map " " #'self-insert-command)
+#+end_src
+
+** avy
+#+begin_src elisp :tangle no
+  (require 'avy)
+  (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
+  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+#+end_src
+
+** which key
+#+begin_src elisp :tangle no
+  (require 'which-key)
+  (which-key-mode)
 #+end_src
 
 * Local variables                                                        
