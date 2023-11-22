@@ -71,7 +71,6 @@
                                                  (with-current-buffer (other-buffer)
                                                    (push-mark nil t nil))))
 (define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
-;;(lambda () (interactive) (let ((current-prefix-arg t)) (set-mark-command current-prefix-arg))))
 
 (define-key viper-vi-basic-map "k" #'previous-line)
 (define-key viper-vi-basic-map "j" #'next-line)

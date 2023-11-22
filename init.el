@@ -154,11 +154,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                  (forward-char 1)))))
       found)))
 
-;; (add-hook 'emacs-lisp-mode-hook
-;; 	  (lambda ()
-;; 	    (font-lock-add-keywords nil
-;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
-
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
    "Prompt for completion of region in the minibuffer if non-unique.
@@ -186,7 +181,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun git-tabbar-buffer-groups ()
   "Groups tabs in tabbar-mode by the git repository they are in."
   (list (find-git-dir (buffer-file-name (current-buffer)))))
-;; (setq tabbar-buffer-groups-function 'git-tabbar-buffer-groups)
 
 (setq org-directory "~/orgmode/")
 (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
