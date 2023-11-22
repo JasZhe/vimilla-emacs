@@ -1,4 +1,3 @@
-;; [[file:vimilla-emacs.org::*look into using emacsclient for git rebase and stuff][look into using emacsclient for git rebase and stuff:1]]
 (defun my/vc-git-editor-command (command)
   "command is a git subcommand that requires an editor.
 example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
@@ -24,13 +23,9 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun my/vc-git-fetch ()                  
   (interactive)                                  
   (async-shell-command "git fetch"))
-;; look into using emacsclient for git rebase and stuff:1 ends here
 
-;; [[file:vimilla-emacs.org::*Mac settings][Mac settings:1]]
 (setq mac-option-modifier 'meta)
-;; Mac settings:1 ends here
 
-;; [[file:vimilla-emacs.org::*misc startup tasks][misc startup tasks:1]]
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
@@ -47,15 +42,11 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq visual-bell t)
 (setq ring-bell-function 'ignore)
 (setq scroll-preserve-screen-position t)
-;; misc startup tasks:1 ends here
 
-;; [[file:vimilla-emacs.org::*advice to highlight matches with viper search][advice to highlight matches with viper search:1]]
 (advice-add #'viper-search :after
             (lambda (string &rest args)
               (hi-lock-face-buffer string)))
-;; advice to highlight matches with viper search:1 ends here
 
-;; [[file:vimilla-emacs.org::*optional incremental occur, similar to swiper][optional incremental occur, similar to swiper:1]]
 ;; keep highlighting after isearch
 (setq lazy-highlight-cleanup nil)
 
@@ -76,9 +67,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
               (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
 
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
-;; optional incremental occur, similar to swiper:1 ends here
 
-;; [[file:vimilla-emacs.org::*xref completion settings][xref completion settings:1]]
 (use-package xref
   :config
   (progn
@@ -87,9 +76,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
     )
   )
-;; xref completion settings:1 ends here
 
-;; [[file:vimilla-emacs.org::*Window commands][Window commands:1]]
 (winner-mode)
 
 (define-key global-map (kbd "\C-w") nil)
@@ -129,17 +116,11 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (define-key global-map (kbd "\C-wo") #'maximize-window)
 (define-key global-map "\C-w\C-o" #'delete-other-windows)
-;; Window commands:1 ends here
 
-;; [[file:vimilla-emacs.org::*enable which-function][enable which-function:1]]
 (which-function-mode)
-;; enable which-function:1 ends here
 
-;; [[file:vimilla-emacs.org::*go use treesit][go use treesit:1]]
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-;; go use treesit:1 ends here
 
-;; [[file:vimilla-emacs.org::*some more basic elisp highlighting][some more basic elisp highlighting:1]]
 (defface font-lock-func-face 
     '((nil (:foreground "#7F0055" :weight bold))
       (t (:bold t :italic t)))
@@ -177,9 +158,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; 	  (lambda ()
 ;; 	    (font-lock-add-keywords nil
 ;; 				    '((my-fl . 'font-lock-constant-face)) 'append)))
-;; some more basic elisp highlighting:1 ends here
 
-;; [[file:vimilla-emacs.org::*in buffer completion][in buffer completion:1]]
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
    "Prompt for completion of region in the minibuffer if non-unique.
@@ -195,9 +174,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
      (cond (completion (completion--replace start end completion) t)
            (t (message "No completion") nil))))
  (setq completion-in-region-function #'completing-read-in-region)
-;; in buffer completion:1 ends here
 
-;; [[file:vimilla-emacs.org::*Tab bar][Tab bar:1]]
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
  (cond
@@ -210,9 +187,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   "Groups tabs in tabbar-mode by the git repository they are in."
   (list (find-git-dir (buffer-file-name (current-buffer)))))
 ;; (setq tabbar-buffer-groups-function 'git-tabbar-buffer-groups)
-;; Tab bar:1 ends here
 
-;; [[file:vimilla-emacs.org::*Org][Org:1]]
 (setq org-directory "~/orgmode/")
 (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
 (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
@@ -271,4 +246,3 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                   (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
-;; Org:1 ends here

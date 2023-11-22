@@ -1,4 +1,3 @@
-;; [[file:vimilla-emacs.org::*global viper state][global viper state:1]]
 (setq my/global-viper-state 'vi)
 (defun set-global-viper-state (arg)
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
@@ -7,9 +6,7 @@
         (t (viper-change-state-to-vi))
   ))
 (add-to-list 'window-state-change-functions #'set-global-viper-state)
-;; global viper state:1 ends here
 
-;; [[file:vimilla-emacs.org::*want better normal state bindings in the "emacs state" buffers][want better normal state bindings in the "emacs state" buffers:1]]
 ;; prefer the following to be in whatever state I'm already in                                       
 (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
 (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
@@ -22,9 +19,7 @@
 ;; then remove all emacs states and replace with insert states                                       
 (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
 (setq viper-emacs-state-mode-list nil)
-;; want better normal state bindings in the "emacs state" buffers:1 ends here
 
-;; [[file:vimilla-emacs.org::*hl line for diff modes, viper viper insert delets to prev line][hl line for diff modes, viper viper insert delets to prev line:1]]
 (setq viper-inhibit-startup-message 't)
 (setq viper-expert-level '5)
 
@@ -52,14 +47,10 @@
 (add-hook 'minibuffer-mode-hook #'viper-change-state-to-insert)
 (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
 (setq viper-insert-state-cursor-color nil)
-;; hl line for diff modes, viper viper insert delets to prev line:1 ends here
 
-;; [[file:vimilla-emacs.org::*help commands][help commands:1]]
 (setq viper-want-ctl-h-help 't)
 (setq viper-fast-keyseq-timeout 100)
-;; help commands:1 ends here
 
-;; [[file:vimilla-emacs.org::*better escape handling][better escape handling:1]]
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-intercept-ESC-key fun)) 'viper-intercept-ESC-key)
 (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
 (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
@@ -68,9 +59,7 @@
 (advice-add 'viper-intercept-ESC-key :after (lambda ()
                                               (dolist (hist viper-search-history)
                                                 (hi-lock-unface-buffer hist))))
-;; better escape handling:1 ends here
 
-;; [[file:vimilla-emacs.org::*pop mark navigation][pop mark navigation:1]]
 ;; add to global marks when window stuff happens so we can switch back to prev position
 (setq window-scroll-functions nil)
 ;; not perfect but good enough, need to also make sure region not active, so we don't reset the region on scroll
@@ -83,19 +72,13 @@
                                                    (push-mark nil t nil))))
 (define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
 ;;(lambda () (interactive) (let ((current-prefix-arg t)) (set-mark-command current-prefix-arg))))
-;; pop mark navigation:1 ends here
 
-;; [[file:vimilla-emacs.org::*respect visual lines cursor movement][respect visual lines cursor movement:1]]
 (define-key viper-vi-basic-map "k" #'previous-line)
 (define-key viper-vi-basic-map "j" #'next-line)
-;; respect visual lines cursor movement:1 ends here
 
-;; [[file:vimilla-emacs.org::*forward "enter" and "q" in vi state][forward "enter" and "q" in vi state:1]]
 (define-key viper-vi-basic-map (kbd "RET") nil)
 (define-key viper-vi-basic-map "q" nil)
-;; forward "enter" and "q" in vi state:1 ends here
 
-;; [[file:vimilla-emacs.org::*hacky advice for next/previous line to emulate visual mode][hacky advice for next/previous line to emulate visual mode:1]]
 (setq selected-start-line -1)
 (add-hook 'activate-mark-hook (lambda () (setq selected-start-line (line-number-at-pos))))
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'next-line fun)) 'next-line)
@@ -162,9 +145,7 @@
                       (beginning-of-line))))
                 (apply orig-fun args))))
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'previous-line fun)) 'previous-line)
-;; hacky advice for next/previous line to emulate visual mode:1 ends here
 
-;; [[file:vimilla-emacs.org::*pseudo visual line][pseudo visual line:1]]
 (setq my/line-selection-p nil)
 (setq my/lines-selected 0)
 
@@ -189,26 +170,20 @@
   (interactive "P")
   (setq my/line-selection-p nil)
   (rectangle-mark-mode arg))
-;; pseudo visual line:1 ends here
 
-;; [[file:vimilla-emacs.org::*pseudo visual line][pseudo visual line:2]]
 (define-key viper-vi-basic-map "v" nil)
 (define-key viper-vi-basic-map "v" #'my/set-mark-command)
 (define-key viper-vi-basic-map "V" nil)
 (define-key viper-vi-basic-map "V" #'my/select-lines)
 (define-key viper-vi-basic-map "\C-v" #'my/visual-block)
-;; pseudo visual line:2 ends here
 
-;; [[file:vimilla-emacs.org::*viper-ex to automatically use region if active][viper-ex to automatically use region if active:1]]
 ;;(advice-mapc `(lambda (fun props) (advice-remove 'viper-ex fun)) 'viper-ex)
 (advice-add 'viper-ex :around
             (lambda (orig-fun &rest args)
               (let ((current-prefix-arg t))
                 (if (use-region-p) (apply orig-fun current-prefix-arg args)
                   (apply orig-fun args)))))
-;; viper-ex to automatically use region if active:1 ends here
 
-;; [[file:vimilla-emacs.org::*join lines on selected region][join lines on selected region:1]]
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
 (advice-add 'viper-join-lines :around
             (lambda (orig-fun arg &rest args)
@@ -220,9 +195,7 @@
                     (goto-char start)
                     (apply orig-fun `(,numlines)))
                 (apply orig-fun `(,arg)))))
-;; join lines on selected region:1 ends here
 
-;; [[file:vimilla-emacs.org::*hacky stuff to make yanking/killing work for our line visual selection][hacky stuff to make yanking/killing work for our line visual selection:1]]
 (setq my/line-yank-p nil)
 (defun viper-delete-region-or-motion-command (arg)
   "convenience function for deleting a region, including rectangles"
@@ -281,35 +254,23 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
 (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
 (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
-;; hacky stuff to make yanking/killing work for our line visual selection:1 ends here
 
-;; [[file:vimilla-emacs.org::*undo][undo:1]]
 (define-key viper-vi-basic-map "u" #'undo-only)
 (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)
 (define-key viper-vi-basic-map (kbd "C-M-r")  #'isearch-backward)
-;; undo:1 ends here
 
-;; [[file:vimilla-emacs.org::*beginning of buffer][beginning of buffer:1]]
 (setq my/g-prefix-map (make-sparse-keymap))
 (define-key viper-vi-basic-map "g" my/g-prefix-map)
 (define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
-;; beginning of buffer:1 ends here
 
-;; [[file:vimilla-emacs.org::*movement since we have visual lines][movement since we have visual lines:1]]
 (define-key my/g-prefix-map "k" #'viper-previous-line)
 (define-key my/g-prefix-map "j" #'viper-next-line)
-;; movement since we have visual lines:1 ends here
 
-;; [[file:vimilla-emacs.org::*tab bar movement][tab bar movement:1]]
 (define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
 (define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
-;; tab bar movement:1 ends here
 
-;; [[file:vimilla-emacs.org::*cua mode for multiple cursors][cua mode for multiple cursors:1]]
 (define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
-;; cua mode for multiple cursors:1 ends here
 
-;; [[file:vimilla-emacs.org::*pseudo "leader" prefix][pseudo "leader" prefix:1]]
 (setq my/leader-prefix-map (make-sparse-keymap))
 (define-key viper-vi-basic-map " " my/leader-prefix-map)
 
@@ -323,47 +284,33 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
 (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
-;; pseudo "leader" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"open" prefix]["open" prefix:1]]
 (define-key my/leader-prefix-map "oe" #'eshell)
 (define-key my/leader-prefix-map "os" #'shell)
-;; "open" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"project" prefix]["project" prefix:1]]
 (define-key my/leader-prefix-map "pp" #'project-switch-project)
 (define-key my/leader-prefix-map "pe" #'project-eshell)
 (define-key my/leader-prefix-map "ps" #'project-shell)
 (define-key my/leader-prefix-map "pd" #'project-forget-project)
-;; "project" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"help" prefix]["help" prefix:1]]
 (define-key my/leader-prefix-map "hk" #'describe-key)
 (define-key my/leader-prefix-map "hf" #'describe-function)
 (define-key my/leader-prefix-map "hv" #'describe-variable)
 (define-key my/leader-prefix-map "hm" #'describe-mode)
 (define-key my/leader-prefix-map "ho" #'describe-symbol)
-;; "help" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"buffer" prefix]["buffer" prefix:1]]
 (define-key my/leader-prefix-map "br" #'revert-buffer)
 (define-key my/leader-prefix-map "bp" #'previous-buffer)
 (define-key my/leader-prefix-map "bn" #'next-buffer)
 (define-key my/leader-prefix-map "bi" #'ibuffer)
-;; "buffer" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"tab" bar prefix]["tab" bar prefix:1]]
 (define-key my/leader-prefix-map "\tn" #'tab-bar-new-tab)
 (define-key my/leader-prefix-map "\td" #'tab-bar-close-tab)
 (define-key my/leader-prefix-map "\tr" #'tab-bar-rename-tab)
-;; "tab" bar prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"search" prefix]["search" prefix:1]]
 (define-key my/leader-prefix-map "ss" #'my/ioccur)
 (define-key my/leader-prefix-map "si" #'imenu)
-;; "search" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*"notes" prefix]["notes" prefix:1]]
 (setq bookmark-save-flag 1)
 (setq bookmark-use-annotations t)
 (setq bookmark-automatically-show-annotations nil)
@@ -373,26 +320,18 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "nri" #'bookmark-set)
 (define-key my/leader-prefix-map "nrn" #'bookmark-set)
 (define-key my/leader-prefix-map "nrd" #'bookmark-delete)
-;; "notes" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*pseudo "files" "f" prefix][pseudo "files" "f" prefix:1]]
 (define-key my/leader-prefix-map "ff" #'find-file)
-;; pseudo "files" "f" prefix:1 ends here
 
-;; [[file:vimilla-emacs.org::*eglot/xref][eglot/xref:1]]
 (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
 (define-key viper-vi-basic-map "gd" #'xref-find-definitions)
 
 (define-key my/leader-prefix-map "cD" #'xref-find-references)
 (define-key viper-vi-basic-map "gD" #'xref-find-references)
-;; eglot/xref:1 ends here
 
-;; [[file:vimilla-emacs.org::*eglot/xref][eglot/xref:2]]
 (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
-;; eglot/xref:2 ends here
 
-;; [[file:vimilla-emacs.org::*respect scroll margin][respect scroll margin:1]]
 (define-key viper-vi-basic-map "H"
             (lambda (arg) (interactive "P")
               (if arg (viper-window-top arg)
@@ -402,26 +341,20 @@ respects rectangle mode in a similar way to vim/doom"
               (if arg (viper-window-bottom arg)
                 (viper-window-bottom (+ scroll-margin 1)))))
 (define-key viper-vi-basic-map "zz" #'recenter-top-bottom)
-;; respect scroll margin:1 ends here
 
-;; [[file:vimilla-emacs.org::*goto line not deactivating mark][goto line not deactivating mark:1]]
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-line fun)) 'viper-goto-line)
 (advice-add 'viper-goto-line :around
             (lambda (orig-fun &rest args)
               (cl-letf (((symbol-function 'deactivate-mark) (lambda (&optional _) nil)))
                 (apply orig-fun args))))
-;; goto line not deactivating mark:1 ends here
 
-;; [[file:vimilla-emacs.org::*code folding][code folding:1]]
 (add-hook 'prog-mode-hook #'hs-minor-mode)
 (define-key viper-vi-basic-map "zC" #'hs-hide-all)
 (define-key viper-vi-basic-map "zO" #'hs-show-all)
 (define-key viper-vi-basic-map "zo" #'hs-show-block)
 (define-key viper-vi-basic-map "zc" #'hs-hide-block)
 (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
-;; code folding:1 ends here
 
-;; [[file:vimilla-emacs.org::*advise viper-brac/ket-function][advise viper-brac/ket-function:1]]
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-brac-function fun)) 'viper-brac-function)
 (advice-add 'viper-brac-function :around
             (lambda (orig-fun &rest args)
@@ -446,13 +379,10 @@ respects rectangle mode in a similar way to vim/doom"
                          )
                        )
                 ))))
-;; advise viper-brac/ket-function:1 ends here
 
-;; [[file:vimilla-emacs.org::*extra VC keybindings][extra VC keybindings:1]]
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
 
 (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
 (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
-;; extra VC keybindings:1 ends here
