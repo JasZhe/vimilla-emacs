@@ -310,15 +310,40 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "ss" #'my/ioccur)
 (define-key my/leader-prefix-map "si" #'imenu)
 
+(setq bookmark-use-annotations t)
+
+; note the call-interactively does pass the prefix args
+(defun my/set-project-bookmark ()
+  (interactive)
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (let ((prefix (concat (project-name (project-current)) ": ")))
+          (when (project-name (project-current))
+            (insert prefix))))
+        (call-interactively 'bookmark-set))
+)
+
+(defun my/jump-to-project-bookmark ()
+  (interactive)
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (let ((prefix (concat (project-name (project-current)) ": ")))
+          (when (project-name (project-current))
+            (insert prefix))))
+        (call-interactively 'bookmark-jump))
+)
+
 (setq bookmark-save-flag 1)
 (setq bookmark-use-annotations t)
 (setq bookmark-automatically-show-annotations nil)
 
-(define-key my/leader-prefix-map "nrf" #'bookmark-jump)
+(define-key my/leader-prefix-map "nrf" #'my/jump-to-project-bookmark)
 (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
 (define-key my/leader-prefix-map "nri" #'bookmark-set)
 (define-key my/leader-prefix-map "nrn" #'bookmark-set)
 (define-key my/leader-prefix-map "nrd" #'bookmark-delete)
+(define-key my/leader-prefix-map "bmm" #'my/set-project-bookmark)
+(define-key my/leader-prefix-map "bmj" #'my/jump-to-project-bookmark)
 
 (define-key my/leader-prefix-map "ff" #'find-file)
 

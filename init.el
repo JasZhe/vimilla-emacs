@@ -53,9 +53,9 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; be explicit about using this advice
 (setq my/ioccur-p nil)
 (defun my/ioccur (arg)
-  (interactive "P")
+  (interactive)
   (setq my/ioccur-p t)
-  (isearch-forward arg))
+  (call-interactively 'isearch-forward))
 
 (add-hook 'isearch-mode-hook
          (lambda ()
