@@ -52,7 +52,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 ;; be explicit about using this advice
 (setq my/ioccur-p nil)
-(defun my/ioccur (arg)
+(defun my/ioccur ()
   (interactive)
   (setq my/ioccur-p t)
   (call-interactively 'isearch-forward))
