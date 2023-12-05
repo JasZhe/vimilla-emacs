@@ -3,6 +3,8 @@
 
 * TODO flesh out some org commands
 
+* TODO separate document for keybindings?
+
 * WIP look into using emacsclient for git rebase and stuff
 something like this
 
@@ -716,6 +718,7 @@ pretty handy tbh
 #+begin_src elisp
     (define-key my/leader-prefix-map "ff" #'find-file)
 #+end_src
+
 ** eglot/xref
 #+begin_src elisp
   (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
@@ -818,17 +821,32 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
   (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
   (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
   (setq org-attach-use-interitance t)
+
   (defface org-block-begin-line
     '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
     "Face used for the line delimiting the begin of source blocks.")
-
   (defface org-block-background
     '((t (:background "#FFFFEA")))
     "Face used for the source block background.")
-
   (defface org-block-end-line
     '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
     "Face used for the line delimiting the end of source blocks.")
+
+  (defface org-level-1
+    '((t (:inherit outline-1 :height 1.25)))
+    "Face used for level 1 headlines.")
+  (defface org-level-2
+    '((t (:inherit outline-2 :height 1.15)))
+    "Face used for level 2 headlines.")
+  (defface org-level-3
+    '((t (:inherit outline-3 :height 1.10)))
+    "Face used for level 3 headlines.")
+  (defface org-level-4
+    '((t (:inherit outline-4 :height 1.05)))
+    "Face used for level 4 headlines.")
+  (defface org-level-5
+    '((t (:inherit outline-5 :height 1.0)))
+    "Face used for level 5 headlines.")
 
   (setq org-startup-indented t)
   (setq org-indent-indentation-per-level 4)
