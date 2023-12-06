@@ -30,9 +30,9 @@
                                      (setq viper-ex-style-editing nil)))
 
 ;; otherwise hl-line-mode stays off after running an ex command like :w
+
 (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-(add-hook 'viper-minibuffer-exit-hook #'viper-change-state-to-vi)
 (add-hook 'viper-vi-state-hook (lambda ()
                                  (global-hl-line-mode)
                                  (setq my/global-viper-state 'vi)
@@ -419,3 +419,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
 (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
+
+(setq my/dired-vi-state-modify-map (make-sparse-keymap))
+(define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+(viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)

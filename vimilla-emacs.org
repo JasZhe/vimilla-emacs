@@ -229,6 +229,13 @@ not necessary viper, but same idea
    (setq completion-in-region-function #'completing-read-in-region)
 #+end_src
 
+** eshell
+#+begin_src elisp
+  (use-package eshell
+    :config
+    (add-to-list 'eshell-modules-list 'eshell-tramp))
+#+end_src
+
 * Tab bar
 basically minimal projectile and persp
 #+begin_src elisp
@@ -302,9 +309,9 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
                                        (setq viper-ex-style-editing nil)))
 
   ;; otherwise hl-line-mode stays off after running an ex command like :w
+
   (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-  (add-hook 'viper-minibuffer-exit-hook #'viper-change-state-to-vi)
   (add-hook 'viper-vi-state-hook (lambda ()
                                    (global-hl-line-mode)
                                    (setq my/global-viper-state 'vi)
@@ -819,6 +826,13 @@ otherwise this works lol
   (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
   (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
   (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
+#+end_src
+
+** dired
+#+begin_src elisp
+  (setq my/dired-vi-state-modify-map (make-sparse-keymap))
+  (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
 #+end_src
 
 

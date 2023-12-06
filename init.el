@@ -170,6 +170,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
            (t (message "No completion") nil))))
  (setq completion-in-region-function #'completing-read-in-region)
 
+(use-package eshell
+  :config
+  (add-to-list 'eshell-modules-list 'eshell-tramp))
+
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
  (cond
