@@ -18,6 +18,7 @@ and need to figure out keymappings
     "command is a git subcommand that requires an editor.
   example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (interactive "P")
+    (unless server-mode (server-force-delete) (server-mode))
     (let ((command (if command command (read-string "command: git "))))
       (async-shell-command
        (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
@@ -641,6 +642,7 @@ TODO imenu keybinding
                 (if arg (ido-switch-buffer)
                   (project-switch-to-buffer (project--read-project-buffer)))))
   (define-key my/leader-prefix-map "u" #'universal-argument)
+  (define-key universal-argument-map " u" #'universal-argument-more)
 
   (define-key my/leader-prefix-map "F" #'project-find-file)
   (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
@@ -959,6 +961,13 @@ https://github.com/justbur/emacs-which-key
   (use-package which-key :ensure t
     :config
     (which-key-mode))
+#+end_src
+
+** my own hurl mode :)
+well this oen is self explanatory
+#+begin_src elisp :tangle no
+  (package-vc-install "https://github.com/JasZhe/hurl-mode")
+  (use-package hurl-mode :mode "\\.hurl\\'")
 #+end_src
 
 * Local variables                                                        

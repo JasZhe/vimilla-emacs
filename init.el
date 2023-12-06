@@ -2,6 +2,7 @@
   "command is a git subcommand that requires an editor.
 example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (interactive "P")
+  (unless server-mode (server-force-delete) (server-mode))
   (let ((command (if command command (read-string "command: git "))))
     (async-shell-command
      (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))

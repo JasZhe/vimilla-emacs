@@ -291,6 +291,7 @@ respects rectangle mode in a similar way to vim/doom"
               (if arg (ido-switch-buffer)
                 (project-switch-to-buffer (project--read-project-buffer)))))
 (define-key my/leader-prefix-map "u" #'universal-argument)
+(define-key universal-argument-map " u" #'universal-argument-more)
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
 (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
