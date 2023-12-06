@@ -172,11 +172,11 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
  (setq completion-in-region-function #'completing-read-in-region)
 
 (defun my/eshell-send-cmd-async ()
-  "convenience method to help us wrap async-shell-command around our current input"
   (interactive)
-  (let ((cmd (buffer-substring-no-properties eshell-last-output-end (point))))
-    (eshell-interrupt-process)
-    (insert (format "async-shell-command \"%s\"" cmd))
+  (let ((cmd (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point)))))
+    (unless (eshell-head-process)
+      (delete-region eshell-last-output-end (point))
+      (insert (format "async-shell-command \"%s\"" cmd)))
     )
   )
 
