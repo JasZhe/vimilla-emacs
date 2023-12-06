@@ -173,10 +173,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (defun my/eshell-send-cmd-async ()
   (interactive)
-  (let ((cmd (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point)))))
+  (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
     (unless (eshell-head-process)
       (delete-region eshell-last-output-end (point))
-      (insert (format "async-shell-command \"%s\"" cmd)))
+      (insert (format "comint-run \"%s\"" cmd)))
     )
   )
 
