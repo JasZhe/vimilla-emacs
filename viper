@@ -68,9 +68,18 @@
                                           (push-mark nil t nil))))
 (setq window-buffer-change-functions nil)
 (add-to-list 'window-buffer-change-functions (lambda (_)
-                                                 (with-current-buffer (other-buffer)
-                                                   (push-mark nil t nil))))
-(define-key viper-vi-basic-map "\C-o" #'pop-global-mark)
+                                               (with-current-buffer (other-buffer)
+                                                 (push-mark nil t nil))))
+(define-key viper-vi-basic-map "\C-i" #'xref-go-forward)
+(define-key viper-vi-basic-map "\C-o"
+            (lambda ()
+              (interactive)
+              (condition-case nil
+                  (xref-go-back)
+                (error
+                 (pop-global-mark)
+                 nil))
+            ))
 
 (define-key viper-vi-basic-map "k" #'previous-line)
 (define-key viper-vi-basic-map "j" #'next-line)
