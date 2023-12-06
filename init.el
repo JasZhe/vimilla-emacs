@@ -171,9 +171,28 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
            (t (message "No completion") nil))))
  (setq completion-in-region-function #'completing-read-in-region)
 
+(defun my/eshell-send-cmd-async ()
+  "convenience method to help us wrap async-shell-command around our current input"
+  (interactive)
+  (let ((cmd (buffer-substring-no-properties eshell-last-output-end (point))))
+    (eshell-interrupt-process)
+    (insert (format "async-shell-command \"%s\"" cmd))
+    )
+  )
+
 (use-package eshell
   :config
-  (add-to-list 'eshell-modules-list 'eshell-tramp))
+  (add-to-list 'eshell-modules-list 'eshell-tramp)
+  (setq my/eshell-vi-state-modify-map (make-sparse-keymap))
+  (setq my/eshell-insert-state-modify-map (make-sparse-keymap))
+
+  (define-key my/eshell-vi-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+  (define-key my/eshell-vi-state-modify-map " ma" #'my/eshell-send-cmd-async)
+  (define-key my/eshell-insert-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+
+  (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
+  (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
+  )
 
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."

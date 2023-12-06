@@ -234,9 +234,28 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
 
 ** eshell
 #+begin_src elisp
+  (defun my/eshell-send-cmd-async ()
+    "convenience method to help us wrap async-shell-command around our current input"
+    (interactive)
+    (let ((cmd (buffer-substring-no-properties eshell-last-output-end (point))))
+      (eshell-interrupt-process)
+      (insert (format "async-shell-command \"%s\"" cmd))
+      )
+    )
+
   (use-package eshell
     :config
-    (add-to-list 'eshell-modules-list 'eshell-tramp))
+    (add-to-list 'eshell-modules-list 'eshell-tramp)
+    (setq my/eshell-vi-state-modify-map (make-sparse-keymap))
+    (setq my/eshell-insert-state-modify-map (make-sparse-keymap))
+    
+    (define-key my/eshell-vi-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+    (define-key my/eshell-vi-state-modify-map " ma" #'my/eshell-send-cmd-async)
+    (define-key my/eshell-insert-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+
+    (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
+    (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
+    )
 #+end_src
 
 * Tab bar
