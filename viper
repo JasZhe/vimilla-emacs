@@ -423,6 +423,16 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
 
+
+(setq my/vc-vi-state-modify-map (make-sparse-keymap))
+(define-key my/vc-vi-state-modify-map "d" #'log-view-diff)
+(define-key my/vc-vi-state-modify-map "a" #'log-view-annotate-version)
+(define-key my/vc-vi-state-modify-map "f" #'log-view-find-revision)
+(define-key my/vc-vi-state-modify-map "D" #'log-view-diff-changeset)
+
+(viper-modify-major-mode 'log-view-mode 'vi-state my/vc-vi-state-modify-map)
+(viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-vi-state-modify-map)
+
 (setq my/dired-vi-state-modify-map (make-sparse-keymap))
 (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
 (define-key my/dired-vi-state-modify-map "m" #'dired-mark)
