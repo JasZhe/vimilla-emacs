@@ -8,7 +8,7 @@ This is mainly a learning exercise for myself to explore more of vanilla emacs, 
 
 It's also nice to have this on my crappy, but very portable, laptop whenever I want to write some code on the go instead of trying to run Doom on it.
 
-The goal of this is to try and not use any external package, and to try and keep the config simple and light weight. I don't want to re-create doom nor do I want this to become another "distribution". Though I might give myself the option of using some external packages.
+The goal of this is to try and not use any external package, and to try and keep the config simple and light weight. I don't want to re-create doom entirely nor do I want this to become another "distribution". Though I might give myself the option of using some external packages.
 
 So I'm limiting myself to a single file, try and have no more than 1000 lines of code, without doing some weird nasty/complicated code (read: everything on one line lol) just to get within that arbitrary limit.
 
@@ -17,4 +17,4 @@ This is mainly just going to be my own personal config that I'll update from tim
 
 I have a pretty crappy laptop that I like to bring around, and while it /can/ run Doom, something lighter weight like this would help a lot.
 
-Feel free to leave issues but no guarantee I'll ever get to them.
+I would actually prefer implementing any issues myself for learning and for fun :) so I probably won't accept PRs but feel free to leave any issues for suggestions, although no guarantees I'll get to them. 

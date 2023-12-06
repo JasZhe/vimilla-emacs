@@ -118,8 +118,6 @@ luckily this is built in lol
 #+end_src
 
 * Window commands
-TODO resizing functions
-also zz and stuff to center screen
 not necessary viper, but same idea
 #+begin_src elisp
   (winner-mode)
@@ -174,6 +172,8 @@ not necessary viper, but same idea
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 #+end_src
 ** some more basic elisp highlighting
+stole most of this from here:
+https://stackoverflow.com/questions/18289329/how-to-highlight-all-the-functions-name-in-emacs-lisp-mode
 
 #+begin_src elisp
     (defface font-lock-func-face 
@@ -211,6 +211,8 @@ not necessary viper, but same idea
 #+end_src
            
 ** in buffer completion
+from:
+https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
 #+begin_src elisp
   (setq enable-recursive-minibuffers t)
   (defun completing-read-in-region (start end collection &optional predicate)
@@ -328,7 +330,6 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (setq viper-insert-state-cursor-color nil)
 #+end_src
 
-*
 ** help commands
 qol to use c-h for help commands, and something for us to type faster
 #+begin_src elisp
@@ -362,6 +363,7 @@ better ESC key handling to exit visual mode and close mini buffer
                                                  (with-current-buffer (other-buffer)
                                                    (push-mark nil t nil))))
   (define-key viper-vi-basic-map "\C-i" #'xref-go-forward)
+  (define-key viper-vi-basic-map "\t" nil)
   (define-key viper-vi-basic-map "\C-o"
               (lambda ()
                 (interactive)
@@ -532,64 +534,65 @@ if the region exists then we jump to the beginning of the region and merge the n
 
 *** hacky stuff to make yanking/killing work for our line visual selection
 #+begin_src elisp
-    (setq my/line-yank-p nil)
-    (defun viper-delete-region-or-motion-command (arg)
-      "convenience function for deleting a region, including rectangles"
-      (interactive "P")
-      (if (use-region-p)
-          (let ((start (region-beginning)) (end (region-end)))
-            (if rectangle-mark-mode
-                (kill-rectangle start end arg)
-              (progn
-                (forward-char)
-                (if my/line-selection-p
-                    (setq my/line-yank-p t)
-                  (setq my/line-yank-p nil))
-                (kill-region start end t))))
-        (viper-command-argument arg)))
+  (setq my/line-yank-p nil)
+  (defun viper-delete-region-or-motion-command (arg)
+    "convenience function for deleting a region, including rectangles"
+    (interactive "P")
+    (if (use-region-p)
+        (let ((start (region-beginning)) (end (region-end)))
+          (if rectangle-mark-mode
+              (kill-rectangle start end arg)
+            (progn
+              (forward-char)
+              (if my/line-selection-p
+                  (setq my/line-yank-p t)
+                (setq my/line-yank-p nil))
+              (kill-region start end t))))
+      (viper-command-argument arg)))
 
-    (defun viper-copy-region-or-motion-command (arg)
-      "convenience function for yanking a region, including rectangles"
-      (interactive "P")
-      (if (use-region-p)
-          (let ((start (region-beginning)) (end (region-end)))
-            (if rectangle-mark-mode
-                (copy-rectangle-as-kill start end)
-              (progn
-                (forward-char)
-                (if my/line-selection-p
-                    (setq my/line-yank-p t)
-                  (setq my/line-yank-p nil))
-                (copy-region-as-kill start end t)
-                (backward-char))
-              ))
-        (viper-command-argument arg)))
+  (defun viper-copy-region-or-motion-command (arg)
+    "convenience function for yanking a region, including rectangles"
+    (interactive "P")
+    (if (use-region-p)
+        (let ((start (region-beginning)) (end (region-end)))
+          (if rectangle-mark-mode
+              (copy-rectangle-as-kill start end)
+            (progn
+              (forward-char)
+              (if my/line-selection-p
+                  (setq my/line-yank-p t)
+                (setq my/line-yank-p nil))
+              (copy-region-as-kill start end t)
+              (backward-char))
+            ))
+      (viper-command-argument arg)))
 
-    (defun viper-paste-into-region (arg)
-      "if region is active, delete region before pasting
-    respects rectangle mode in a similar way to vim/doom"
-      (interactive "P")
-      (cond (my/line-yank-p
-             (progn
-               (viper-open-line nil)
-               (viper-change-state-to-vi)
-               (yank)
-               (forward-line)))
-            ((and (not killed-rectangle) (use-region-p))
-             (progn
-               (let ((start (region-beginning)))
-                 (forward-char)
-                 (delete-active-region)
-                 (yank))))
-            (killed-rectangle
-             (progn 
-               (yank-rectangle)
-               (setq killed-rectangle nil)))
-            (t (yank arg))))
+  (defun viper-paste-into-region (arg)
+    "if region is active, delete region before pasting
+  respects rectangle mode in a similar way to vim/doom"
+    (interactive "P")
+    (cond (my/line-yank-p
+           (progn
+             (viper-open-line nil)
+             (viper-change-state-to-vi)
+             (when (use-region-p) (delete-active-region))
+             (yank)
+             (forward-line)))
+          ((and (not killed-rectangle) (use-region-p))
+           (progn
+             (let ((start (region-beginning)))
+               (forward-char)
+               (delete-active-region)
+               (yank))))
+          (killed-rectangle
+           (progn 
+             (yank-rectangle)
+             (setq killed-rectangle nil)))
+          (t (yank arg))))
 
-    (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
-    (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
-    (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+  (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
+  (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
+  (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
 #+end_src
 
 ** undo
@@ -783,7 +786,7 @@ pretty handy tbh
   (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
 #+end_src
 
-** WIP advise viper-brac/ket-function
+** advise viper-brac/ket-function
 holy shit lol..
 viper-cmd.el:viper-brac-function or viper-ket-function
 
@@ -832,11 +835,19 @@ otherwise this works lol
 #+begin_src elisp
   (setq my/dired-vi-state-modify-map (make-sparse-keymap))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+  (define-key my/dired-vi-state-modify-map "m" #'dired-mark)
+  (define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
+  (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
+  (define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)
+
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
 #+end_src
 
 
 * Org
+
+grabbed the src block fontification from here
+https://orgmode.org/worg/org-contrib/babel/examples/fontify-src-code-blocks.html
 
 Just a bunch of convenience keymaps, some faces, and some basic settings
 #+begin_src elisp
@@ -917,28 +928,37 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 
 * (blasphemy) external packages
 Need to install these seperately, but some configuration here
+These packages are all good enough to be built in to be honest
 
 ** orderless
+https://github.com/oantolin/orderless
 I like orderless too much, and it's not too complicated of a package.
 #+begin_src elisp :tangle no
-  (require 'orderless)
-  (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
-  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
-  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
-  (define-key minibuffer-local-completion-map " " #'self-insert-command)
+  (use-package orderless :ensure t
+    :config
+    (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
+    (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
+    (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+    (define-key minibuffer-local-completion-map " " #'self-insert-command))
 #+end_src
 
 ** avy
+avy jumping is so nice
+https://github.com/abo-abo/avy
 #+begin_src elisp :tangle no
-  (require 'avy)
-  (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
-  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+  (use-package avy :ensure t
+    :config
+    (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
+    (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 #+end_src
 
 ** which key
+amazing package when I forget my own keybindings
+https://github.com/justbur/emacs-which-key
 #+begin_src elisp :tangle no
-  (require 'which-key)
-  (which-key-mode)
+  (use-package which-key :ensure t
+    :config
+    (which-key-mode))
 #+end_src
 
 * Local variables                                                        

@@ -71,6 +71,7 @@
                                                (with-current-buffer (other-buffer)
                                                  (push-mark nil t nil))))
 (define-key viper-vi-basic-map "\C-i" #'xref-go-forward)
+(define-key viper-vi-basic-map "\t" nil)
 (define-key viper-vi-basic-map "\C-o"
             (lambda ()
               (interactive)
@@ -245,6 +246,7 @@ respects rectangle mode in a similar way to vim/doom"
          (progn
            (viper-open-line nil)
            (viper-change-state-to-vi)
+           (when (use-region-p) (delete-active-region))
            (yank)
            (forward-line)))
         ((and (not killed-rectangle) (use-region-p))
@@ -422,4 +424,9 @@ respects rectangle mode in a similar way to vim/doom"
 
 (setq my/dired-vi-state-modify-map (make-sparse-keymap))
 (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+(define-key my/dired-vi-state-modify-map "m" #'dired-mark)
+(define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
+(define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
+(define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)
+
 (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
