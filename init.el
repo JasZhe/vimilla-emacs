@@ -181,7 +181,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
     (unless (eshell-head-process)
       (delete-region eshell-last-output-end (point))
-      (insert (format "comint-run \"%s\"" cmd)))
+      (insert (format "async-shell-command \"%s\"" cmd)))
     )
   )
 

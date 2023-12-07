@@ -247,7 +247,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
     (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
       (unless (eshell-head-process)
         (delete-region eshell-last-output-end (point))
-        (insert (format "comint-run \"%s\"" cmd)))
+        (insert (format "async-shell-command \"%s\"" cmd)))
       )
     )
 
