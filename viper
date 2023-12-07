@@ -285,11 +285,9 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map " " my/leader-prefix-map)
 
 (define-key my/leader-prefix-map ","
-            (lambda (arg)
-              "switch to project buffer, with prefix argument, switch to any buffer"
-              (interactive "P")
-              (if arg (ido-switch-buffer)
-                (project-switch-to-buffer (project--read-project-buffer)))))
+            (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
+(define-key my/leader-prefix-map "<" #'switch-to-buffer)
+
 (define-key my/leader-prefix-map "u" #'universal-argument)
 (define-key universal-argument-map " u" #'universal-argument-more)
 

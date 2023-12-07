@@ -651,20 +651,18 @@ need to remap isearch-backward since i wanna use C-r for redo
 ** pseudo "leader" prefix
 TODO imenu keybinding
 #+begin_src elisp
-  (setq my/leader-prefix-map (make-sparse-keymap))
-  (define-key viper-vi-basic-map " " my/leader-prefix-map)
+    (setq my/leader-prefix-map (make-sparse-keymap))
+    (define-key viper-vi-basic-map " " my/leader-prefix-map)
 
-  (define-key my/leader-prefix-map ","
-              (lambda (arg)
-                "switch to project buffer, with prefix argument, switch to any buffer"
-                (interactive "P")
-                (if arg (ido-switch-buffer)
-                  (project-switch-to-buffer (project--read-project-buffer)))))
-  (define-key my/leader-prefix-map "u" #'universal-argument)
-  (define-key universal-argument-map " u" #'universal-argument-more)
+    (define-key my/leader-prefix-map ","
+                (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
+    (define-key my/leader-prefix-map "<" #'switch-to-buffer)
+              
+    (define-key my/leader-prefix-map "u" #'universal-argument)
+    (define-key universal-argument-map " u" #'universal-argument-more)
 
-  (define-key my/leader-prefix-map "F" #'project-find-file)
-  (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
+    (define-key my/leader-prefix-map "F" #'project-find-file)
+    (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
 #+end_src
 
 *** "open" prefix
