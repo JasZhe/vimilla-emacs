@@ -172,6 +172,17 @@ not necessary viper, but same idea
 #+begin_src elisp
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 #+end_src
+
+** treesit font lock level
+#+begin_src elisp
+  (setq treesit-font-lock-level 4)
+#+end_src
+
+** turn on electric pair mode
+#+begin_src elisp
+  (electric-pair-mode)
+#+end_src
+
 ** some more basic elisp highlighting
 stole most of this from here:
 https://stackoverflow.com/questions/18289329/how-to-highlight-all-the-functions-name-in-emacs-lisp-mode
@@ -790,8 +801,14 @@ pretty handy tbh
 #+end_src
 
 #+begin_src elisp
-    (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
-    (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+  (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
+  (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+  (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
+#+end_src
+
+** development
+#+begin_src elisp
+  (define-key viper-vi-basic-map "K" #'eldoc)
 #+end_src
 
 ** window positioning commands

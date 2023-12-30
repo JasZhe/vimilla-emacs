@@ -365,6 +365,9 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+(define-key my/leader-prefix-map "ca" #'eglot-code-actions)
+
+(define-key viper-vi-basic-map "K" #'eldoc)
 
 (define-key viper-vi-basic-map "H"
             (lambda (arg) (interactive "P")

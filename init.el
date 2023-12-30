@@ -122,6 +122,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 
+(setq treesit-font-lock-level 4)
+
+(electric-pair-mode)
+
 (defface font-lock-func-face 
     '((nil (:foreground "#7F0055" :weight bold))
       (t (:bold t :italic t)))
