@@ -962,8 +962,8 @@ These packages are all good enough to be built in to be honest
 ** orderless
 https://github.com/oantolin/orderless
 I like orderless too much, and it's not too complicated of a package.
-#+begin_src elisp :tangle no
-  (use-package orderless :ensure t
+#+begin_src elisp
+  (use-package orderless :ensure nil
     :config
     (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
     (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
@@ -974,8 +974,8 @@ I like orderless too much, and it's not too complicated of a package.
 ** avy
 avy jumping is so nice
 https://github.com/abo-abo/avy
-#+begin_src elisp :tangle no
-  (use-package avy :ensure t
+#+begin_src elisp
+  (use-package avy :ensure nil
     :config
     (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
     (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
@@ -984,17 +984,50 @@ https://github.com/abo-abo/avy
 ** which key
 amazing package when I forget my own keybindings
 https://github.com/justbur/emacs-which-key
-#+begin_src elisp :tangle no
-  (use-package which-key :ensure t
+#+begin_src elisp
+  (use-package which-key :ensure nil
     :config
     (which-key-mode))
 #+end_src
 
 ** my own hurl mode :)
 well this oen is self explanatory
-#+begin_src elisp :tangle no
+#+begin_src elisp
   (package-vc-install "https://github.com/JasZhe/hurl-mode")
   (use-package hurl-mode :mode "\\.hurl\\'")
+#+end_src
+
+** web mode
+#+begin_src elisp
+  (use-package web-mode :ensure nil
+    :mode "\\.gohtml\\'"
+    :config
+    (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
+    )
+#+end_src
+
+** pdf tools
+#+begin_src elisp
+  (use-package pdf-tools :ensure nil
+    :config
+      (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
+      (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
+      (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
+      (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
+      (setq pdf-view-resize-factor 1.10)
+      (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
+      (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
+
+      (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
+    )
+#+end_src
+
+** magit
+#+begin_src elisp
+  (use-package magit :ensure nil
+    :config
+    (define-key my/leader-prefix-map "gg" #'magit)
+    )
 #+end_src
 
 * Local variables                                                        

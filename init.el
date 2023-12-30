@@ -279,3 +279,46 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                   (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
+
+(use-package orderless :ensure nil
+  :config
+  (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
+  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
+  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+  (define-key minibuffer-local-completion-map " " #'self-insert-command))
+
+(use-package avy :ensure nil
+  :config
+  (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
+  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
+
+(use-package which-key :ensure nil
+  :config
+  (which-key-mode))
+
+(package-vc-install "https://github.com/JasZhe/hurl-mode")
+(use-package hurl-mode :mode "\\.hurl\\'")
+
+(use-package web-mode :ensure nil
+  :mode "\\.gohtml\\'"
+  :config
+  (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
+  )
+
+(use-package pdf-tools :ensure nil
+  :config
+    (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
+    (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
+    (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
+    (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
+    (setq pdf-view-resize-factor 1.10)
+    (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
+    (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
+
+    (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
+  )
+
+(use-package magit :ensure nil
+  :config
+  (define-key my/leader-prefix-map "gg" #'magit)
+  )
