@@ -194,6 +194,22 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
   )
 
+(when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
+  (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height 130))
+(when (member "Iosevka Etoile" (font-family-list))
+  (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height 130))
+
+(setq modus-themes-headings
+      '((1 . (rainbow overline background variable-pitch 1.25))
+        (2 . (rainbow background variable-pitch 1.15))
+        (3 . (rainbow bold variable-pitch 1.1))
+        (t . (semilight variable-pitch 1.05))))
+
+(setq modus-themes-bold-constructs t)
+(setq modus-themes-italic-constructs t)
+(setq modus-themes-org-blocks 'gray-background)
+(load-theme 'modus-operandi)
+
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
  (cond
@@ -211,31 +227,31 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
 (setq org-attach-use-interitance t)
 
-(defface org-block-begin-line
-  '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-  "Face used for the line delimiting the begin of source blocks.")
-(defface org-block-background
-  '((t (:background "#FFFFEA")))
-  "Face used for the source block background.")
-(defface org-block-end-line
-  '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-  "Face used for the line delimiting the end of source blocks.")
+;; (defface org-block-begin-line
+;;   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
+;;   "Face used for the line delimiting the begin of source blocks.")
+;; (defface org-block-background
+;;   '((t (:background "#FFFFEA")))
+;;   "Face used for the source block background.")
+;; (defface org-block-end-line
+;;   '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
+;;   "Face used for the line delimiting the end of source blocks.")
 
-(defface org-level-1
-  '((t (:inherit outline-1 :height 1.25)))
-  "Face used for level 1 headlines.")
-(defface org-level-2
-  '((t (:inherit outline-2 :height 1.15)))
-  "Face used for level 2 headlines.")
-(defface org-level-3
-  '((t (:inherit outline-3 :height 1.10)))
-  "Face used for level 3 headlines.")
-(defface org-level-4
-  '((t (:inherit outline-4 :height 1.05)))
-  "Face used for level 4 headlines.")
-(defface org-level-5
-  '((t (:inherit outline-5 :height 1.0)))
-  "Face used for level 5 headlines.")
+;; (defface org-level-1
+;;   '((t (:inherit outline-1 :height 1.25)))
+;;   "Face used for level 1 headlines.")
+;; (defface org-level-2
+;;   '((t (:inherit outline-2 :height 1.15)))
+;;   "Face used for level 2 headlines.")
+;; (defface org-level-3
+;;   '((t (:inherit outline-3 :height 1.10)))
+;;   "Face used for level 3 headlines.")
+;; (defface org-level-4
+;;   '((t (:inherit outline-4 :height 1.05)))
+;;   "Face used for level 4 headlines.")
+;; (defface org-level-5
+;;   '((t (:inherit outline-5 :height 1.0)))
+;;   "Face used for level 5 headlines.")
 
 (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 4)
