@@ -434,9 +434,12 @@ respects rectangle mode in a similar way to vim/doom"
 (viper-modify-major-mode 'log-view-mode 'vi-state my/vc-vi-state-modify-map)
 (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-vi-state-modify-map)
 
+(viper-modify-major-mode 'vc-dir-mode 'vi-state vc-dir-mode-map)
+
 (setq my/dired-vi-state-modify-map (make-sparse-keymap))
 (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
 (define-key my/dired-vi-state-modify-map "m" #'dired-mark)
+(define-key my/dired-vi-state-modify-map "u" #'dired-unmark)
 (define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
 (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
 (define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)

@@ -900,11 +900,17 @@ otherwise this works lol
   (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-vi-state-modify-map)
 #+end_src
 
+*** VC Dir mode
+#+begin_src elisp
+  (viper-modify-major-mode 'vc-dir-mode 'vi-state vc-dir-mode-map)
+#+end_src
+
 ** dired
 #+begin_src elisp
   (setq my/dired-vi-state-modify-map (make-sparse-keymap))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (define-key my/dired-vi-state-modify-map "m" #'dired-mark)
+  (define-key my/dired-vi-state-modify-map "u" #'dired-unmark)
   (define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
   (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
   (define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)
