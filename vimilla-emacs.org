@@ -999,11 +999,13 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 Need to install these seperately, but some configuration here
 These packages are all good enough to be built in to be honest
 
+Lets at least stick with gnu/nongnu elpa
+
 ** orderless
 https://github.com/oantolin/orderless
 I like orderless too much, and it's not too complicated of a package.
 #+begin_src elisp
-  (use-package orderless :ensure nil
+  (use-package orderless :ensure nil :pin gnu
     :config
     (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
     (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
@@ -1015,7 +1017,7 @@ I like orderless too much, and it's not too complicated of a package.
 avy jumping is so nice
 https://github.com/abo-abo/avy
 #+begin_src elisp
-  (use-package avy :ensure nil
+  (use-package avy :ensure nil :pin gnu
     :config
     (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
     (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
@@ -1025,7 +1027,7 @@ https://github.com/abo-abo/avy
 amazing package when I forget my own keybindings
 https://github.com/justbur/emacs-which-key
 #+begin_src elisp
-  (use-package which-key :ensure nil
+  (use-package which-key :ensure nil :pin gnu
     :config
     (which-key-mode))
 #+end_src
@@ -1039,7 +1041,7 @@ well this oen is self explanatory
 
 ** web mode
 #+begin_src elisp
-  (use-package web-mode :ensure nil
+  (use-package web-mode :ensure nil :pin gnu
     :mode "\\.gohtml\\'"
     :config
     (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
@@ -1048,7 +1050,7 @@ well this oen is self explanatory
 
 ** pdf tools
 #+begin_src elisp
-  (use-package pdf-tools :ensure nil
+  (use-package pdf-tools :ensure nil :pin gnu
     :config
       (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
       (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
@@ -1064,9 +1066,22 @@ well this oen is self explanatory
 
 ** magit
 #+begin_src elisp
-  (use-package magit :ensure nil
+  (use-package magit :ensure nil :pin gnu
     :config
     (define-key my/leader-prefix-map "gg" #'magit)
+    (setq my/magit-vi-state-modify-map magit-mode-map)
+
+    ;; motions
+    (define-key my/magit-vi-state-modify-map "j" #'next-line)
+    (define-key my/magit-vi-state-modify-map "k" #'previous-line)
+    (define-key my/magit-vi-state-modify-map "l" #'viper-forward-char)
+    (define-key my/magit-vi-state-modify-map "h" #'viper-backward-char)
+    (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
+    (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
+    (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
+
+
+    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
     )
 #+end_src
 

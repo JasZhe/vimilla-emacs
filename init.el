@@ -300,32 +300,32 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
 
-(use-package orderless :ensure nil
+(use-package orderless :ensure nil :pin gnu
   :config
   (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
   (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
   (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
   (define-key minibuffer-local-completion-map " " #'self-insert-command))
 
-(use-package avy :ensure nil
+(use-package avy :ensure nil :pin gnu
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
   (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 
-(use-package which-key :ensure nil
+(use-package which-key :ensure nil :pin gnu
   :config
   (which-key-mode))
 
 (package-vc-install "https://github.com/JasZhe/hurl-mode")
 (use-package hurl-mode :mode "\\.hurl\\'")
 
-(use-package web-mode :ensure nil
+(use-package web-mode :ensure nil :pin gnu
   :mode "\\.gohtml\\'"
   :config
   (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
   )
 
-(use-package pdf-tools :ensure nil
+(use-package pdf-tools :ensure nil :pin gnu
   :config
     (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
     (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
@@ -338,7 +338,20 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
   )
 
-(use-package magit :ensure nil
+(use-package magit :ensure nil :pin gnu
   :config
   (define-key my/leader-prefix-map "gg" #'magit)
+  (setq my/magit-vi-state-modify-map magit-mode-map)
+
+  ;; motions
+  (define-key my/magit-vi-state-modify-map "j" #'next-line)
+  (define-key my/magit-vi-state-modify-map "k" #'previous-line)
+  (define-key my/magit-vi-state-modify-map "l" #'viper-forward-char)
+  (define-key my/magit-vi-state-modify-map "h" #'viper-backward-char)
+  (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
+  (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
+  (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
+
+
+  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
   )
