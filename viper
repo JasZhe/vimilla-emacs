@@ -357,6 +357,25 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key my/leader-prefix-map "ff" #'find-file)
 
+(setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
+(define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
+(define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
+(define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
+(define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
+(define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
+(define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
+(define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+
+(setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
+(define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
+(define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
+(define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
+
+(define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
+(define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
+(define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
+(define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+
 (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
 (define-key viper-vi-basic-map "gd" #'xref-find-definitions)
 
@@ -424,24 +443,12 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
 
+(setq my/vc-log-vi-state-modify-map my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map)
 
-(setq my/vc-vi-state-modify-map (make-sparse-keymap))
-(define-key my/vc-vi-state-modify-map "d" #'log-view-diff)
-(define-key my/vc-vi-state-modify-map "a" #'log-view-annotate-version)
-(define-key my/vc-vi-state-modify-map "f" #'log-view-find-revision)
-(define-key my/vc-vi-state-modify-map "D" #'log-view-diff-changeset)
-
-(viper-modify-major-mode 'log-view-mode 'vi-state my/vc-vi-state-modify-map)
-(viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-vi-state-modify-map)
+(viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map)
 
 (viper-modify-major-mode 'vc-dir-mode 'vi-state vc-dir-mode-map)
 
-(setq my/dired-vi-state-modify-map (make-sparse-keymap))
-(define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
-(define-key my/dired-vi-state-modify-map "m" #'dired-mark)
-(define-key my/dired-vi-state-modify-map "u" #'dired-unmark)
-(define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
-(define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
-(define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)
-
+(setq my/dired-vi-state-modify-map
+      (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
 (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)

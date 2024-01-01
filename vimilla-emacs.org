@@ -167,24 +167,17 @@ not necessary viper, but same idea
 #+end_src
 
 * development
-** enable which-function
+** qol
 #+begin_src elisp
-(which-function-mode)
+  (add-hook 'prog-mode-hook #'flymake-mode)
+  (setq treesit-font-lock-level 4)
+  (which-function-mode)
+  (electric-pair-mode)
 #+end_src
 
 ** go use treesit
 #+begin_src elisp
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-#+end_src
-
-** treesit font lock level
-#+begin_src elisp
-  (setq treesit-font-lock-level 4)
-#+end_src
-
-** turn on electric pair mode
-#+begin_src elisp
-  (electric-pair-mode)
 #+end_src
 
 ** some more basic elisp highlighting
@@ -795,6 +788,33 @@ pretty handy tbh
     (define-key my/leader-prefix-map "ff" #'find-file)
 #+end_src
 
+** viper motion keymap
+TBD for use in specific major mode keymaps so we at least keep motions
+in special modes
+#+begin_src elisp
+  (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
+  (define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
+  (define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
+  (define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
+  (define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
+  (define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
+  (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+#+end_src
+
+I might be able to live without these ones so they can be overriden
+#+begin_src elisp
+  (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
+  (define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
+  (define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
+  (define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
+
+  (define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
+  (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
+  (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
+  (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+#+end_src
+
 ** eglot/xref
 #+begin_src elisp
   (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
@@ -893,15 +913,9 @@ otherwise this works lol
   (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
   (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
 
-  
-  (setq my/vc-vi-state-modify-map (make-sparse-keymap))
-  (define-key my/vc-vi-state-modify-map "d" #'log-view-diff)
-  (define-key my/vc-vi-state-modify-map "a" #'log-view-annotate-version)
-  (define-key my/vc-vi-state-modify-map "f" #'log-view-find-revision)
-  (define-key my/vc-vi-state-modify-map "D" #'log-view-diff-changeset)
+  (setq my/vc-log-vi-state-modify-map my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map)
 
-  (viper-modify-major-mode 'log-view-mode 'vi-state my/vc-vi-state-modify-map)
-  (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-vi-state-modify-map)
+  (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map)
 #+end_src
 
 *** VC Dir mode
@@ -911,16 +925,12 @@ otherwise this works lol
 
 ** dired
 #+begin_src elisp
-  (setq my/dired-vi-state-modify-map (make-sparse-keymap))
-  (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
-  (define-key my/dired-vi-state-modify-map "m" #'dired-mark)
-  (define-key my/dired-vi-state-modify-map "u" #'dired-unmark)
-  (define-key my/dired-vi-state-modify-map "D" #'dired-do-delete)
-  (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
-  (define-key my/dired-vi-state-modify-map "R" #'dired-do-rename)
-
+  (setq my/dired-vi-state-modify-map
+        (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
 #+end_src
+
+
 
 
 * Org
@@ -1051,22 +1061,14 @@ well this oen is self explanatory
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
-  (use-package magit :ensure nil :pin gnu
-    :config
-    (define-key my/leader-prefix-map "gg" #'magit)
-    (setq my/magit-vi-state-modify-map magit-mode-map)
+    (use-package magit :ensure nil :pin gnu
+      :config
+      (define-key my/leader-prefix-map "gg" #'magit)
+      (setq my/magit-vi-state-modify-map
+            (make-composed-keymap my/viper-vi-basic-motion-keymap magit-mode-map))
 
-    ;; motions
-    (define-key my/magit-vi-state-modify-map "j" #'next-line)
-    (define-key my/magit-vi-state-modify-map "k" #'previous-line)
-    (define-key my/magit-vi-state-modify-map "l" #'viper-forward-char)
-    (define-key my/magit-vi-state-modify-map "h" #'viper-backward-char)
-    (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
-    (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
-    (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
-
-    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-    )
+      (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+      )
 #+end_src
 
 * Local variables                                                        

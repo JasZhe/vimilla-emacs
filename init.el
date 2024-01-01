@@ -120,13 +120,12 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (define-key global-map (kbd "\C-wo") #'maximize-window)
 (define-key global-map "\C-w\C-o" #'delete-other-windows)
 
+(add-hook 'prog-mode-hook #'flymake-mode)
+(setq treesit-font-lock-level 4)
 (which-function-mode)
+(electric-pair-mode)
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-
-(setq treesit-font-lock-level 4)
-
-(electric-pair-mode)
 
 (defface font-lock-func-face 
     '((nil (:foreground "#7F0055" :weight bold))
@@ -317,16 +316,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (use-package magit :ensure nil :pin gnu
   :config
   (define-key my/leader-prefix-map "gg" #'magit)
-  (setq my/magit-vi-state-modify-map magit-mode-map)
-
-  ;; motions
-  (define-key my/magit-vi-state-modify-map "j" #'next-line)
-  (define-key my/magit-vi-state-modify-map "k" #'previous-line)
-  (define-key my/magit-vi-state-modify-map "l" #'viper-forward-char)
-  (define-key my/magit-vi-state-modify-map "h" #'viper-backward-char)
-  (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
-  (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
-  (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
+  (setq my/magit-vi-state-modify-map
+        (make-composed-keymap my/viper-vi-basic-motion-keymap magit-mode-map))
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
   )
