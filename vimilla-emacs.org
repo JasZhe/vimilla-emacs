@@ -1,11 +1,11 @@
 #+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle init.el :results silent
 
-* TODO flesh out some org commands
+* CANCELLED separate document for keybindings?
+I do enjoy having everything in the one file though and a lot of this stuff is not /just/ setting keybinds,
+its also doing a lot of elisp stuff that work /with/ the keybinds
 
-* TODO separate document for keybindings?
-
-* WIP look into using emacsclient for git rebase and stuff
+* WIP other git commands that VC doesn't handle like git rebase and stuff
 something like this
 
 mainly for these two:
@@ -13,6 +13,8 @@ git fetch
 git rebase
 
 and need to figure out keymappings
+
+just a simple wrapper in the case where we can't install magit
 #+begin_src elisp
   (defun my/vc-git-editor-command (command)
     "command is a git subcommand that requires an editor.
@@ -46,6 +48,8 @@ and need to figure out keymappings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
 #+begin_src elisp
   (setq mac-option-modifier 'meta)
+  (setq mac-command-modifier 'super)
+  (define-key global-map (kbd "s-/") #'comment-line)
 #+end_src
 
 * misc startup tasks
@@ -931,32 +935,6 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
   (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
   (setq org-attach-use-interitance t)
 
-  ;; (defface org-block-begin-line
-  ;;   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-  ;;   "Face used for the line delimiting the begin of source blocks.")
-  ;; (defface org-block-background
-  ;;   '((t (:background "#FFFFEA")))
-  ;;   "Face used for the source block background.")
-  ;; (defface org-block-end-line
-  ;;   '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-  ;;   "Face used for the line delimiting the end of source blocks.")
-
-  ;; (defface org-level-1
-  ;;   '((t (:inherit outline-1 :height 1.25)))
-  ;;   "Face used for level 1 headlines.")
-  ;; (defface org-level-2
-  ;;   '((t (:inherit outline-2 :height 1.15)))
-  ;;   "Face used for level 2 headlines.")
-  ;; (defface org-level-3
-  ;;   '((t (:inherit outline-3 :height 1.10)))
-  ;;   "Face used for level 3 headlines.")
-  ;; (defface org-level-4
-  ;;   '((t (:inherit outline-4 :height 1.05)))
-  ;;   "Face used for level 4 headlines.")
-  ;; (defface org-level-5
-  ;;   '((t (:inherit outline-5 :height 1.0)))
-  ;;   "Face used for level 5 headlines.")
-
   (setq org-startup-indented t)
   (setq org-indent-indentation-per-level 4)
 
@@ -1071,6 +1049,7 @@ well this oen is self explanatory
 #+end_src
 
 ** magit
+I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
   (use-package magit :ensure nil :pin gnu
     :config
@@ -1085,7 +1064,6 @@ well this oen is self explanatory
     (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
     (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
     (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
-
 
     (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
     )

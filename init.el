@@ -26,6 +26,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (async-shell-command "git fetch"))
 
 (setq mac-option-modifier 'meta)
+(setq mac-command-modifier 'super)
+(define-key global-map (kbd "s-/") #'comment-line)
 
 (setq viper-mode t)
 (require 'viper)
@@ -231,32 +233,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
 (setq org-attach-use-interitance t)
 
-;; (defface org-block-begin-line
-;;   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-;;   "Face used for the line delimiting the begin of source blocks.")
-;; (defface org-block-background
-;;   '((t (:background "#FFFFEA")))
-;;   "Face used for the source block background.")
-;; (defface org-block-end-line
-;;   '((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))
-;;   "Face used for the line delimiting the end of source blocks.")
-
-;; (defface org-level-1
-;;   '((t (:inherit outline-1 :height 1.25)))
-;;   "Face used for level 1 headlines.")
-;; (defface org-level-2
-;;   '((t (:inherit outline-2 :height 1.15)))
-;;   "Face used for level 2 headlines.")
-;; (defface org-level-3
-;;   '((t (:inherit outline-3 :height 1.10)))
-;;   "Face used for level 3 headlines.")
-;; (defface org-level-4
-;;   '((t (:inherit outline-4 :height 1.05)))
-;;   "Face used for level 4 headlines.")
-;; (defface org-level-5
-;;   '((t (:inherit outline-5 :height 1.0)))
-;;   "Face used for level 5 headlines.")
-
 (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 4)
 
@@ -351,7 +327,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (define-key my/magit-vi-state-modify-map "w" #'viper-forward-word)
   (define-key my/magit-vi-state-modify-map "b" #'viper-backward-word)
   (define-key my/magit-vi-state-modify-map "e" #'viper-end-of-word)
-
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
   )
