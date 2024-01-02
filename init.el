@@ -295,6 +295,13 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (package-vc-install "https://github.com/JasZhe/hurl-mode"))
 (use-package hurl-mode :mode "\\.hurl\\'")
 
+(when (not (require 'window-stool nil 'noerrror))
+  (package-vc-install "https://github.com/JasZhe/window-stool"))
+(use-package window-stool
+  :config
+  (add-hook 'prog-mode-hook #'window-stool-mode)
+  (add-hook 'org-mode-hook #'window-stool-mode))
+
 (use-package web-mode :ensure nil :pin gnu :defer t
   :mode "\\.gohtml\\'"
   :config

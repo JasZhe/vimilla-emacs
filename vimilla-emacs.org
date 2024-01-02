@@ -1049,6 +1049,16 @@ well this oen is self explanatory
   (use-package hurl-mode :mode "\\.hurl\\'")
 #+end_src
 
+** my own window stool mode :)
+#+begin_src elisp
+  (when (not (require 'window-stool nil 'noerrror))
+    (package-vc-install "https://github.com/JasZhe/window-stool"))
+  (use-package window-stool
+    :config
+    (add-hook 'prog-mode-hook #'window-stool-mode)
+    (add-hook 'org-mode-hook #'window-stool-mode))
+#+end_src
+
 ** web mode
 #+begin_src elisp
   (use-package web-mode :ensure nil :pin gnu :defer t
