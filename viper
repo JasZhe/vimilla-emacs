@@ -452,3 +452,7 @@ respects rectangle mode in a similar way to vim/doom"
 (setq my/dired-vi-state-modify-map
       (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
 (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+
+(setq my/elisp-vi-state-modify-map (make-sparse-keymap))
+(define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
+(viper-modify-major-mode 'emacs-lisp-mode 'vi-state my/elisp-vi-state-modify-map)

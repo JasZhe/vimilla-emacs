@@ -930,9 +930,12 @@ otherwise this works lol
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
 #+end_src
 
-
-
-
+** elisp eval buffer
+#+begin_src elisp
+  (setq my/elisp-vi-state-modify-map (make-sparse-keymap))
+  (define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
+  (viper-modify-major-mode 'emacs-lisp-mode 'vi-state my/elisp-vi-state-modify-map)
+#+end_src
 * Org
 
 grabbed the src block fontification from here
