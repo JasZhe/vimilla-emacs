@@ -52,6 +52,54 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
   (define-key global-map (kbd "s-/") #'comment-line)
 #+end_src
 
+* Window commands
+not necessary viper, but same idea
+need to set the window map before viper loads cause we use it in the motion keymap
+#+begin_src elisp
+  (winner-mode)
+
+  (setq my-window-map (make-sparse-keymap))
+
+  (define-key my-window-map "u" #'winner-undo)
+  (define-key my-window-map "r" #'winner-redo)
+
+  (define-key my-window-map "<"
+              (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
+  (define-key my-window-map ">"
+              (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
+
+  (define-key my-window-map "-"
+              (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
+  (define-key my-window-map "+"
+              (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
+
+  (define-key my-window-map "v" #'split-window-horizontally)
+  (define-key my-window-map "s" #'split-window-vertically)
+
+  (define-key my-window-map "q" #'delete-window)
+  (define-key my-window-map "\C-w" #'other-window)
+
+  (define-key my-window-map "l" #'windmove-right)
+  (define-key my-window-map "\C-l" #'windmove-right)
+
+  (define-key my-window-map "h" #'windmove-left)
+  (define-key my-window-map "\C-h" #'windmove-left)
+
+  (define-key my-window-map "k" #'windmove-up)
+  (define-key my-window-map "\C-k" #'windmove-up)
+
+  (define-key my-window-map "j" #'windmove-down)
+  (define-key my-window-map "\C-j" #'windmove-down)
+
+  (define-key my-window-map "=" #'balance-windows)
+
+  (define-key my-window-map "o" #'maximize-window)
+  (define-key my-window-map "\C-o" #'delete-other-windows)
+  
+  (define-key global-map (kbd "\C-w") nil)
+  (define-key global-map (kbd "\C-w") my-window-map)
+#+end_src
+
 * misc startup tasks
 enable fido-vertical mode, viper mode, global hl and visual lines
 stole the completing read stuff from:
@@ -120,53 +168,6 @@ luckily this is built in lol
       (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
       )
     )
-#+end_src
-
-* Window commands
-not necessary viper, but same idea
-#+begin_src elisp
-  (winner-mode)
-
-  (setq my-window-map (make-sparse-keymap))
-
-  (define-key my-window-map "u" #'winner-undo)
-  (define-key my-window-map "r" #'winner-redo)
-
-  (define-key my-window-map "<"
-              (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
-  (define-key my-window-map ">"
-              (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
-
-  (define-key my-window-map "-"
-              (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
-  (define-key my-window-map "+"
-              (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
-
-  (define-key my-window-map "v" #'split-window-horizontally)
-  (define-key my-window-map "s" #'split-window-vertically)
-
-  (define-key my-window-map "q" #'delete-window)
-  (define-key my-window-map "\C-w" #'other-window)
-
-  (define-key my-window-map "l" #'windmove-right)
-  (define-key my-window-map "\C-l" #'windmove-right)
-
-  (define-key my-window-map "h" #'windmove-left)
-  (define-key my-window-map "\C-h" #'windmove-left)
-
-  (define-key my-window-map "k" #'windmove-up)
-  (define-key my-window-map "\C-k" #'windmove-up)
-
-  (define-key my-window-map "j" #'windmove-down)
-  (define-key my-window-map "\C-j" #'windmove-down)
-
-  (define-key my-window-map "=" #'balance-windows)
-
-  (define-key my-window-map "o" #'maximize-window)
-  (define-key my-window-map "\C-o" #'delete-other-windows)
-  
-  (define-key global-map (kbd "\C-w") nil)
-  (define-key global-map (kbd "\C-w") my-window-map)
 #+end_src
 
 * development
@@ -941,7 +942,11 @@ otherwise this works lol
   (use-package vc-git :defer t
     :config
     (setq my/vc-log-vi-state-modify-map
-	  (make-composed-keymap my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map))
+          (make-composed-keymap
+           (list my/viper-vi-basic-motion-keymap
+                 my/viper-vi-motion-g-keymap
+                 my/viper-vi-motion-leader-keymap)
+           vc-git-log-view-mode-map))
     (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 #+end_src
 
@@ -950,7 +955,11 @@ otherwise this works lol
   (use-package vc-dir :defer t
     :config
     (setq my/vc-dir-vi-state-modify-map
-          (make-composed-keymap my/viper-vi-basic-motion-keymap vc-dir-mode-map))
+          (make-composed-keymap
+           (list my/viper-vi-basic-motion-keymap
+                 my/viper-vi-motion-g-keymap
+                 my/viper-vi-motion-leader-keymap)
+           vc-dir-mode-map))
     (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 #+end_src
 
@@ -959,7 +968,11 @@ otherwise this works lol
   (use-package dired :defer t
     :config
     (setq my/dired-vi-state-modify-map
-          (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
+          (make-composed-keymap
+           (list my/viper-vi-basic-motion-keymap
+                       my/viper-vi-motion-g-keymap
+                       my/viper-vi-motion-leader-keymap)
+           dired-mode-map))
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
     )
 #+end_src

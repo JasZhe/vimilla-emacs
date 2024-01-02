@@ -29,6 +29,49 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq mac-command-modifier 'super)
 (define-key global-map (kbd "s-/") #'comment-line)
 
+(winner-mode)
+
+(setq my-window-map (make-sparse-keymap))
+
+(define-key my-window-map "u" #'winner-undo)
+(define-key my-window-map "r" #'winner-redo)
+
+(define-key my-window-map "<"
+            (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
+(define-key my-window-map ">"
+            (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
+
+(define-key my-window-map "-"
+            (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
+(define-key my-window-map "+"
+            (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
+
+(define-key my-window-map "v" #'split-window-horizontally)
+(define-key my-window-map "s" #'split-window-vertically)
+
+(define-key my-window-map "q" #'delete-window)
+(define-key my-window-map "\C-w" #'other-window)
+
+(define-key my-window-map "l" #'windmove-right)
+(define-key my-window-map "\C-l" #'windmove-right)
+
+(define-key my-window-map "h" #'windmove-left)
+(define-key my-window-map "\C-h" #'windmove-left)
+
+(define-key my-window-map "k" #'windmove-up)
+(define-key my-window-map "\C-k" #'windmove-up)
+
+(define-key my-window-map "j" #'windmove-down)
+(define-key my-window-map "\C-j" #'windmove-down)
+
+(define-key my-window-map "=" #'balance-windows)
+
+(define-key my-window-map "o" #'maximize-window)
+(define-key my-window-map "\C-o" #'delete-other-windows)
+
+(define-key global-map (kbd "\C-w") nil)
+(define-key global-map (kbd "\C-w") my-window-map)
+
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
@@ -79,49 +122,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
     )
   )
-
-(winner-mode)
-
-(setq my-window-map (make-sparse-keymap))
-
-(define-key my-window-map "u" #'winner-undo)
-(define-key my-window-map "r" #'winner-redo)
-
-(define-key my-window-map "<"
-            (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
-(define-key my-window-map ">"
-            (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
-
-(define-key my-window-map "-"
-            (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
-(define-key my-window-map "+"
-            (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
-
-(define-key my-window-map "v" #'split-window-horizontally)
-(define-key my-window-map "s" #'split-window-vertically)
-
-(define-key my-window-map "q" #'delete-window)
-(define-key my-window-map "\C-w" #'other-window)
-
-(define-key my-window-map "l" #'windmove-right)
-(define-key my-window-map "\C-l" #'windmove-right)
-
-(define-key my-window-map "h" #'windmove-left)
-(define-key my-window-map "\C-h" #'windmove-left)
-
-(define-key my-window-map "k" #'windmove-up)
-(define-key my-window-map "\C-k" #'windmove-up)
-
-(define-key my-window-map "j" #'windmove-down)
-(define-key my-window-map "\C-j" #'windmove-down)
-
-(define-key my-window-map "=" #'balance-windows)
-
-(define-key my-window-map "o" #'maximize-window)
-(define-key my-window-map "\C-o" #'delete-other-windows)
-
-(define-key global-map (kbd "\C-w") nil)
-(define-key global-map (kbd "\C-w") my-window-map)
 
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
@@ -338,3 +338,19 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
    )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values
+   '((eval add-hook 'after-save-hook
+	   (lambda nil
+	     (org-babel-tangle))
+	   nil t))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

@@ -461,19 +461,31 @@ respects rectangle mode in a similar way to vim/doom"
 (use-package vc-git :defer t
   :config
   (setq my/vc-log-vi-state-modify-map
-	(make-composed-keymap my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map))
+        (make-composed-keymap
+         (list my/viper-vi-basic-motion-keymap
+               my/viper-vi-motion-g-keymap
+               my/viper-vi-motion-leader-keymap)
+         vc-git-log-view-mode-map))
   (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 
 (use-package vc-dir :defer t
   :config
   (setq my/vc-dir-vi-state-modify-map
-        (make-composed-keymap my/viper-vi-basic-motion-keymap vc-dir-mode-map))
+        (make-composed-keymap
+         (list my/viper-vi-basic-motion-keymap
+               my/viper-vi-motion-g-keymap
+               my/viper-vi-motion-leader-keymap)
+         vc-dir-mode-map))
   (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 
 (use-package dired :defer t
   :config
   (setq my/dired-vi-state-modify-map
-        (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
+        (make-composed-keymap
+         (list my/viper-vi-basic-motion-keymap
+                     my/viper-vi-motion-g-keymap
+                     my/viper-vi-motion-leader-keymap)
+         dired-mode-map))
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
   )
 
