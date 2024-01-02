@@ -365,6 +365,11 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
 (define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
 (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+(define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
+(define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
+(define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
+(define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+(define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 
 (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
 (define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
@@ -375,6 +380,13 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
 (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
 (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+
+(setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
+(define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
+(define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
+
+(setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
+(define-key my/viper-vi-motion-leader-keymap " " my/leader-prefix-map)
 
 (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
 (define-key viper-vi-basic-map "gd" #'xref-find-definitions)

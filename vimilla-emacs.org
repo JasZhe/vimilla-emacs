@@ -127,43 +127,46 @@ not necessary viper, but same idea
 #+begin_src elisp
   (winner-mode)
 
-  (define-key global-map (kbd "\C-w") nil)
+  (setq my-window-map (make-sparse-keymap))
 
-  (define-key global-map (kbd "\C-wu") #'winner-undo)
-  (define-key global-map (kbd "\C-wr") #'winner-redo)
+  (define-key my-window-map "u" #'winner-undo)
+  (define-key my-window-map "r" #'winner-redo)
 
-  (define-key global-map (kbd "\C-w<")
+  (define-key my-window-map "<"
               (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
-  (define-key global-map (kbd "\C-w>")
+  (define-key my-window-map ">"
               (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
 
-  (define-key global-map (kbd "\C-w-")
+  (define-key my-window-map "-"
               (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
-  (define-key global-map (kbd "\C-w+")
+  (define-key my-window-map "+"
               (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
 
-  (define-key global-map "\C-wv" #'split-window-horizontally)
-  (define-key global-map "\C-ws" #'split-window-vertically)
+  (define-key my-window-map "v" #'split-window-horizontally)
+  (define-key my-window-map "s" #'split-window-vertically)
 
-  (define-key global-map "\C-wq" #'delete-window)
-  (define-key global-map "\C-w\C-w" #'other-window)
+  (define-key my-window-map "q" #'delete-window)
+  (define-key my-window-map "\C-w" #'other-window)
 
-  (define-key global-map "\C-wl" #'windmove-right)
-  (define-key global-map "\C-w\C-l" #'windmove-right)
+  (define-key my-window-map "l" #'windmove-right)
+  (define-key my-window-map "\C-l" #'windmove-right)
 
-  (define-key global-map "\C-wh" #'windmove-left)
-  (define-key global-map "\C-w\C-h" #'windmove-left)
+  (define-key my-window-map "h" #'windmove-left)
+  (define-key my-window-map "\C-h" #'windmove-left)
 
-  (define-key global-map "\C-wk" #'windmove-up)
-  (define-key global-map "\C-w\C-k" #'windmove-up)
+  (define-key my-window-map "k" #'windmove-up)
+  (define-key my-window-map "\C-k" #'windmove-up)
 
-  (define-key global-map "\C-wj" #'windmove-down)
-  (define-key global-map "\C-w\C-j" #'windmove-down)
+  (define-key my-window-map "j" #'windmove-down)
+  (define-key my-window-map "\C-j" #'windmove-down)
 
-  (define-key global-map "\C-w=" #'balance-windows)
+  (define-key my-window-map "=" #'balance-windows)
 
-  (define-key global-map (kbd "\C-wo") #'maximize-window)
-  (define-key global-map "\C-w\C-o" #'delete-other-windows)
+  (define-key my-window-map "o" #'maximize-window)
+  (define-key my-window-map "\C-o" #'delete-other-windows)
+  
+  (define-key global-map (kbd "\C-w") nil)
+  (define-key global-map (kbd "\C-w") my-window-map)
 #+end_src
 
 * development
@@ -800,6 +803,11 @@ in special modes
   (define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
   (define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
   (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+  (define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
+  (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
+  (define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
+  (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+  (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 #+end_src
 
 I might be able to live without these ones so they can be overriden
@@ -813,6 +821,20 @@ I might be able to live without these ones so they can be overriden
   (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
   (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
   (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+ 
+#+end_src
+
+"g" commands like beginning of buffer and change tab
+#+begin_src elisp
+  (setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
+  (define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
+#+end_src
+
+leader commands
+#+begin_src elisp
+  (setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-motion-leader-keymap " " my/leader-prefix-map)
 #+end_src
 
 ** eglot/xref
@@ -1087,14 +1109,20 @@ well this oen is self explanatory
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
-    (use-package magit :ensure nil :pin gnu
-      :config
-      (define-key my/leader-prefix-map "gg" #'magit)
-      (setq my/magit-vi-state-modify-map
-            (make-composed-keymap my/viper-vi-basic-motion-keymap magit-mode-map))
+       (use-package magit :ensure nil :pin gnu
+          :config
+          (define-key my/leader-prefix-map "gg" #'magit)
+          (setq my/magit-vi-state-modify-map
+                (make-composed-keymap
+                 (list my/viper-vi-basic-motion-keymap
+                       my/viper-vi-motion-g-keymap
+                       my/viper-vi-motion-leader-keymap)
+                 magit-mode-map))
+          (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+          (define-key my/magit-vi-state-modify-map "p" #'magit-push)
 
-      (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-      )
+          (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+          )
 #+end_src
 
 * Local variables                                                        

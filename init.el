@@ -82,43 +82,46 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (winner-mode)
 
-(define-key global-map (kbd "\C-w") nil)
+(setq my-window-map (make-sparse-keymap))
 
-(define-key global-map (kbd "\C-wu") #'winner-undo)
-(define-key global-map (kbd "\C-wr") #'winner-redo)
+(define-key my-window-map "u" #'winner-undo)
+(define-key my-window-map "r" #'winner-redo)
 
-(define-key global-map (kbd "\C-w<")
+(define-key my-window-map "<"
             (lambda (arg) (interactive "P") (shrink-window-horizontally (if arg arg 1))))
-(define-key global-map (kbd "\C-w>")
+(define-key my-window-map ">"
             (lambda (arg) (interactive "P") (enlarge-window-horizontally (if arg arg 1))))
 
-(define-key global-map (kbd "\C-w-")
+(define-key my-window-map "-"
             (lambda (arg) (interactive "P") (shrink-window (if arg arg 1))))
-(define-key global-map (kbd "\C-w+")
+(define-key my-window-map "+"
             (lambda (arg) (interactive "P") (enlarge-window (if arg arg 1))))
 
-(define-key global-map "\C-wv" #'split-window-horizontally)
-(define-key global-map "\C-ws" #'split-window-vertically)
+(define-key my-window-map "v" #'split-window-horizontally)
+(define-key my-window-map "s" #'split-window-vertically)
 
-(define-key global-map "\C-wq" #'delete-window)
-(define-key global-map "\C-w\C-w" #'other-window)
+(define-key my-window-map "q" #'delete-window)
+(define-key my-window-map "\C-w" #'other-window)
 
-(define-key global-map "\C-wl" #'windmove-right)
-(define-key global-map "\C-w\C-l" #'windmove-right)
+(define-key my-window-map "l" #'windmove-right)
+(define-key my-window-map "\C-l" #'windmove-right)
 
-(define-key global-map "\C-wh" #'windmove-left)
-(define-key global-map "\C-w\C-h" #'windmove-left)
+(define-key my-window-map "h" #'windmove-left)
+(define-key my-window-map "\C-h" #'windmove-left)
 
-(define-key global-map "\C-wk" #'windmove-up)
-(define-key global-map "\C-w\C-k" #'windmove-up)
+(define-key my-window-map "k" #'windmove-up)
+(define-key my-window-map "\C-k" #'windmove-up)
 
-(define-key global-map "\C-wj" #'windmove-down)
-(define-key global-map "\C-w\C-j" #'windmove-down)
+(define-key my-window-map "j" #'windmove-down)
+(define-key my-window-map "\C-j" #'windmove-down)
 
-(define-key global-map "\C-w=" #'balance-windows)
+(define-key my-window-map "=" #'balance-windows)
 
-(define-key global-map (kbd "\C-wo") #'maximize-window)
-(define-key global-map "\C-w\C-o" #'delete-other-windows)
+(define-key my-window-map "o" #'maximize-window)
+(define-key my-window-map "\C-o" #'delete-other-windows)
+
+(define-key global-map (kbd "\C-w") nil)
+(define-key global-map (kbd "\C-w") my-window-map)
 
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
@@ -322,10 +325,16 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   )
 
 (use-package magit :ensure nil :pin gnu
-  :config
-  (define-key my/leader-prefix-map "gg" #'magit)
-  (setq my/magit-vi-state-modify-map
-        (make-composed-keymap my/viper-vi-basic-motion-keymap magit-mode-map))
+   :config
+   (define-key my/leader-prefix-map "gg" #'magit)
+   (setq my/magit-vi-state-modify-map
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          magit-mode-map))
+   (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+   (define-key my/magit-vi-state-modify-map "p" #'magit-push)
 
-  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-  )
+   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+   )
