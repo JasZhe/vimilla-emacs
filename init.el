@@ -31,6 +31,25 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (winner-mode)
 
+(defun my/set-transparency-in-terminal ()
+  (interactive)
+  (unless (display-graphic-p (selected-frame))
+    (set-face-background 'default "unspecified-bg" (selected-frame))))
+
+(defun my/set-frame-alpha (&optional arg)
+  (interactive "sFrame Alpha? ")
+  (if
+      (and arg (not (string-empty-p arg)))
+      (set-frame-parameter nil 'alpha  (string-to-number arg))
+    (set-frame-parameter nil 'alpha 90)))
+
+(defun my/set-frame-alpha-background (&optional arg)
+  (interactive "sFrame Alpha Background? ")
+  (if
+      (and arg (not (string-empty-p arg)))
+      (set-frame-parameter nil 'alpha-background  (string-to-number arg))
+    (set-frame-parameter nil 'alpha-background 90)))
+
 (setq my-window-map (make-sparse-keymap))
 
 (define-key my-window-map "u" #'winner-undo)
@@ -72,6 +91,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (define-key global-map (kbd "\C-w") nil)
 (define-key global-map (kbd "\C-w") my-window-map)
 
+(tool-bar-mode 0)
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
@@ -237,6 +257,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (setq org-startup-indented t)
 (setq org-indent-indentation-per-level 4)
+(setq org-startup-folded nil) ;; to respect VISIBILITY property just can't be 'showeverything, see: org-cycle-set-startup-visibility 
 
 ;; allow dabbrev expand on tab when in insert mode
 (defun line-before-point-empty-p ()
@@ -338,19 +359,3 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
    )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(safe-local-variable-values
-   '((eval add-hook 'after-save-hook
-	   (lambda nil
-	     (org-babel-tangle))
-	   nil t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

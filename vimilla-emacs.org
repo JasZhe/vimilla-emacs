@@ -58,6 +58,25 @@ need to set the window map before viper loads cause we use it in the motion keym
 #+begin_src elisp
   (winner-mode)
 
+  (defun my/set-transparency-in-terminal ()
+    (interactive)
+    (unless (display-graphic-p (selected-frame))
+      (set-face-background 'default "unspecified-bg" (selected-frame))))
+
+  (defun my/set-frame-alpha (&optional arg)
+    (interactive "sFrame Alpha? ")
+    (if
+        (and arg (not (string-empty-p arg)))
+        (set-frame-parameter nil 'alpha  (string-to-number arg))
+      (set-frame-parameter nil 'alpha 90)))
+
+  (defun my/set-frame-alpha-background (&optional arg)
+    (interactive "sFrame Alpha Background? ")
+    (if
+        (and arg (not (string-empty-p arg)))
+        (set-frame-parameter nil 'alpha-background  (string-to-number arg))
+      (set-frame-parameter nil 'alpha-background 90)))
+
   (setq my-window-map (make-sparse-keymap))
 
   (define-key my-window-map "u" #'winner-undo)
@@ -95,7 +114,7 @@ need to set the window map before viper loads cause we use it in the motion keym
 
   (define-key my-window-map "o" #'maximize-window)
   (define-key my-window-map "\C-o" #'delete-other-windows)
-  
+
   (define-key global-map (kbd "\C-w") nil)
   (define-key global-map (kbd "\C-w") my-window-map)
 #+end_src
@@ -106,6 +125,7 @@ stole the completing read stuff from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
 
 #+begin_src elisp
+  (tool-bar-mode 0)
   (setq viper-mode t)
   (require 'viper)
   (require 'rect)
@@ -997,6 +1017,7 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 
   (setq org-startup-indented t)
   (setq org-indent-indentation-per-level 4)
+  (setq org-startup-folded nil) ;; to respect VISIBILITY property just can't be 'showeverything, see: org-cycle-set-startup-visibility 
 
   ;; allow dabbrev expand on tab when in insert mode
   (defun line-before-point-empty-p ()
