@@ -912,22 +912,30 @@ otherwise this works lol
   (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
   (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
   (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
-
-  (setq my/vc-log-vi-state-modify-map my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map)
-
-  (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map)
+  (use-package vc-git :defer t
+    :config
+    (setq my/vc-log-vi-state-modify-map
+	  (make-composed-keymap my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map))
+    (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 #+end_src
 
 *** VC Dir mode
 #+begin_src elisp
-  (viper-modify-major-mode 'vc-dir-mode 'vi-state vc-dir-mode-map)
+  (use-package vc-dir :defer t
+    :config
+    (setq my/vc-dir-vi-state-modify-map
+          (make-composed-keymap my/viper-vi-basic-motion-keymap vc-dir-mode-map))
+    (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 #+end_src
 
 ** dired
 #+begin_src elisp
-  (setq my/dired-vi-state-modify-map
-        (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
-  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+  (use-package dired :defer t
+    :config
+    (setq my/dired-vi-state-modify-map
+          (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
+    (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+    )
 #+end_src
 
 ** elisp eval buffer
@@ -1032,13 +1040,14 @@ https://github.com/justbur/emacs-which-key
 ** my own hurl mode :)
 well this oen is self explanatory
 #+begin_src elisp
-  (package-vc-install "https://github.com/JasZhe/hurl-mode")
+  (when (not (require 'hurl-mode nil 'noerrror))
+    (package-vc-install "https://github.com/JasZhe/hurl-mode"))
   (use-package hurl-mode :mode "\\.hurl\\'")
 #+end_src
 
 ** web mode
 #+begin_src elisp
-  (use-package web-mode :ensure nil :pin gnu
+  (use-package web-mode :ensure nil :pin gnu :defer t
     :mode "\\.gohtml\\'"
     :config
     (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))

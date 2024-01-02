@@ -291,10 +291,11 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   :config
   (which-key-mode))
 
-(package-vc-install "https://github.com/JasZhe/hurl-mode")
+(when (not (require 'hurl-mode nil 'noerrror))
+  (package-vc-install "https://github.com/JasZhe/hurl-mode"))
 (use-package hurl-mode :mode "\\.hurl\\'")
 
-(use-package web-mode :ensure nil :pin gnu
+(use-package web-mode :ensure nil :pin gnu :defer t
   :mode "\\.gohtml\\'"
   :config
   (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))

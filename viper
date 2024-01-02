@@ -442,16 +442,24 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
 (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
+(use-package vc-git :defer t
+  :config
+  (setq my/vc-log-vi-state-modify-map
+	(make-composed-keymap my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map))
+  (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 
-(setq my/vc-log-vi-state-modify-map my/viper-vi-basic-motion-keymap vc-git-log-view-mode-map)
+(use-package vc-dir :defer t
+  :config
+  (setq my/vc-dir-vi-state-modify-map
+        (make-composed-keymap my/viper-vi-basic-motion-keymap vc-dir-mode-map))
+  (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 
-(viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map)
-
-(viper-modify-major-mode 'vc-dir-mode 'vi-state vc-dir-mode-map)
-
-(setq my/dired-vi-state-modify-map
-      (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
-(viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+(use-package dired :defer t
+  :config
+  (setq my/dired-vi-state-modify-map
+        (make-composed-keymap my/viper-vi-basic-motion-keymap dired-mode-map))
+  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+  )
 
 (setq my/elisp-vi-state-modify-map (make-sparse-keymap))
 (define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
