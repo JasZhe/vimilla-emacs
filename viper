@@ -411,30 +411,34 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "zc" #'hs-hide-block)
 (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
 
+;; [ - backwards
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-brac-function fun)) 'viper-brac-function)
 (advice-add 'viper-brac-function :around
             (lambda (orig-fun &rest args)
               (let ((char (read-char)))
                 (cond ((viper= ?b char) (previous-buffer))
+                      ((viper= ?t char) (tab-bar-switch-to-prev-tab))
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
                          (apply orig-fun args)
                          )
                        )
-                ))))
+                      ))))
+;; ] - forwards
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-key-function fun)) 'viper-key-function)
 (advice-add 'viper-ket-function :around
             (lambda (orig-fun &rest args)
               (let ((char (read-char)))
                 (cond ((viper= ?b char) (next-buffer))
+                      ((viper= ?t char) (tab-bar-switch-to-next-tab))
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
                          (apply orig-fun args)
                          )
                        )
-                ))))
+                      ))))
 
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
