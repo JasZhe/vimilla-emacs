@@ -149,6 +149,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (electric-pair-mode)
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(add-hook 'go-ts-mode-hook (lambda () (call-interactively #'eglot)))
 
 (defface font-lock-func-face 
     '((nil (:foreground "#7F0055" :weight bold))

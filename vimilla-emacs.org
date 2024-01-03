@@ -199,9 +199,10 @@ luckily this is built in lol
   (electric-pair-mode)
 #+end_src
 
-** go use treesit
+** golang
 #+begin_src elisp
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+  (add-hook 'go-ts-mode-hook (lambda () (call-interactively #'eglot)))
 #+end_src
 
 ** some more basic elisp highlighting
