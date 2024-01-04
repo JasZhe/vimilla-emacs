@@ -264,18 +264,21 @@ respects rectangle mode in a similar way to vim/doom"
            (viper-change-state-to-vi)
            (when (use-region-p) (delete-active-region))
            (yank)
-           (forward-line)))
-        ((and (not killed-rectangle) (use-region-p))
-         (progn
-           (let ((start (region-beginning)))
-             (forward-char)
-             (delete-active-region)
-             (yank))))
-        (killed-rectangle
-         (progn 
-           (yank-rectangle)
-           (setq killed-rectangle nil)))
-        (t (yank arg))))
+           (forward-line)
+           (delete-char -1)
+           (forward-line -1)
+           (end-of-line)))
+  ((and (not killed-rectangle) (use-region-p))
+   (progn
+     (let ((start (region-beginning)))
+       (forward-char)
+       (delete-active-region)
+       (yank))))
+  (killed-rectangle
+   (progn 
+     (yank-rectangle)
+     (setq killed-rectangle nil)))
+  (t (yank arg))))
 
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
 (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
