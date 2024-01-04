@@ -195,6 +195,7 @@ luckily this is built in lol
 #+begin_src elisp
   (add-hook 'prog-mode-hook #'flymake-mode)
   (setq treesit-font-lock-level 4)
+  (setq-default indent-tabs-mode nil)
   (which-function-mode)
   (electric-pair-mode)
 #+end_src

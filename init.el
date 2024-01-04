@@ -145,6 +145,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
+(setq-default indent-tabs-mode nil)
 (which-function-mode)
 (electric-pair-mode)
 
