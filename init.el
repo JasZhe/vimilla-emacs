@@ -348,16 +348,15 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   )
 
 (use-package magit :ensure nil :pin gnu
-   :config
-   (define-key my/leader-prefix-map "gg" #'magit)
-   (setq my/magit-vi-state-modify-map
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          magit-mode-map))
-   (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
-   (define-key my/magit-vi-state-modify-map "p" #'magit-push)
+  :config
+  (define-key my/leader-prefix-map "gg" #'magit)
+  (setq my/magit-vi-state-modify-map
+        (make-composed-keymap
+         (list my/viper-vi-basic-motion-keymap
+               my/viper-vi-motion-g-keymap
+               my/viper-vi-motion-leader-keymap)
+         magit-mode-map))
+  (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+  (define-key my/magit-vi-state-modify-map "p" #'magit-push)
 
-   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-   )
+  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))

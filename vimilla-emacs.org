@@ -402,7 +402,13 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
                                       (set-face-attribute 'hl-line nil :background "LavenderBlush1")
                                       (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-  (add-hook 'minibuffer-mode-hook #'viper-change-state-to-insert)
+  ;; This is so backspace/delete goes backward directories instead of just deleting characters
+  (setq my/minibuffer-modify-map (make-sparse-keymap))
+  (define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
+  (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
+  (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
+
+  (add-hook 'minibuffer-mode-hook #'viper-change-state-to-emacs)
   (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
   (setq viper-insert-state-cursor-color nil)
 #+end_src
@@ -1145,20 +1151,19 @@ well this oen is self explanatory
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
-       (use-package magit :ensure nil :pin gnu
-          :config
-          (define-key my/leader-prefix-map "gg" #'magit)
-          (setq my/magit-vi-state-modify-map
-                (make-composed-keymap
-                 (list my/viper-vi-basic-motion-keymap
-                       my/viper-vi-motion-g-keymap
-                       my/viper-vi-motion-leader-keymap)
-                 magit-mode-map))
-          (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
-          (define-key my/magit-vi-state-modify-map "p" #'magit-push)
+  (use-package magit :ensure nil :pin gnu
+    :config
+    (define-key my/leader-prefix-map "gg" #'magit)
+    (setq my/magit-vi-state-modify-map
+          (make-composed-keymap
+           (list my/viper-vi-basic-motion-keymap
+                 my/viper-vi-motion-g-keymap
+                 my/viper-vi-motion-leader-keymap)
+           magit-mode-map))
+    (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+    (define-key my/magit-vi-state-modify-map "p" #'magit-push)
 
-          (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-          )
+    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
 #+end_src
 
 * Local variables                                                        

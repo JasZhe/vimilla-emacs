@@ -44,7 +44,13 @@
                                     (set-face-attribute 'hl-line nil :background "LavenderBlush1")
                                     (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-(add-hook 'minibuffer-mode-hook #'viper-change-state-to-insert)
+;; This is so backspace/delete goes backward directories instead of just deleting characters
+(setq my/minibuffer-modify-map (make-sparse-keymap))
+(define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
+(viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
+(viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
+
+(add-hook 'minibuffer-mode-hook #'viper-change-state-to-emacs)
 (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
 (setq viper-insert-state-cursor-color nil)
 
