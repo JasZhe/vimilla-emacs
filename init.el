@@ -95,19 +95,39 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
-(fido-vertical-mode)
+
 (viper-mode)
 (global-hl-line-mode)
 (global-visual-line-mode)
+
 (setq column-number-mode t)
-
-(keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
-(keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
-
 (setq scroll-margin 8)
 (setq visual-bell t)
 (setq ring-bell-function 'ignore)
 (setq scroll-preserve-screen-position t)
+
+(fido-vertical-mode)
+
+(keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
+(define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
+(keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
+
+(setq completion-styles '(partial-completion basic) completion-category-overrides nil completion-category-defaults nil)
+(defun my-icomplete-styles () (setq-local completion-styles '(partial-completion basic)))
+(add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+
+;; insert * at the beginning so we don't have to match exactly at the beginning
+;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
+(add-hook 'icomplete-minibuffer-setup-hook
+          (lambda ()
+            ;; not useful in find-file, probably more we can add here
+            (unless (or (eq current-minibuffer-command 'find-file))
+              (insert "*"))))
+
+;; insert wild card to sorta emulate orderless
+(define-key minibuffer-local-completion-map " " (lambda () (interactive)
+                                                  (unless (eq last-command 'viper-ex)
+                                                    (insert "*"))))
 
 (advice-add #'viper-search :after
             (lambda (string &rest args)
@@ -347,13 +367,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                   (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
-
-(use-package orderless :ensure nil :pin gnu
-  :config
-  (setq completion-styles '(orderless basic) completion-category-overrides '((file (styles basic partial-completion))))
-  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
-  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
-  (define-key minibuffer-local-completion-map " " #'self-insert-command))
 
 (use-package avy :ensure nil :pin gnu
   :config
