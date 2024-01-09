@@ -33,15 +33,25 @@
 
 (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
+(defun color-complement (hex-color)
+  "Return the complement of the given HEX color."
+  (let* ((rgb (mapcar (lambda (hex) (/ hex 255.0)) (color-values hex-color)))
+         (complement-rgb (mapcar (lambda (value) (- 255 value)) rgb))
+         (complement-hex (apply 'format "#%2x%2x%2x" complement-rgb)))
+    complement-hex))
+
 (add-hook 'viper-vi-state-hook (lambda ()
                                  (global-hl-line-mode)
                                  (setq my/global-viper-state 'vi)
-                                 (set-face-attribute 'hl-line nil :background "LightCyan1")
+                                 (set-face-attribute 'hl-line nil :underline nil)
+                                 (set-face-attribute 'hl-line nil :box nil)
                                  (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 (add-hook 'viper-emacs-state-hook (lambda ()
                                     (global-hl-line-mode)
                                     (setq my/global-viper-state 'emacs)
-                                    (set-face-attribute 'hl-line nil :background "LavenderBlush1")
+                                    (if (display-graphic-p)
+                                        (set-face-attribute 'hl-line nil :box t)
+                                      (set-face-attribute 'hl-line nil :underline t))
                                     (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
 ;; This is so backspace/delete goes backward directories instead of just deleting characters
