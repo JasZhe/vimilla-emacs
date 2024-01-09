@@ -469,15 +469,19 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
                                         (set-face-attribute 'hl-line nil :underline t))
                                       (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-  ;; This is so backspace/delete goes backward directories instead of just deleting characters
-  (setq my/minibuffer-modify-map (make-sparse-keymap))
-  (define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
-  (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
-  (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
-
   (add-hook 'minibuffer-mode-hook #'viper-change-state-to-emacs)
   (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
   (setq viper-insert-state-cursor-color nil)
+#+end_src
+
+** minibuffer mappings
+#+begin_src elisp
+  ;; This is so backspace/delete goes backward directories instead of just deleting characters
+  (setq my/minibuffer-modify-map (make-sparse-keymap))
+  (define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
+  (define-key my/minibuffer-modify-map (kbd "<DEL>") #'icomplete-fido-backward-updir)
+  (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
+  (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
 #+end_src
 
 ** help commands
@@ -906,6 +910,8 @@ in special modes
   (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
   (define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
   (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+  (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
+  (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
   (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 #+end_src
 
@@ -1071,6 +1077,7 @@ otherwise this works lol
                        my/viper-vi-motion-g-keymap
                        my/viper-vi-motion-leader-keymap)
            dired-mode-map))
+    (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
     )
 #+end_src
@@ -1231,7 +1238,13 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
                  my/viper-vi-motion-leader-keymap)
            magit-mode-map))
     (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+    (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
+    (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
+    (define-key my/magit-vi-state-modify-map (kbd "C-l") #'magit-log)
+    (define-key my/magit-vi-state-modify-map (kbd "C-b") #'magit-branch)
     (define-key my/magit-vi-state-modify-map "p" #'magit-push)
+    (define-key my/magit-vi-state-modify-map "F" #'magit-pull)
+    (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
     (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
 #+end_src

@@ -54,15 +54,16 @@
                                       (set-face-attribute 'hl-line nil :underline t))
                                     (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-;; This is so backspace/delete goes backward directories instead of just deleting characters
-(setq my/minibuffer-modify-map (make-sparse-keymap))
-(define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
-(viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
-(viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
-
 (add-hook 'minibuffer-mode-hook #'viper-change-state-to-emacs)
 (add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
 (setq viper-insert-state-cursor-color nil)
+
+;; This is so backspace/delete goes backward directories instead of just deleting characters
+(setq my/minibuffer-modify-map (make-sparse-keymap))
+(define-key my/minibuffer-modify-map (kbd "<backspace>") #'icomplete-fido-backward-updir)
+(define-key my/minibuffer-modify-map (kbd "<DEL>") #'icomplete-fido-backward-updir)
+(viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
+(viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
 
 (setq viper-want-ctl-h-help 't)
 (setq viper-fast-keyseq-timeout 100)
@@ -388,6 +389,8 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
 (define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
 (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+(define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
+(define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
 (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 
 (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
@@ -505,6 +508,7 @@ respects rectangle mode in a similar way to vim/doom"
                      my/viper-vi-motion-g-keymap
                      my/viper-vi-motion-leader-keymap)
          dired-mode-map))
+  (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
   )
 

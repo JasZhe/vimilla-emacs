@@ -404,6 +404,12 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                my/viper-vi-motion-leader-keymap)
          magit-mode-map))
   (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
+  (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
+  (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
+  (define-key my/magit-vi-state-modify-map (kbd "C-l") #'magit-log)
+  (define-key my/magit-vi-state-modify-map (kbd "C-b") #'magit-branch)
   (define-key my/magit-vi-state-modify-map "p" #'magit-push)
+  (define-key my/magit-vi-state-modify-map "F" #'magit-pull)
+  (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
