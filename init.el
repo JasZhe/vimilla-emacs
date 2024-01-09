@@ -196,7 +196,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                        ((atom all) nil)
                        ((and (consp all) (atom (cdr all))) (car all))
                        (t (completing-read
-                           "Completion: " collection predicate t initial)))))
+                           "Completion: " collection predicate nil initial)))))
      (cond (completion (completion--replace start end completion) t)
            (t (message "No completion") nil))))
  (setq completion-in-region-function #'completing-read-in-region)

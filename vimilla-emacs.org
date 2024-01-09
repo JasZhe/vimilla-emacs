@@ -248,6 +248,8 @@ https://stackoverflow.com/questions/18289329/how-to-highlight-all-the-functions-
 ** in buffer completion
 from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
+
+Ctrl-J to force completion and exit
 #+begin_src elisp
   (setq enable-recursive-minibuffers t)
   (defun completing-read-in-region (start end collection &optional predicate)
@@ -260,7 +262,7 @@ https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completin
                          ((atom all) nil)
                          ((and (consp all) (atom (cdr all))) (car all))
                          (t (completing-read
-                             "Completion: " collection predicate t initial)))))
+                             "Completion: " collection predicate nil initial)))))
        (cond (completion (completion--replace start end completion) t)
              (t (message "No completion") nil))))
    (setq completion-in-region-function #'completing-read-in-region)
