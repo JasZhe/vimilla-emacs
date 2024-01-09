@@ -150,7 +150,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (electric-pair-mode)
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-(add-hook 'go-ts-mode-hook (lambda () (call-interactively #'eglot)))
+(add-hook 'go-ts-mode-hook #'eglot-ensure)
 
 (defface font-lock-func-face 
     '((nil (:foreground "#7F0055" :weight bold))
@@ -223,6 +223,53 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
   )
+
+(require 'eglot)
+(require 'jsonrpc)
+(eval-when-compile (require 'cl-lib))
+
+(defun eglot-booster-plain-command (com)
+  "Test if command COM is a plain eglot server command."
+  (and (consp com)
+       (not (integerp (cadr com)))
+       (not (seq-intersection '(:initializationOptions :autoport) com))))
+
+(defun eglot-booster ()
+  "Boost plain eglot server programs with emacs-lsp-booster.
+  The emacs-lsp-booster program must be compiled and available on
+  variable `exec-path'.  Only local stdin/out based lsp servers can
+  be boosted."
+  (interactive)
+  (unless (executable-find "emacs-lsp-booster")
+    (user-error "The emacs-lsp-booster program is not installed"))
+  (if (get 'eglot-server-programs 'lsp-booster-p)
+      (message "eglot-server-programs already boosted.")
+    (let ((cnt 0)
+          (orig-read (symbol-function 'jsonrpc--json-read)))
+      (dolist (entry eglot-server-programs)
+        (cond
+         ((functionp (cdr entry))
+          (cl-incf cnt)
+          (let ((fun (cdr entry)))
+            (setcdr entry (lambda (&rest r) ; wrap function
+                            (let ((res (apply fun r)))
+                              (if (eglot-booster-plain-command res)
+                                  (cons "emacs-lsp-booster" res)
+                                res))))))
+         ((eglot-booster-plain-command (cdr entry))
+          (cl-incf cnt)
+          (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
+      (defalias 'jsonrpc--json-read
+        (lambda ()
+          (or (and (= (following-char) ?#)
+                   (let ((bytecode (read (current-buffer))))
+                     (when (byte-code-function-p bytecode)
+                       (funcall bytecode))))
+              (funcall orig-read))))
+      (message "Boosted %d eglot-server-programs" cnt))
+    (put 'eglot-server-programs 'lsp-booster-p t)))
+;; need to run it on load
+(eglot-booster)
 
 (when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
   (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height 130))
