@@ -156,7 +156,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 
-(use-package xref
+(use-package xref :defer t
   :config
   (progn
     (setq xref-search-program 'ripgrep)
@@ -174,38 +174,47 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 
-(defface font-lock-func-face 
-    '((nil (:foreground "#7F0055" :weight bold))
-      (t (:bold t :italic t)))
-  "Font Lock mode face used for function calls."
-  :group 'font-lock-highlighting-faces)
+(use-package elisp-mode :defer t
+  :config
+  (require 'advice) ;; for ad-get-orig-definition
 
-(font-lock-add-keywords
- 'emacs-lisp-mode
- '(("(\\s-*\\(\\_<\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-    1 'font-lock-constant-face)) 'append)
+  (defun +emacs-lisp-highlight-vars-and-faces (end)
+    "Match defined variables and functions.
 
-(defun my-fl (_limit)
-  (let ((opoint  (point))
-        (found   nil))
-    (with-syntax-table emacs-lisp-mode-syntax-table
-      (while (not found)
-        (cond ((condition-case ()
-                   (save-excursion
-                     (skip-chars-forward "'")
-                     (setq opoint  (point))
-                     (let ((obj  (read (current-buffer))))
-                       (and (symbolp obj)  (fboundp obj)
-                            (progn (set-match-data (list opoint (point))) t))))
-                 (error nil))
-               (forward-sexp 1)
-               (setq opoint  (point)
-                     found   t))
-              (t
-               (if (looking-at "\\(\\sw\\|\\s_\\)")
-                   (forward-sexp 1)
-                 (forward-char 1)))))
-      found)))
+  Functions are differentiated into special forms, built-in functions and
+  library/userland functions"
+    (catch 'matcher
+      (while (re-search-forward "\\(?:\\sw\\|\\s_\\)+" end t)
+        (let ((ppss (save-excursion (syntax-ppss))))
+          (cond ((nth 3 ppss)  ; strings
+                 (search-forward "\"" end t))
+                ((nth 4 ppss)  ; comments
+                 (forward-line +1))
+                ((let ((symbol (intern-soft (match-string-no-properties 0))))
+                   (and (cond ((null symbol) nil)
+                              ((eq symbol t) nil)
+                              ((keywordp symbol) nil)
+                              ((special-variable-p symbol)
+                               (setq +emacs-lisp--face 'font-lock-variable-name-face))
+                              ((and (fboundp symbol)
+                                    (eq (char-before (match-beginning 0)) ?\()
+                                    (not (memq (char-before (1- (match-beginning 0)))
+                                               (list ?\' ?\`))))
+                               (let ((unaliased (indirect-function symbol)))
+                                 (unless (or (macrop unaliased)
+                                             (special-form-p unaliased))
+                                   (let (unadvised)
+                                     (while (not (eq (setq unadvised (ad-get-orig-definition unaliased))
+                                                     (setq unaliased (indirect-function unadvised)))))
+                                     unaliased)
+                                   (setq +emacs-lisp--face
+                                         (if (subrp unaliased)
+                                             'font-lock-constant-face
+                                           'font-lock-function-name-face))))))
+                        (throw 'matcher t)))))))
+      nil))
+
+  (font-lock-add-keywords 'emacs-lisp-mode `((+emacs-lisp-highlight-vars-and-faces . +emacs-lisp--face)) 'append))
 
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
@@ -232,7 +241,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     )
   )
 
-(use-package eshell
+(use-package eshell :defer t
   :config
   (add-to-list 'eshell-modules-list 'eshell-tramp)
   (setq my/eshell-vi-state-modify-map (make-sparse-keymap))
@@ -336,7 +345,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun line-before-point-empty-p ()
   (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
 
-(use-package org
+(use-package org :defer t
   :config
   (progn
     (setq org-image-actual-width '(300))
@@ -372,12 +381,12 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
 
-(use-package avy :ensure nil :pin gnu
+(use-package avy :ensure nil :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
   (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 
-(use-package which-key :ensure nil :pin gnu
+(use-package which-key :ensure nil :pin gnu :defer 2
   :config
   (which-key-mode))
 
@@ -387,18 +396,19 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (when (not (require 'window-stool nil 'noerrror))
   (package-vc-install "https://github.com/JasZhe/window-stool"))
-(use-package window-stool
+(use-package window-stool :defer 2
   :config
   (add-hook 'prog-mode-hook #'window-stool-mode)
   (add-hook 'org-mode-hook #'window-stool-mode))
 
-(use-package web-mode :ensure nil :pin gnu :defer t
+(use-package web-mode :ensure nil :pin gnu
   :mode "\\.gohtml\\'"
   :config
   (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
   )
 
 (use-package pdf-tools :ensure nil :pin gnu
+  :mode "\\.pdf\\'"
   :config
     (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
     (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
@@ -411,7 +421,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
   )
 
-(use-package magit :ensure nil :pin gnu
+(use-package magit :ensure nil :pin gnu :defer 5
   :config
   (define-key my/leader-prefix-map "gg" #'magit)
   (setq my/magit-vi-state-modify-map
