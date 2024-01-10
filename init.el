@@ -170,7 +170,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq treesit-font-lock-level 4)
 (setq-default indent-tabs-mode nil)
 (which-function-mode)
-(electric-pair-mode)
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (unless (eq major-mode 'web-mode)
+              (electric-pair-local-mode))))
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
@@ -427,10 +430,12 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (define-key my/leader-prefix-map "gg" #'magit)
   (setq my/magit-vi-state-modify-map
         (make-composed-keymap
-         (list my/viper-vi-basic-motion-keymap
-               my/viper-vi-motion-g-keymap
-               my/viper-vi-motion-leader-keymap)
-         magit-mode-map))
+         nil
+         (make-composed-keymap 
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          magit-mode-map)))
   (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
   (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
   (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
@@ -441,3 +446,19 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values
+   '((eval add-hook 'after-save-hook
+           (lambda nil
+             (org-babel-tangle))
+           nil t))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

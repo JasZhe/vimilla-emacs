@@ -223,7 +223,10 @@ luckily this is built in lol
   (setq treesit-font-lock-level 4)
   (setq-default indent-tabs-mode nil)
   (which-function-mode)
-  (electric-pair-mode)
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (unless (eq major-mode 'web-mode)
+                (electric-pair-local-mode))))
 #+end_src
 
 ** golang
@@ -934,6 +937,10 @@ pretty handy tbh
 #+end_src
 
 ** viper motion keymap
+There's some weird thing with make-composed-keymap where for some reason the original keymaps might be modified if we use define-key.
+Found a solution here: https://emacs.stackexchange.com/questions/3963/use-two-major-mode-maps-in-the-same-buffer
+which says to just wrap make-composed-keymap around the original make-composed-keymap
+
 TBD for use in specific major mode keymaps so we at least keep motions
 in special modes
 #+begin_src elisp
@@ -991,8 +998,8 @@ leader commands
 #+end_src
 
 #+begin_src elisp
-  (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
-  (define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+  (define-key my/leader-prefix-map "cr" #'eglot-rename)
+  (define-key my/leader-prefix-map "fm" #'eglot-format-buffer)
   (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
 #+end_src
 
@@ -1086,10 +1093,12 @@ otherwise this works lol
     :config
     (setq my/vc-log-vi-state-modify-map
           (make-composed-keymap
-           (list my/viper-vi-basic-motion-keymap
-                 my/viper-vi-motion-g-keymap
-                 my/viper-vi-motion-leader-keymap)
-           vc-git-log-view-mode-map))
+           nil
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            vc-git-log-view-mode-map)))
     (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 #+end_src
 
@@ -1099,10 +1108,12 @@ otherwise this works lol
     :config
     (setq my/vc-dir-vi-state-modify-map
           (make-composed-keymap
-           (list my/viper-vi-basic-motion-keymap
-                 my/viper-vi-motion-g-keymap
-                 my/viper-vi-motion-leader-keymap)
-           vc-dir-mode-map))
+           nil 
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            vc-dir-mode-map)))
     (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
     (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 #+end_src
@@ -1113,10 +1124,12 @@ otherwise this works lol
     :config
     (setq my/dired-vi-state-modify-map
           (make-composed-keymap
-           (list my/viper-vi-basic-motion-keymap
-                       my/viper-vi-motion-g-keymap
-                       my/viper-vi-motion-leader-keymap)
-           dired-mode-map))
+           nil
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            dired-mode-map)))
     (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
     )
@@ -1283,10 +1296,12 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (define-key my/leader-prefix-map "gg" #'magit)
     (setq my/magit-vi-state-modify-map
           (make-composed-keymap
-           (list my/viper-vi-basic-motion-keymap
-                 my/viper-vi-motion-g-keymap
-                 my/viper-vi-motion-leader-keymap)
-           magit-mode-map))
+           nil
+           (make-composed-keymap 
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            magit-mode-map)))
     (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
     (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
     (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)

@@ -416,8 +416,8 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "cD" #'xref-find-references)
 (define-key viper-vi-basic-map "gD" #'xref-find-references)
 
-(define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
-(define-key my/leader-prefix-map "xf" #'eglot-format-buffer)
+(define-key my/leader-prefix-map "cr" #'eglot-rename)
+(define-key my/leader-prefix-map "fm" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
 
 (define-key viper-vi-basic-map "K" #'eldoc)
@@ -484,20 +484,24 @@ respects rectangle mode in a similar way to vim/doom"
   :config
   (setq my/vc-log-vi-state-modify-map
         (make-composed-keymap
-         (list my/viper-vi-basic-motion-keymap
-               my/viper-vi-motion-g-keymap
-               my/viper-vi-motion-leader-keymap)
-         vc-git-log-view-mode-map))
+         nil
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          vc-git-log-view-mode-map)))
   (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 
 (use-package vc-dir :defer t
   :config
   (setq my/vc-dir-vi-state-modify-map
         (make-composed-keymap
-         (list my/viper-vi-basic-motion-keymap
-               my/viper-vi-motion-g-keymap
-               my/viper-vi-motion-leader-keymap)
-         vc-dir-mode-map))
+         nil 
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          vc-dir-mode-map)))
   (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
   (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 
@@ -505,10 +509,12 @@ respects rectangle mode in a similar way to vim/doom"
   :config
   (setq my/dired-vi-state-modify-map
         (make-composed-keymap
-         (list my/viper-vi-basic-motion-keymap
-                     my/viper-vi-motion-g-keymap
-                     my/viper-vi-motion-leader-keymap)
-         dired-mode-map))
+         nil
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          dired-mode-map)))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
   )
