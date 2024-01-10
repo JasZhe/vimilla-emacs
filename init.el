@@ -117,16 +117,18 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
-(add-hook 'icomplete-minibuffer-setup-hook
-          (lambda ()
-            ;; not useful in find-file, probably more we can add here
-            (unless (or (eq current-minibuffer-command 'find-file))
-              (insert "*"))))
+(defun icomplete-partial-completion-setup ()
+  (unless (or (eq current-minibuffer-command 'find-file))
+    (insert "*")))
+(add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
 ;; insert wild card to sorta emulate orderless
-(define-key icomplete-minibuffer-map " " (lambda () (interactive)
-                                                  (unless (eq last-command 'viper-ex)
-                                                    (insert "*"))))
+(defun icomplete-partial-completion-insert-wildcard ()
+  (interactive)
+  (unless (eq last-command 'viper-ex)
+    (insert "*")))
+
+(define-key icomplete-minibuffer-map " " #'icomplete-partial-completion-insert-wildcard)
 ;; this allows us to still insert spaces
 (define-key icomplete-minibuffer-map (kbd "M-SPC") (lambda () (interactive) (insert " ")))
 
