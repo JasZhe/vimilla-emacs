@@ -573,8 +573,69 @@ better ESC key handling to exit visual mode and close mini buffer
 
 ** respect visual lines cursor movement
 #+begin_src elisp
-  (define-key viper-vi-basic-map "k" #'previous-line)
-  (define-key viper-vi-basic-map "j" #'next-line)
+  (defun viper-previous-line (arg)
+    "Go to previous line."
+    (interactive "P")
+    (let ((val (viper-p-val arg))
+          (com (viper-getCom arg)))
+      (if com (viper-move-marker-locally 'viper-com-point (point)))
+      ;; do not use forward-line! need to keep column
+      ;; REDEFINE: remove setting line-move-visual to nil
+      (with-no-warnings (previous-line val))
+      ;; END OF REDEFINE
+      (if viper-ex-style-motion
+          (if (and (eolp) (not (bolp))) (backward-char 1)))
+      (setq this-command 'previous-line)
+      (if com (viper-execute-com 'viper-previous-line val com))))
+
+  (defun viper-next-line (arg)
+    "Go to next line."
+    (interactive "P")
+    (let ((val (viper-p-val arg))
+          (com (viper-getCom arg)))
+      (if com (viper-move-marker-locally 'viper-com-point (point)))
+      ;; do not use forward-line! need to keep column
+      ;; REDEFINE: remove setting line-move-visual to nil
+      (with-no-warnings (next-line val))
+      ;; END OF REDEFINE
+      (if viper-ex-style-motion
+          (if (and (eolp) (not (bolp))) (backward-char 1)))
+      (setq this-command 'next-line)
+      (if com (viper-execute-com 'viper-next-line val com))))
+
+
+  (advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-eol fun)) 'viper-goto-eol)
+  (advice-add 'viper-goto-eol :around
+              (lambda (orig-fun &rest args)
+                (if visual-line-mode
+                    (cl-letf (((symbol-function 'end-of-line) 'end-of-visual-line))
+                      (apply orig-fun args))
+                  (apply orig-fun args))))
+
+  (defun check-if-on-visually-split-line ()
+    (let ((first-logical-end
+           (save-excursion (beginning-of-line) (end-of-visual-line) (point)))
+          (current-end (save-excursion (end-of-visual-line) (point))))
+      (> current-end first-logical-end)))
+
+  (defun viper-bol-and-skip-white (arg)
+    "Beginning of line at first non-white character."
+    (interactive "P")
+    (let ((val (viper-p-val arg))
+          (com (viper-getcom arg)))
+      (if com (viper-move-marker-locally 'viper-com-point (point)))
+      (if visual-line-mode
+          (progn 
+            (if (and (check-if-on-visually-split-line))
+                (if (= val 1)
+                    (beginning-of-visual-line val)
+                  (beginning-of-visual-line (1+ val)))
+              (if (= val 1)
+                  (backward-to-indentation (1- val))
+                (beginning-of-visual-line (1+ val)))))
+        (progn
+          (forward-to-indentation (1- val))
+          (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 #+end_src
 
 ** forward "enter" and "q" in vi state
@@ -1260,15 +1321,6 @@ well this oen is self explanatory
     (add-hook 'org-mode-hook #'window-stool-mode))
 #+end_src
 
-** web mode
-no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
-#+begin_src elisp
-  (use-package web-mode :ensure nil :pin gnu
-    :mode "\\.gohtml\\'"
-    :config
-    (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
-    )
-#+end_src
 
 ** pdf tools
 just browse pdfs with external tools
@@ -1312,6 +1364,23 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
     (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
+#+end_src
+
+* external language packages
+** web mode
+no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
+#+begin_src elisp
+  (use-package web-mode :ensure nil :pin gnu
+    :mode "\\.gohtml\\'"
+    :config
+    (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
+    )
+#+end_src
+
+** clojure
+#+begin_src elisp :tangle no
+  (use-package clojure-mode :ensure t :pin gnu :defer 5)
+  (use-package cider :ensure t :pin gnu :defer 5)
 #+end_src
 
 * Local variables                                                        

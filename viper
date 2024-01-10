@@ -99,8 +99,69 @@
                  nil))
             ))
 
-(define-key viper-vi-basic-map "k" #'previous-line)
-(define-key viper-vi-basic-map "j" #'next-line)
+(defun viper-previous-line (arg)
+  "Go to previous line."
+  (interactive "P")
+  (let ((val (viper-p-val arg))
+        (com (viper-getCom arg)))
+    (if com (viper-move-marker-locally 'viper-com-point (point)))
+    ;; do not use forward-line! need to keep column
+    ;; REDEFINE: remove setting line-move-visual to nil
+    (with-no-warnings (previous-line val))
+    ;; END OF REDEFINE
+    (if viper-ex-style-motion
+        (if (and (eolp) (not (bolp))) (backward-char 1)))
+    (setq this-command 'previous-line)
+    (if com (viper-execute-com 'viper-previous-line val com))))
+
+(defun viper-next-line (arg)
+  "Go to next line."
+  (interactive "P")
+  (let ((val (viper-p-val arg))
+        (com (viper-getCom arg)))
+    (if com (viper-move-marker-locally 'viper-com-point (point)))
+    ;; do not use forward-line! need to keep column
+    ;; REDEFINE: remove setting line-move-visual to nil
+    (with-no-warnings (next-line val))
+    ;; END OF REDEFINE
+    (if viper-ex-style-motion
+        (if (and (eolp) (not (bolp))) (backward-char 1)))
+    (setq this-command 'next-line)
+    (if com (viper-execute-com 'viper-next-line val com))))
+
+
+(advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-eol fun)) 'viper-goto-eol)
+(advice-add 'viper-goto-eol :around
+            (lambda (orig-fun &rest args)
+              (if visual-line-mode
+                  (cl-letf (((symbol-function 'end-of-line) 'end-of-visual-line))
+                    (apply orig-fun args))
+                (apply orig-fun args))))
+
+(defun check-if-on-visually-split-line ()
+  (let ((first-logical-end
+         (save-excursion (beginning-of-line) (end-of-visual-line) (point)))
+        (current-end (save-excursion (end-of-visual-line) (point))))
+    (> current-end first-logical-end)))
+
+(defun viper-bol-and-skip-white (arg)
+  "Beginning of line at first non-white character."
+  (interactive "P")
+  (let ((val (viper-p-val arg))
+        (com (viper-getcom arg)))
+    (if com (viper-move-marker-locally 'viper-com-point (point)))
+    (if visual-line-mode
+        (progn 
+          (if (and (check-if-on-visually-split-line))
+              (if (= val 1)
+                  (beginning-of-visual-line val)
+                (beginning-of-visual-line (1+ val)))
+            (if (= val 1)
+                (backward-to-indentation (1- val))
+              (beginning-of-visual-line (1+ val)))))
+      (progn
+        (forward-to-indentation (1- val))
+        (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 
 (define-key viper-vi-basic-map (kbd "RET") nil)
 (define-key viper-vi-basic-map "q" nil)

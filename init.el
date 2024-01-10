@@ -405,12 +405,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (add-hook 'prog-mode-hook #'window-stool-mode)
   (add-hook 'org-mode-hook #'window-stool-mode))
 
-(use-package web-mode :ensure nil :pin gnu
-  :mode "\\.gohtml\\'"
-  :config
-  (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
-  )
-
 (use-package pdf-tools :ensure nil :pin gnu
   :mode "\\.pdf\\'"
   :config
@@ -446,19 +440,9 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(safe-local-variable-values
-   '((eval add-hook 'after-save-hook
-           (lambda nil
-             (org-babel-tangle))
-           nil t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+(use-package web-mode :ensure nil :pin gnu
+  :mode "\\.gohtml\\'"
+  :config
+  (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
+  )
