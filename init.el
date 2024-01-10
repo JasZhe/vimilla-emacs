@@ -4,8 +4,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (interactive "P")
   (unless server-mode (server-force-delete) (server-mode))
   (let ((command (if command command (read-string "command: git "))))
-    (async-shell-command
-     (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
+    (compile (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
 
 (defun my/vc-git-rebase-i (&optional branch)
   "if branch isn't supplied from arg, prompt for it"
@@ -15,15 +14,15 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (defun my/vc-git-rebase-abort ()
   (interactive)
-  (async-shell-command "rebase --abort"))
+  (compile "git rebase --abort"))
 
 (defun my/vc-git-rebase-continue ()                  
   (interactive)                                 
-  (async-shell-command "rebase --continue"))
+  (compile "git rebase --continue"))
 
 (defun my/vc-git-fetch ()                  
   (interactive)                                  
-  (async-shell-command "git fetch"))
+  (compile "git fetch -v"))
 
 (setq mac-option-modifier 'meta)
 (setq mac-command-modifier 'super)
@@ -440,19 +439,3 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(safe-local-variable-values
-   '((eval add-hook 'after-save-hook
-           (lambda nil
-             (org-babel-tangle))
-           nil t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

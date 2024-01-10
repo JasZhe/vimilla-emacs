@@ -22,8 +22,7 @@ just a simple wrapper in the case where we can't install magit
     (interactive "P")
     (unless server-mode (server-force-delete) (server-mode))
     (let ((command (if command command (read-string "command: git "))))
-      (async-shell-command
-       (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
+      (compile (concat "GIT_EDITOR=\"emacsclient\" bash -c \"git " command "\""))))
 
   (defun my/vc-git-rebase-i (&optional branch)
     "if branch isn't supplied from arg, prompt for it"
@@ -33,15 +32,15 @@ just a simple wrapper in the case where we can't install magit
 
   (defun my/vc-git-rebase-abort ()
     (interactive)
-    (async-shell-command "rebase --abort"))
+    (compile "git rebase --abort"))
 
   (defun my/vc-git-rebase-continue ()                  
     (interactive)                                 
-    (async-shell-command "rebase --continue"))
+    (compile "git rebase --continue"))
 
   (defun my/vc-git-fetch ()                  
     (interactive)                                  
-    (async-shell-command "git fetch"))
+    (compile "git fetch -v"))
 #+end_src
 
 * Mac settings
@@ -1078,9 +1077,9 @@ otherwise this works lol
   (define-key global-map "\C-xvf" #'vc-pull)
   (define-key global-map "\C-xvF" #'my/vc-git-fetch)
 
-  (define-key global-map "\C-xv\C-ri" #'my/vc-git-rebase-i)
-  (define-key global-map "\C-xv\C-ra" #'my/vc-git-rebase-abort)
-  (define-key global-map "\C-xv\C-rc" #'my/vc-git-rebase-continue)
+  (define-key global-map "\C-xvRi" #'my/vc-git-rebase-i)
+  (define-key global-map "\C-xvRa" #'my/vc-git-rebase-abort)
+  (define-key global-map "\C-xvRc" #'my/vc-git-rebase-continue)
   (use-package vc-git :defer t
     :config
     (setq my/vc-log-vi-state-modify-map
