@@ -498,6 +498,7 @@ respects rectangle mode in a similar way to vim/doom"
                my/viper-vi-motion-g-keymap
                my/viper-vi-motion-leader-keymap)
          vc-dir-mode-map))
+  (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
   (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
 
 (use-package dired :defer t
