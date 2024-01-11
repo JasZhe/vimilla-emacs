@@ -319,6 +319,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
         (3 . (rainbow bold variable-pitch 1.1))
         (t . (semilight variable-pitch 1.05))))
 
+
 (setq modus-themes-bold-constructs t)
 (setq modus-themes-italic-constructs t)
 (setq modus-themes-org-blocks 'gray-background)

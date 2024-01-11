@@ -350,7 +350,8 @@ respects rectangle mode in a similar way to vim/doom"
            (forward-char)
            (yank-rectangle)
            (setq killed-rectangle nil)))
-        (t (forward-char) (yank arg))))
+        ;; if we're on an empty line, we want to just yank without moving forward
+        (t (unless (eq (point) (line-end-position)) (forward-char)) (yank arg))))
 
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
 (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
