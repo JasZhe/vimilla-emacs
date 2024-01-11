@@ -217,6 +217,20 @@ luckily this is built in lol
 #+end_src
 
 * development
+** WIP set environment vars at path
+this might be nice if we need to set env vars without direnv
+
+idea is to maybe pass some shell command to cd into a folder
+and source some.envrc, then using that same shell, just copy all the environment vars from there using =setenv=
+#+begin_src elisp
+  (defun copy-env-vars-from-shell () 
+    (mapc (lambda (env-var-string)
+            (let* ((split (split-string env-var-string "="))
+                   (name (cl-first split))
+                   (val (cl-second split)))
+              (message "first: %s second: %s" name val)))
+          (split-string (shell-command-to-string "printenv"))))
+#+end_src
 ** qol
 #+begin_src elisp
   (add-hook 'prog-mode-hook #'flymake-mode)

@@ -166,6 +166,14 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     )
   )
 
+(defun copy-env-vars-from-shell () 
+  (mapc (lambda (env-var-string)
+          (let* ((split (split-string env-var-string "="))
+                 (name (cl-first split))
+                 (val (cl-second split)))
+            (message "first: %s second: %s" name val)))
+        (split-string (shell-command-to-string "printenv"))))
+
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
 (setq-default indent-tabs-mode nil)
