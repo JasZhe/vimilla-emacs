@@ -98,6 +98,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (viper-mode)
 (global-hl-line-mode)
 (global-visual-line-mode)
+(global-subword-mode)
+(add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-")))
 
 (setq column-number-mode t)
 (setq scroll-margin 8)
@@ -454,11 +456,13 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
 
+(when (not (require 'web-mode nil 'noerrror))
+  (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
+                                 :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
 (use-package web-mode :ensure nil :pin gnu
   :mode "\\.gohtml\\'"
   :config
-  (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
-  )
+  (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'"))))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
