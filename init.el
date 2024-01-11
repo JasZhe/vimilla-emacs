@@ -324,6 +324,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq modus-themes-italic-constructs t)
 (setq modus-themes-org-blocks 'gray-background)
 (load-theme 'modus-operandi)
+ ;; for some reason modus gets rid of diff-header
+(set-face-attribute 'diff-header nil :background "gray80")
 
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
