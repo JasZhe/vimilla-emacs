@@ -332,12 +332,16 @@ respects rectangle mode in a similar way to vim/doom"
              (viper-open-line nil))
            (viper-change-state-to-vi) ; cause viper-open-line takes us to insert
            (yank)
-           ;; this is similar reasoning to the (forward-char) in the following cases
-           ;; except more complicated since we're dealing with lines now
-           (forward-line)
-           (delete-char -1)
-           (forward-line -1)
-           (end-of-line)))
+
+           ;; we want the newline at the end when the yanked text is multiline
+           ;; but we want to remove the additional newline if the yanked text is
+           ;; just a single line
+           (when (not (string-match ".*\n.+" (cl-first kill-ring)))
+             (forward-line)
+             (delete-char -1)
+             (forward-line -1)
+             (end-of-line))
+           ))
         ((and (not killed-rectangle) (use-region-p))
          (progn
            (let ((start (region-beginning)))
