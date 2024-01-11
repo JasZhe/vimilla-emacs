@@ -290,7 +290,10 @@
   (if (use-region-p)
       (let ((start (region-beginning)) (end (region-end)))
         (if rectangle-mark-mode
-            (kill-rectangle start end arg)
+            (progn 
+              (setq my/line-yank-p nil)
+              ;; like vim, we want to include the current cursor char
+              (kill-rectangle start (1+ end) arg))
           (progn
             (forward-char)
             (if my/line-selection-p
@@ -305,7 +308,9 @@
   (if (use-region-p)
       (let ((start (region-beginning)) (end (region-end)))
         (if rectangle-mark-mode
-            (copy-rectangle-as-kill start end)
+            (progn 
+              (setq my/line-yank-p nil)
+              (copy-rectangle-as-kill start (1+ end)))
           (progn
             (forward-char)
             (if my/line-selection-p
@@ -322,25 +327,30 @@ respects rectangle mode in a similar way to vim/doom"
   (interactive "P")
   (cond (my/line-yank-p
          (progn
-           (viper-open-line nil)
-           (viper-change-state-to-vi)
-           (when (use-region-p) (delete-active-region))
+           (if (use-region-p)
+               (delete-active-region)
+             (viper-open-line nil))
+           (viper-change-state-to-vi) ; cause viper-open-line takes us to insert
            (yank)
+           ;; this is similar reasoning to the (forward-char) in the following cases
+           ;; except more complicated since we're dealing with lines now
            (forward-line)
            (delete-char -1)
            (forward-line -1)
            (end-of-line)))
-  ((and (not killed-rectangle) (use-region-p))
-   (progn
-     (let ((start (region-beginning)))
-       (forward-char)
-       (delete-active-region)
-       (yank))))
-  (killed-rectangle
-   (progn 
-     (yank-rectangle)
-     (setq killed-rectangle nil)))
-  (t (yank arg))))
+        ((and (not killed-rectangle) (use-region-p))
+         (progn
+           (let ((start (region-beginning)))
+             ;; vim pastes "after" the cursor, at least that's what I'm used to
+             (forward-char)
+             (delete-active-region)
+             (yank))))
+        (killed-rectangle
+         (progn
+           (forward-char)
+           (yank-rectangle)
+           (setq killed-rectangle nil)))
+        (t (forward-char) (yank arg))))
 
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
 (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
