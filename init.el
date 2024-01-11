@@ -332,8 +332,10 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq modus-themes-italic-constructs t)
 (setq modus-themes-org-blocks 'gray-background)
 (load-theme 'modus-operandi)
- ;; for some reason modus gets rid of diff-header
-(set-face-attribute 'diff-header nil :background "gray80")
+(use-package vc :defer t
+  :config
+  ;; for some reason modus gets rid of diff-header
+  (set-face-attribute 'diff-header nil :background "gray80"))
 
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
@@ -360,7 +362,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun line-before-point-empty-p ()
   (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
 
-(use-package org :defer t
+(use-package org
   :config
   (progn
     (setq org-image-actual-width '(300))
@@ -457,3 +459,20 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   :config
   (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'")))
   )
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values
+   '((eval add-hook 'after-save-hook
+           (lambda nil
+             (org-babel-tangle))
+           nil t))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
