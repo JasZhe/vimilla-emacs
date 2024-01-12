@@ -427,6 +427,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
     (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
     (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
+    (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
+    (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
     (setq pdf-view-resize-factor 1.10)
     (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
     (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
