@@ -553,6 +553,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
 
+(define-key global-map "\C-xve" #'my/vc-git-editor-command)
 (define-key global-map "\C-xvRi" #'my/vc-git-rebase-i)
 (define-key global-map "\C-xvRa" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xvRc" #'my/vc-git-rebase-continue)
