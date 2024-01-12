@@ -1402,6 +1402,10 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
 #+end_src
 
+#+begin_src elisp
+  (rassq-delete-all 'git-rebase-mode auto-mode-alist)
+#+end_src
+
 * external language packages
 ** web mode
 no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode

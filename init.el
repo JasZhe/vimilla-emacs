@@ -434,6 +434,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
   )
 
+(rassq-delete-all 'git-rebase-mode auto-mode-alist)
+
 (when (not (require 'web-mode nil 'noerrror))
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                  :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
