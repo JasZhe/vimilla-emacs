@@ -434,28 +434,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
   )
 
-(use-package magit :ensure nil :pin gnu :defer 5
-  :config
-  (define-key my/leader-prefix-map "gg" #'magit)
-  (setq my/magit-vi-state-modify-map
-        (make-composed-keymap
-         nil
-         (make-composed-keymap 
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          magit-mode-map)))
-  (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
-  (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
-  (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
-  (define-key my/magit-vi-state-modify-map (kbd "C-l") #'magit-log)
-  (define-key my/magit-vi-state-modify-map (kbd "C-b") #'magit-branch)
-  (define-key my/magit-vi-state-modify-map "p" #'magit-push)
-  (define-key my/magit-vi-state-modify-map "F" #'magit-pull)
-  (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
-
-  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
-
 (when (not (require 'web-mode nil 'noerrror))
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                  :rev "82847071ce93293bdb7945db08d970f13fd883cf")))

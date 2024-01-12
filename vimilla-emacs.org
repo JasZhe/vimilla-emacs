@@ -1378,7 +1378,7 @@ just browse pdfs with external tools
 
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
-#+begin_src elisp
+#+begin_src elisp :tangle no
   (use-package magit :ensure nil :pin gnu :defer 5
     :config
     (define-key my/leader-prefix-map "gg" #'magit)
