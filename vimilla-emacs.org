@@ -1,3 +1,4 @@
+Amend: yes
 #+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle init.el :results silent
 
@@ -1179,6 +1180,8 @@ otherwise this works lol
 #+end_src
 
 ** extra VC keybindings
+note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggles the current commit to be an amend commit
+
 #+begin_src elisp
   (define-key global-map "\C-xvf" #'vc-pull)
   (define-key global-map "\C-xvF" #'my/vc-git-fetch)
@@ -1381,6 +1384,8 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
 #+begin_src elisp :tangle no
   (use-package magit :ensure nil :pin gnu :defer 5
     :config
+    (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . git-rebase-mode))
+    
     (define-key my/leader-prefix-map "gg" #'magit)
     (setq my/magit-vi-state-modify-map
           (make-composed-keymap
