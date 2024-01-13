@@ -1438,7 +1438,7 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 ** clojure
 #+begin_src elisp :tangle no
   (use-package clojure-mode :ensure t :pin gnu :defer 5)
-  (use-package cider :ensure t :pin gnu :defer 5)
+  (use-package cider :ensure t :pin nongnu :defer 5)
 #+end_src
 
 * custom
