@@ -360,6 +360,9 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
 (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
 (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+(define-key viper-vi-basic-map (kbd "s-v") #'viper-paste-into-region)
+(define-key viper-insert-basic-map (kbd "s-v") #'viper-paste-into-region)
+(define-key global-map (kbd "s-v") #'viper-paste-into-region)
 
 (define-key viper-vi-basic-map "u" #'undo-only)
 (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)

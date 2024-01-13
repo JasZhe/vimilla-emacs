@@ -400,6 +400,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                       (dabbrev-expand arg)
                     (org-cycle arg))))))
 
+(setq native-comp-async-report-warnings-errors 'silent)
+
 (use-package avy :ensure nil :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)

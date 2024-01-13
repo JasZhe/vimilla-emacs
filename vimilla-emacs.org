@@ -890,6 +890,9 @@ if the region exists then we jump to the beginning of the region and merge the n
   (define-key viper-vi-basic-map "d" #'viper-delete-region-or-motion-command)
   (define-key viper-vi-basic-map "y" #'viper-copy-region-or-motion-command)
   (define-key viper-vi-basic-map "p" #'viper-paste-into-region)
+  (define-key viper-vi-basic-map (kbd "s-v") #'viper-paste-into-region)
+  (define-key viper-insert-basic-map (kbd "s-v") #'viper-paste-into-region)
+  (define-key global-map (kbd "s-v") #'viper-paste-into-region)
 #+end_src
 
 ** undo
@@ -1304,6 +1307,11 @@ Need to install these seperately, but some configuration here
 These packages are all good enough to be built in to be honest
 
 Lets at least stick with gnu/nongnu elpa
+
+disable native comp warnings buffer from popping up
+#+begin_src elisp
+(setq native-comp-async-report-warnings-errors 'silent)
+#+end_src
 
 ** orderless
 https://github.com/oantolin/orderless
