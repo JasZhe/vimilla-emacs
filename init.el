@@ -106,6 +106,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq visual-bell t)
 (setq ring-bell-function 'ignore)
 (setq scroll-preserve-screen-position t)
+(setq eval-expression-print-level nil)
+(setq eval-expression-print-length nil)
 
 (fido-vertical-mode)
 
@@ -168,13 +170,20 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     )
   )
 
-(defun copy-env-vars-from-shell () 
+(defun copy-env-vars-from-shell ()
+  (interactive)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))
                  (name (cl-first split))
                  (val (cl-second split)))
-            (message "first: %s second: %s" name val)))
-        (split-string (shell-command-to-string "printenv"))))
+            (setenv name val)
+            (when (string-equal "PATH" name)
+              (setq exec-path (append (parse-colon-path val) (list exec-directory)))
+              ;; eshell path
+              (setq-default eshell-path-env val)
+              (when (fboundp 'eshell-set-path) (eshell-set-path val))
+              )))
+        (split-string (shell-command-to-string "bash --login -c printenv"))))
 
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
@@ -187,6 +196,18 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
+
+(defun copy-go-env-vars-from-shell ()
+  (interactive)
+  (copy-env-vars-from-shell)
+  (mapc (lambda (env-var-string)
+          (let* ((split (split-string env-var-string "="))
+                 (name (cl-first split))
+                 (val (cl-second split)))
+            (when (and name val (not (string-empty-p name)) (not (string-empty-p val)))
+              (setenv name (string-trim val "[ '\"]" "[ '\"]")))))
+        (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
+  (call-interactively 'eglot-reconnect))
 
 (use-package elisp-mode :defer t
   :config
