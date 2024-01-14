@@ -232,19 +232,28 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
-   "Prompt for completion of region in the minibuffer if non-unique.
-  Use as a value for `completion-in-region-function'."
-   (let* ((initial (buffer-substring-no-properties start end))
-          (all (completion-all-completions initial collection predicate
-                                           (length initial)))
-          (completion (cond
-                       ((atom all) nil)
-                       ((and (consp all) (atom (cdr all))) (car all))
-                       (t (completing-read
-                           "Completion: " collection predicate nil initial)))))
-     (cond (completion (completion--replace start end completion) t)
-           (t (message "No completion") nil))))
- (setq completion-in-region-function #'completing-read-in-region)
+  "Prompt for completion of region in the minibuffer if non-unique.
+      Use as a value for `completion-in-region-function'."
+  (let* ((initial (buffer-substring-no-properties start end))
+         (limit (car (completion-boundaries initial collection predicate "")))
+         (all (completion-all-completions initial collection predicate (length initial)))
+         ;; when the completion candidate list a single one, for some reason completing-read
+         ;; will delete a bunch of lines.
+         ;; to couteract this, we basically undo an atomic change and set the completion variable
+         (completion (cond
+                      ((atom all) nil)
+                      ((and (consp all) (atom (cdr all)))
+                       (concat (substring initial 0 limit) (car all)))
+                      (t
+                       (setq completion 
+                             (catch 'done
+                               (atomic-change-group 
+                                 (let ((completion
+                                        (completing-read "Completion: " collection predicate nil initial)))
+                                   (throw 'done completion)))))))))
+  (cond (completion (completion--replace start end completion) t)
+        (t (message "No completion") nil))))
+(setq completion-in-region-function #'completing-read-in-region)
 
 (defun my/eshell-send-cmd-async ()
   (interactive)
