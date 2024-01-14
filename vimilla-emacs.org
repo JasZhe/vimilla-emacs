@@ -1,4 +1,3 @@
-Amend: yes
 #+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle init.el :results silent
 
