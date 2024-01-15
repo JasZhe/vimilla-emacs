@@ -1309,6 +1309,14 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
   (define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
   (viper-modify-major-mode 'emacs-lisp-mode 'vi-state my/elisp-vi-state-modify-map)
 #+end_src
+
+** comint mode
+#+begin_src elisp
+  (use-package comint :defer t
+    :config
+    (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up)
+    )
+#+end_src
 * Org
 
 grabbed the src block fontification from here

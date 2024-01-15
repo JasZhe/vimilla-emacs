@@ -602,3 +602,8 @@ respects rectangle mode in a similar way to vim/doom"
 (setq my/elisp-vi-state-modify-map (make-sparse-keymap))
 (define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
 (viper-modify-major-mode 'emacs-lisp-mode 'vi-state my/elisp-vi-state-modify-map)
+
+(use-package comint :defer t
+  :config
+  (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up)
+  )
