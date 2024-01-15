@@ -491,6 +491,7 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
 (define-key viper-vi-basic-map "gd" #'xref-find-definitions)
+(define-key viper-vi-basic-map "gI" #'eglot-find-implementation)
 
 (define-key my/leader-prefix-map "cD" #'xref-find-references)
 (define-key viper-vi-basic-map "gD" #'xref-find-references)
