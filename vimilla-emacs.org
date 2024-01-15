@@ -52,6 +52,9 @@ if machine isn't a mac then this won't do anything anyways so need to do some OS
 #+end_src
 
 * Window commands
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
 not necessary viper, but same idea
 need to set the window map before viper loads cause we use it in the motion keymap
 #+begin_src elisp
@@ -274,6 +277,10 @@ and source some.envrc, then using that same shell, just copy all the environment
 #+end_src
 
 ** elisp highlighting
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
 stole most of this from doom
 https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77db6d1/modules/lang/emacs-lisp/autoload.el#L346-L381
 
@@ -533,6 +540,9 @@ TODO: maybe we just set all of these to nil since we have this pseudo global sta
 #+end_src
 
 *** hl line for diff modes, viper viper insert delets to prev line
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
 stole the terminal code for cursor from here https://github.com/syl20bnr/spacemacs/issues/7112#issuecomment-389855491
 works on iterm2 at least, 0 for box, 6 for bar cursor
 #+begin_src elisp
@@ -631,6 +641,11 @@ better ESC key handling to exit visual mode and close mini buffer
 #+end_src
 
 ** respect visual lines cursor movement
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
+basically redefining the viper commands to respect visual line mode
 #+begin_src elisp
   (defun viper-previous-line (arg)
     "Go to previous line."
@@ -710,6 +725,10 @@ q is just bound to viper-nil as well
 #+end_src
 
 ** pseudo visual mode
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
 *** hacky advice for next/previous line to emulate visual mode
 basically a bunch of mark manipualtion essentially.
 
@@ -966,6 +985,10 @@ need to remap isearch-backward since i wanna use C-r for redo
 #+end_src
 
 ** pseudo "leader" prefix
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+
 TODO imenu keybinding
 #+begin_src elisp
     (setq my/leader-prefix-map (make-sparse-keymap))
@@ -1075,6 +1098,10 @@ pretty handy tbh
 #+end_src
 
 ** viper motion keymap
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
 There's some weird thing with make-composed-keymap where for some reason the original keymaps might be modified if we use define-key.
 Found a solution here: https://emacs.stackexchange.com/questions/3963/use-two-major-mode-maps-in-the-same-buffer
 which says to just wrap make-composed-keymap around the original make-composed-keymap
