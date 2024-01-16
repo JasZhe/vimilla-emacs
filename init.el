@@ -122,7 +122,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
 (defun icomplete-partial-completion-setup ()
-  (unless (or (eq current-minibuffer-command 'find-file))
+  (unless (or (eq (icomplete--category) 'file))
     (insert "*")))
 (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
@@ -161,6 +161,11 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 
+(require 'dabbrev)
+;; dabbrev-completion resets the global variables first so we do the same
+(advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
+(add-hook 'completion-at-point-functions #'dabbrev-capf 100)
+
 (use-package xref :defer t
   :config
   (progn
@@ -169,6 +174,31 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
     )
   )
+
+(setq enable-recursive-minibuffers t)
+(defun completing-read-in-region (start end collection &optional predicate)
+  "Prompt for completion of region in the minibuffer if non-unique.
+      Use as a value for `completion-in-region-function'."
+  (let* ((initial (buffer-substring-no-properties start end))
+         (limit (car (completion-boundaries initial collection predicate "")))
+         (all (completion-all-completions initial collection predicate (length initial)))
+         ;; when the completion candidate list a single one, for some reason completing-read
+         ;; will delete a bunch of lines.
+         ;; to couteract this, we basically undo an atomic change and set the completion variable
+         (completion (cond
+                      ((atom all) nil)
+                      ((and (consp all) (atom (cdr all)))
+                       (concat (substring initial 0 limit) (car all)))
+                      (t
+                       (setq completion 
+                             (catch 'done
+                               (atomic-change-group 
+                                 (let ((completion
+                                        (completing-read "Completion: " collection predicate nil initial)))
+                                   (throw 'done completion)))))))))
+  (cond (completion (completion--replace start end completion) t)
+        (t (message "No completion") nil))))
+(setq completion-in-region-function #'completing-read-in-region)
 
 (defun copy-env-vars-from-shell ()
   (interactive)
@@ -250,31 +280,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
       nil))
 
   (font-lock-add-keywords 'emacs-lisp-mode `((+emacs-lisp-highlight-vars-and-faces . +emacs-lisp--face)) 'append))
-
-(setq enable-recursive-minibuffers t)
-(defun completing-read-in-region (start end collection &optional predicate)
-  "Prompt for completion of region in the minibuffer if non-unique.
-      Use as a value for `completion-in-region-function'."
-  (let* ((initial (buffer-substring-no-properties start end))
-         (limit (car (completion-boundaries initial collection predicate "")))
-         (all (completion-all-completions initial collection predicate (length initial)))
-         ;; when the completion candidate list a single one, for some reason completing-read
-         ;; will delete a bunch of lines.
-         ;; to couteract this, we basically undo an atomic change and set the completion variable
-         (completion (cond
-                      ((atom all) nil)
-                      ((and (consp all) (atom (cdr all)))
-                       (concat (substring initial 0 limit) (car all)))
-                      (t
-                       (setq completion 
-                             (catch 'done
-                               (atomic-change-group 
-                                 (let ((completion
-                                        (completing-read "Completion: " collection predicate nil initial)))
-                                   (throw 'done completion)))))))))
-  (cond (completion (completion--replace start end completion) t)
-        (t (message "No completion") nil))))
-(setq completion-in-region-function #'completing-read-in-region)
 
 (defun my/eshell-send-cmd-async ()
   (interactive)

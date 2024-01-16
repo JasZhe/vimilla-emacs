@@ -400,6 +400,20 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "pe" #'project-eshell)
 (define-key my/leader-prefix-map "ps" #'project-shell)
 (define-key my/leader-prefix-map "pd" #'project-forget-project)
+(define-key my/leader-prefix-map "px" #'flymake-show-project-diagnostics)
+
+(defun my/flymake-diagnostics-at-point ()
+  (interactive)
+  (let ((diags (flymake-diagnostics (point))))
+    (if (not (seq-empty-p diags))
+        (message "%s"
+                 (cl-reduce (lambda (acc d) (concat acc (flymake--diag-text d)))
+                            (flymake-diagnostics (point))
+                            :initial-value ""))
+      (message "No diagnostics at point."))))
+
+(define-key my/leader-prefix-map "cx" #'my/flymake-diagnostics-at-point)
+(define-key my/leader-prefix-map "cX" #'flymake-show-buffer-diagnostics)
 
 (define-key my/leader-prefix-map "hk" #'describe-key)
 (define-key my/leader-prefix-map "hf" #'describe-function)
@@ -501,6 +515,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
 
 (define-key viper-vi-basic-map "K" #'eldoc)
+(define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)
 
 (define-key viper-vi-basic-map "H"
             (lambda (arg) (interactive "P")
@@ -532,6 +547,7 @@ respects rectangle mode in a similar way to vim/doom"
               (let ((char (read-char)))
                 (cond ((viper= ?b char) (previous-buffer))
                       ((viper= ?t char) (tab-bar-switch-to-prev-tab))
+                      ((viper= ?e char) (call-interactively 'flymake-goto-prev-error))
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
@@ -546,6 +562,7 @@ respects rectangle mode in a similar way to vim/doom"
               (let ((char (read-char)))
                 (cond ((viper= ?b char) (next-buffer))
                       ((viper= ?t char) (tab-bar-switch-to-next-tab))
+                      ((viper= ?e char) (call-interactively 'flymake-goto-next-error))
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
