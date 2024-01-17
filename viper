@@ -295,7 +295,12 @@
               ;; like vim, we want to include the current cursor char
               (kill-rectangle start (1+ end) arg))
           (progn
-            (forward-char)
+            ;; this hacky bit is because when we move backwards from point, we want to include the position we started the mark on like in vim
+            ;; even though visually we won't see it, functionally it'll behave the same
+            (if (> (point) (mark-marker))
+                (forward-char)
+              (let ((m (mark-marker)))
+                (set-marker m (1+ m))))
             (if my/line-selection-p
                 (setq my/line-yank-p t)
               (setq my/line-yank-p nil))
@@ -312,12 +317,15 @@
               (setq my/line-yank-p nil)
               (copy-rectangle-as-kill start (1+ end)))
           (progn
-            (forward-char)
+            (if (> (point) (mark-marker))
+                (forward-char)
+              (let ((m (mark-marker)))
+                (set-marker m (1+ m))))
             (if my/line-selection-p
                 (setq my/line-yank-p t)
               (setq my/line-yank-p nil))
             (copy-region-as-kill start end t)
-            (backward-char))
+            (when (> (point) (mark-marker)) (backward-char)))
           ))
     (viper-command-argument arg)))
 
@@ -528,10 +536,27 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "zz" #'recenter-top-bottom)
 
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-line fun)) 'viper-goto-line)
-(advice-add 'viper-goto-line :around
-            (lambda (orig-fun &rest args)
-              (cl-letf (((symbol-function 'deactivate-mark) (lambda (&optional _) nil)))
-                (apply orig-fun args))))
+
+;; if the region is active already, we don't want to move mark or else it behaves strangely with out selection
+(defun my/advise-viper-goto-line (orig-fun &rest args)
+  (if (region-active-p)
+      (cl-letf (((symbol-function 'deactivate-mark)
+                 (lambda (&optional _) nil))
+                ((symbol-function 'viper-move-marker-locally)
+                 (lambda (_ _ &optional _) nil))
+                ((symbol-function 'push-mark)
+                 (lambda (&optional _ _ _) nil)))
+        (let ((prev-line-number (line-number-at-pos)))
+          (apply orig-fun args)
+
+          (when my/line-selection-p
+            ;; this means we're moving up so need to go to beg of line at the end
+            (if (and (car args) (< (car args) prev-line-number))
+                (beginning-of-line)
+              (end-of-line)))))
+    (apply orig-fun args)))
+
+(advice-add 'viper-goto-line :around #'my/advise-viper-goto-line)
 
 (add-hook 'prog-mode-hook #'hs-minor-mode)
 (define-key viper-vi-basic-map "zC" #'hs-hide-all)

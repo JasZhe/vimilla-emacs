@@ -162,7 +162,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 
 (require 'dabbrev)
-;; dabbrev-completion resets the global variables first so we do the same
+;; #'dabbrev-completion resets the global variables first so we do the same
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
 (add-hook 'completion-at-point-functions #'dabbrev-capf 100)
 
