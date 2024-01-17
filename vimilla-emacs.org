@@ -43,6 +43,21 @@ just a simple wrapper in the case where we can't install magit
     (compile "git fetch -v"))
 #+end_src
 
+* ediff-setup
+#+begin_src elisp
+  (use-package ediff :defer t
+    :config
+    (advice-remove 'ediff-quit #'disable-y-or-n-p)
+    (defun disable-y-or-n-p (orig-fun &rest args)
+      (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+        (apply orig-fun args)))
+    (advice-add 'ediff-quit :around #'disable-y-or-n-p)
+
+    (setq ediff-keep-variants nil)
+    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+    (setq ediff-split-window-function #'split-window-horizontally))
+#+end_src
+
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
 #+begin_src elisp

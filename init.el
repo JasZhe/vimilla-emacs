@@ -24,6 +24,18 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (interactive)                                  
   (compile "git fetch -v"))
 
+(use-package ediff :defer t
+  :config
+  (advice-remove 'ediff-quit #'disable-y-or-n-p)
+  (defun disable-y-or-n-p (orig-fun &rest args)
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+      (apply orig-fun args)))
+  (advice-add 'ediff-quit :around #'disable-y-or-n-p)
+
+  (setq ediff-keep-variants nil)
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+  (setq ediff-split-window-function #'split-window-horizontally))
+
 (setq mac-option-modifier 'meta)
 (setq mac-command-modifier 'super)
 (define-key global-map (kbd "s-/") #'comment-line)
