@@ -492,6 +492,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
 (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
 (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
+(define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
 (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 
 (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
@@ -641,6 +642,18 @@ respects rectangle mode in a similar way to vim/doom"
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
   )
+
+(use-package ibuffer :defer t
+  :config
+  (setq my/ibuffer-vi-state-modify-map
+        (make-composed-keymap
+         nil
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          ibuffer-mode-map)))
+  (viper-modify-major-mode 'ibuffer-mode 'vi-state my/ibuffer-vi-state-modify-map))
 
 (setq my/elisp-vi-state-modify-map (make-sparse-keymap))
 (define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)

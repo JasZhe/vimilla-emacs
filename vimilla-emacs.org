@@ -163,6 +163,8 @@ stole the completing read stuff from:
 * minibuffer setup
 
 Use partial-completion by default, most similar to orderless
+useful keybinds C-j to exit minibuffer with first candidate
+M-j to exit minibuffer with whatever is in the input
 #+begin_src elisp
   (fido-vertical-mode)
 
@@ -1193,6 +1195,7 @@ in special modes
   (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
   (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
   (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
+  (define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
   (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
 #+end_src
 
@@ -1391,6 +1394,21 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
     (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
     )
+#+end_src
+
+** ibuffer
+#+begin_src elisp
+  (use-package ibuffer :defer t
+    :config
+    (setq my/ibuffer-vi-state-modify-map
+          (make-composed-keymap
+           nil
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            ibuffer-mode-map)))
+    (viper-modify-major-mode 'ibuffer-mode 'vi-state my/ibuffer-vi-state-modify-map))
 #+end_src
 
 ** elisp eval buffer
