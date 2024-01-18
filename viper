@@ -2,30 +2,23 @@
 (defun set-global-viper-state (arg)
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
         ((eq my/global-viper-state 'emacs) (viper-change-state-to-emacs))
-        ((eq my/global-viper-state 'ins) (viper-change-state-to-insert))
+        ((eq my/global-viper-state 'insert) (viper-change-state-to-insert))
         (t (viper-change-state-to-vi))
   ))
+
+(add-hook 'viper-vi-state-hook (lambda () (setq my/global-viper-state 'vi)))
+(add-hook 'viper-emacs-state-hook (lambda () (setq my/global-viper-state 'emacs)))
+(add-hook 'viper-insert-state-hook (lambda () (setq my/global-viper-state 'insert)))
 (add-to-list 'window-state-change-functions #'set-global-viper-state)
 
-;; prefer the following to be in whatever state I'm already in                                       
-(setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
-(setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
-(setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))                  
-(setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))                   
-(setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-(setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-
-
-;; then remove all emacs states and replace with insert states                                       
-(setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
 (setq viper-emacs-state-mode-list nil)
+(setq viper-insert-state-mode-list nil)
 
 (setq viper-inhibit-startup-message 't)
 (setq viper-expert-level '5)
 
 (add-hook 'viper-insert-state-hook (lambda ()
                                      (global-hl-line-mode -1)
-                                     (setq my/global-viper-state 'ins)
                                      (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                      (setq viper-ex-style-editing nil)))
 
@@ -42,13 +35,11 @@
 
 (add-hook 'viper-vi-state-hook (lambda ()
                                  (global-hl-line-mode)
-                                 (setq my/global-viper-state 'vi)
                                  (set-face-attribute 'hl-line nil :underline nil)
                                  (set-face-attribute 'hl-line nil :box nil)
                                  (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 (add-hook 'viper-emacs-state-hook (lambda ()
                                     (global-hl-line-mode)
-                                    (setq my/global-viper-state 'emacs)
                                     (if (display-graphic-p)
                                         (set-face-attribute 'hl-line nil :box t)
                                       (set-face-attribute 'hl-line nil :underline t))

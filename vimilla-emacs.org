@@ -223,7 +223,6 @@ M-j to exit minibuffer with whatever is in the input
                                 (if isearch-regexp (isearch-occur isearch-regexp)
                                   (isearch-occur isearch-string))))
                 (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
-
   (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 #+end_src
 
@@ -296,20 +295,20 @@ this might be nice if we need to set env vars without direnv
 idea is to maybe pass some shell command to cd into a folder
 and source some.envrc, then using that same shell, just copy all the environment vars from there using =setenv=
 #+begin_src elisp
-    (defun copy-env-vars-from-shell ()
-      (interactive)
-      (mapc (lambda (env-var-string)
-              (let* ((split (split-string env-var-string "="))
-                     (name (cl-first split))
-                     (val (cl-second split)))
-                (setenv name val)
-                (when (string-equal "PATH" name)
-                  (setq exec-path (append (parse-colon-path val) (list exec-directory)))
-                  ;; eshell path
-                  (setq-default eshell-path-env val)
-                  (when (fboundp 'eshell-set-path) (eshell-set-path val))
-                  )))
-            (split-string (shell-command-to-string "bash --login -c printenv"))))
+  (defun copy-env-vars-from-shell ()
+    (interactive)
+    (mapc (lambda (env-var-string)
+            (let* ((split (split-string env-var-string "="))
+                   (name (cl-first split))
+                   (val (cl-second split)))
+              (setenv name val)
+              (when (string-equal "PATH" name)
+                (setq exec-path (append (parse-colon-path val) (list exec-directory)))
+                ;; eshell path
+                (setq-default eshell-path-env val)
+                (when (fboundp 'eshell-set-path) (eshell-set-path val))
+                )))
+          (split-string (shell-command-to-string "bash --login -c printenv"))))
 #+end_src
 
 ** tramp environment variables
@@ -558,32 +557,27 @@ Maybe.. maybe not but now this should enable viper mode even on major modes not 
 *** global viper state
 TODO: add a hook on buffer creation to see if viper is enabled or not, and if not enable it, then switch to the global state?
 #+begin_src elisp
-
   (setq my/global-viper-state 'vi)
   (defun set-global-viper-state (arg)
     (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
           ((eq my/global-viper-state 'emacs) (viper-change-state-to-emacs))
-          ((eq my/global-viper-state 'ins) (viper-change-state-to-insert))
+          ((eq my/global-viper-state 'insert) (viper-change-state-to-insert))
           (t (viper-change-state-to-vi))
     ))
+
+  (add-hook 'viper-vi-state-hook (lambda () (setq my/global-viper-state 'vi)))
+  (add-hook 'viper-emacs-state-hook (lambda () (setq my/global-viper-state 'emacs)))
+  (add-hook 'viper-insert-state-hook (lambda () (setq my/global-viper-state 'insert)))
   (add-to-list 'window-state-change-functions #'set-global-viper-state)
 #+end_src
 
 **** want better normal state bindings in the "emacs state" buffers
-TODO: maybe we just set all of these to nil since we have this pseudo global state?
+we just set all of these to nil since we have this pseudo global state
+plus our workaround of just unbinding q for quit window commands
+
 #+begin_src elisp
-  ;; prefer the following to be in whatever state I'm already in                                       
-  (setq viper-emacs-state-mode-list (remove 'Custom-mode viper-emacs-state-mode-list))                 
-  (setq viper-emacs-state-mode-list (remove 'dired-mode viper-emacs-state-mode-list))                  
-  (setq viper-emacs-state-mode-list (remove 'occur-mode viper-emacs-state-mode-list))                  
-  (setq viper-emacs-state-mode-list (remove 'help-mode viper-emacs-state-mode-list))                   
-  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-  (setq viper-emacs-state-mode-list (remove 'completion-list-mode viper-emacs-state-mode-list))
-
-
-  ;; then remove all emacs states and replace with insert states                                       
-  (setq viper-insert-state-mode-list (append viper-emacs-state-mode-list viper-insert-state-mode-list))
   (setq viper-emacs-state-mode-list nil)
+  (setq viper-insert-state-mode-list nil)
 #+end_src
 
 *** hl line for diff modes, viper viper insert delets to prev line
@@ -598,7 +592,6 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
 
   (add-hook 'viper-insert-state-hook (lambda ()
                                        (global-hl-line-mode -1)
-                                       (setq my/global-viper-state 'ins)
                                        (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                        (setq viper-ex-style-editing nil)))
 
@@ -615,13 +608,11 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
 
   (add-hook 'viper-vi-state-hook (lambda ()
                                    (global-hl-line-mode)
-                                   (setq my/global-viper-state 'vi)
                                    (set-face-attribute 'hl-line nil :underline nil)
                                    (set-face-attribute 'hl-line nil :box nil)
                                    (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
   (add-hook 'viper-emacs-state-hook (lambda ()
                                       (global-hl-line-mode)
-                                      (setq my/global-viper-state 'emacs)
                                       (if (display-graphic-p)
                                           (set-face-attribute 'hl-line nil :box t)
                                         (set-face-attribute 'hl-line nil :underline t))

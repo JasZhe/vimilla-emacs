@@ -170,7 +170,6 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
                               (if isearch-regexp (isearch-occur isearch-regexp)
                                 (isearch-occur isearch-string))))
               (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
-
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 
 (require 'dabbrev)
@@ -516,10 +515,9 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(hurl-mode window-stool))
+ '(package-selected-packages '(window-stool))
  '(package-vc-selected-packages
-   '((hurl-mode :vc-backend Git :url "https://github.com/JasZhe/hurl-mode")
-     (window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
+   '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
    '((eval add-hook 'after-save-hook
            (lambda nil
