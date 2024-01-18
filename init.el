@@ -215,6 +215,22 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
               )))
         (split-string (shell-command-to-string "bash --login -c printenv"))))
 
+(defun get-docker-env-vars ()
+  "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
+Meant for eshell in mind."
+  (interactive)
+  (mapc (lambda (env-var-string)
+          (let* ((split (split-string env-var-string "="))
+                 (name (cl-first split))
+                 (val (cl-second split)))
+            (if (string-equal "PATH" name)
+                (progn
+                  ;; eshell path
+                  (setq eshell-path-env val)
+                  (when (fboundp 'eshell-set-path) (eshell-set-path val)))
+              (setenv name val))))
+        (split-string (shell-command-to-string "tr \'\\0\' \'\\n\' < /proc/1/environ") "\n")))
+
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)
 (setq-default indent-tabs-mode nil)

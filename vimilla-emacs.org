@@ -279,20 +279,39 @@ this might be nice if we need to set env vars without direnv
 idea is to maybe pass some shell command to cd into a folder
 and source some.envrc, then using that same shell, just copy all the environment vars from there using =setenv=
 #+begin_src elisp
-  (defun copy-env-vars-from-shell ()
+    (defun copy-env-vars-from-shell ()
+      (interactive)
+      (mapc (lambda (env-var-string)
+              (let* ((split (split-string env-var-string "="))
+                     (name (cl-first split))
+                     (val (cl-second split)))
+                (setenv name val)
+                (when (string-equal "PATH" name)
+                  (setq exec-path (append (parse-colon-path val) (list exec-directory)))
+                  ;; eshell path
+                  (setq-default eshell-path-env val)
+                  (when (fboundp 'eshell-set-path) (eshell-set-path val))
+                  )))
+            (split-string (shell-command-to-string "bash --login -c printenv"))))
+#+end_src
+
+** tramp environment variables
+#+begin_src elisp
+  (defun get-docker-env-vars ()
+    "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
+  Meant for eshell in mind."
     (interactive)
     (mapc (lambda (env-var-string)
             (let* ((split (split-string env-var-string "="))
                    (name (cl-first split))
                    (val (cl-second split)))
-              (setenv name val)
-              (when (string-equal "PATH" name)
-                (setq exec-path (append (parse-colon-path val) (list exec-directory)))
-                ;; eshell path
-                (setq-default eshell-path-env val)
-                (when (fboundp 'eshell-set-path) (eshell-set-path val))
-                )))
-          (split-string (shell-command-to-string "bash --login -c printenv"))))
+              (if (string-equal "PATH" name)
+                  (progn
+                    ;; eshell path
+                    (setq eshell-path-env val)
+                    (when (fboundp 'eshell-set-path) (eshell-set-path val)))
+                (setenv name val))))
+          (split-string (shell-command-to-string "tr \'\\0\' \'\\n\' < /proc/1/environ") "\n")))
 #+end_src
 
 ** qol
