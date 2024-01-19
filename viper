@@ -134,7 +134,11 @@
     (my/move-to-mark (elt my/mark-ring my/mark-ring-current-pos))))
 
 ;; some weird hack to distinguish tab and C-i in gui, broken in terminal
-(define-key input-decode-map "\C-i" [C-i])
+;; we only want to do this in vi state so we get tab completion and stuff in insert/emacs state for tty
+(add-hook 'viper-vi-state-hook (lambda () (define-key input-decode-map "\C-i" [C-i])))
+(add-hook 'viper-emacs-state-hook (lambda () (define-key input-decode-map "\C-i" nil)))
+(add-hook 'viper-insert-state-hook (lambda () (define-key input-decode-map "\C-i" nil)))
+
 (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
 (define-key viper-vi-basic-map "\t" nil)
 (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
