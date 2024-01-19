@@ -85,15 +85,16 @@
         ;; existing mark will be added after
         (setq my/mark-ring
               (seq-filter (lambda (m)
-                            (not (and (= (marker-position m) (marker-position new-mark))
-                                      (eq (marker-buffer m) buf))))
-               my/mark-ring))
+                            (and m (marker-buffer m) (marker-position m)
+                                 (not (and (= (marker-position m) (marker-position new-mark))
+                                           (eq (marker-buffer m) buf)))))
+                          my/mark-ring))
 
         (when (gt= (length my/mark-ring) my/mark-ring-max-size)
           (setq my/mark-ring (butlast my/mark-ring)))
 
         (cl-pushnew new-mark my/mark-ring)
-        (setq my/mark-ring-current-pos 0))))))
+        (setq my/mark-ring-current-pos 0)))))
 (advice-add 'push-mark :after #'my/push-mark-advice)
 
 (defun my/move-to-mark (m)
