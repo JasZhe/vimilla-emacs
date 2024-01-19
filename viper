@@ -22,16 +22,7 @@
                                      (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                      (setq viper-ex-style-editing nil)))
 
-;; otherwise hl-line-mode stays off after running an ex command like :w
-
 (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
-
-(defun color-complement (hex-color)
-  "Return the complement of the given HEX color."
-  (let* ((rgb (mapcar (lambda (hex) (/ hex 255.0)) (color-values hex-color)))
-         (complement-rgb (mapcar (lambda (value) (- 255 value)) rgb))
-         (complement-hex (apply 'format "#%2x%2x%2x" complement-rgb)))
-    complement-hex))
 
 (add-hook 'viper-vi-state-hook (lambda ()
                                  (global-hl-line-mode)

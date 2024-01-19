@@ -110,6 +110,14 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (define-key global-map (kbd "\C-w") nil)
 (define-key global-map (kbd "\C-w") my-window-map)
 
+(setq gc-cons-threshold most-positive-fixnum)
+
+;; Lower threshold back to 8 MiB (default is 800kB)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold (expt 2 23))))
+
+(setq inhibit-startup-screen t)  
 (tool-bar-mode 0)
 (setq viper-mode t)
 (require 'viper)
@@ -118,8 +126,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (viper-mode)
 (global-hl-line-mode)
 (global-visual-line-mode)
-(global-subword-mode)
-(add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-")))
+(add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
 (setq column-number-mode t)
 (setq scroll-margin 8)

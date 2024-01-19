@@ -152,6 +152,15 @@ need to set the window map before viper loads cause we use it in the motion keym
 viper mode, global hl and visual lines
 stole the completing read stuff from:
 #+begin_src elisp
+
+  (setq gc-cons-threshold most-positive-fixnum)
+
+  ;; Lower threshold back to 8 MiB (default is 800kB)
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (setq gc-cons-threshold (expt 2 23))))
+
+  (setq inhibit-startup-screen t)  
   (tool-bar-mode 0)
   (setq viper-mode t)
   (require 'viper)
@@ -160,8 +169,7 @@ stole the completing read stuff from:
   (viper-mode)
   (global-hl-line-mode)
   (global-visual-line-mode)
-  (global-subword-mode)
-  (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-")))
+  (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
   (setq column-number-mode t)
   (setq scroll-margin 8)
@@ -607,16 +615,7 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
                                        (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                        (setq viper-ex-style-editing nil)))
 
-  ;; otherwise hl-line-mode stays off after running an ex command like :w
-
   (add-hook 'viper-minibuffer-exit-hook (lambda () (global-hl-line-mode) (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
-
-  (defun color-complement (hex-color)
-    "Return the complement of the given HEX color."
-    (let* ((rgb (mapcar (lambda (hex) (/ hex 255.0)) (color-values hex-color)))
-           (complement-rgb (mapcar (lambda (value) (- 255 value)) rgb))
-           (complement-hex (apply 'format "#%2x%2x%2x" complement-rgb)))
-      complement-hex))
 
   (add-hook 'viper-vi-state-hook (lambda ()
                                    (global-hl-line-mode)
