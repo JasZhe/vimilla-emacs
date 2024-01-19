@@ -68,27 +68,84 @@
                                               (dolist (hist viper-search-history)
                                                 (hi-lock-unface-buffer hist))))
 
-;; add to global marks when window stuff happens so we can switch back to prev position
-(setq window-scroll-functions nil)
-;; not perfect but good enough, need to also make sure region not active, so we don't reset the region on scroll
-(add-to-list 'window-scroll-functions (lambda (window _)
-                                        (when (and (not (region-active-p)) (eq window (selected-window)))
-                                          (push-mark nil t nil))))
-(setq window-buffer-change-functions nil)
-(add-to-list 'window-buffer-change-functions (lambda (_)
-                                               (with-current-buffer (other-buffer)
-                                                 (push-mark nil t nil))))
-(define-key viper-vi-basic-map "\C-i" #'xref-go-forward)
+(setq my/mark-ring '())
+(setq my/mark-ring-max-size 16)
+(setq my/mark-ring-current-pos 0)
+(setq my/moving-in-progress nil)
+
+;; only for file visiting marks
+(defun my/push-mark-advice (&optional _ _ _)
+  (unless my/moving-in-progress
+    (let* ((new-mark (copy-marker (mark-marker)))
+           (buf (marker-buffer new-mark)))
+      (when (buffer-file-name buf)
+        ;; transpose on mark ring pos
+        (setq my/mark-ring (append (cl-subseq my/mark-ring my/mark-ring-current-pos)
+                                   (cl-subseq my/mark-ring 0 my/mark-ring-current-pos)))
+        ;; existing mark will be added after
+        (setq my/mark-ring
+              (seq-filter (lambda (m)
+                            (not (and (= (marker-position m) (marker-position new-mark))
+                                      (eq (marker-buffer m) buf))))
+               my/mark-ring))
+
+        (when (gt= (length my/mark-ring) my/mark-ring-max-size)
+          (setq my/mark-ring (butlast my/mark-ring)))
+
+        (cl-pushnew new-mark my/mark-ring)
+        (setq my/mark-ring-current-pos 0))))))
+(advice-add 'push-mark :after #'my/push-mark-advice)
+
+(defun my/move-to-mark (m)
+  (when m
+    (let* ((buf (marker-buffer m))
+           (position (marker-position m))
+           (my/moving-in-progress t))
+      (if buf
+          (progn
+            (set-buffer buf)
+            ;; same as pop-global-mark
+            (or (and (gt= position (point-min))
+                     (lt= position (point-max)))
+                (if widen-automatically
+                    (widen)
+                  (error "mark position is outside accessible part of buffer %s"
+                         (buffer-name buffer))))
+            (goto-char position)
+            (switch-to-buffer buf))
+        (message "No buf for marker %s." m)))))
+
+(defun my/mark-ring-forward ()
+  (interactive)
+  ;; when we try to go "back" we want to basically drop a marker where we were
+  ;; so we can go "forward" to it later
+  (when (and (eql my/mark-ring-current-pos 0)
+             (not (and
+                   (eql (marker-buffer (elt my/mark-ring 0)) (current-buffer))
+                   (eql (marker-position (elt my/mark-ring 0)) (point)))))
+    (push-mark))
+
+  (when (and (eql
+              (marker-buffer (elt my/mark-ring my/mark-ring-current-pos))
+              (current-buffer))
+             (eql
+              (marker-position (elt my/mark-ring my/mark-ring-current-pos))
+              (point)))
+    (unless (eql my/mark-ring-current-pos (length my/mark-ring))
+      (cl-incf my/mark-ring-current-pos)))
+  (my/move-to-mark (elt my/mark-ring my/mark-ring-current-pos)))
+
+(defun my/mark-ring-backward ()
+  (interactive)
+  (when (gt my/mark-ring-current-pos 0)
+    (cl-decf my/mark-ring-current-pos)
+    (my/move-to-mark (elt my/mark-ring my/mark-ring-current-pos))))
+
+;; some weird hack to distinguish tab and C-i in gui, broken in terminal
+(define-key input-decode-map "\C-i" [C-i])
+(define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
 (define-key viper-vi-basic-map "\t" nil)
-(define-key viper-vi-basic-map "\C-o"
-            (lambda ()
-              (interactive)
-              (condition-case nil
-                  (xref-go-back)
-                (error
-                 (pop-global-mark)
-                 nil))
-            ))
+(define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
 
 (defun viper-previous-line (arg)
   "Go to previous line."

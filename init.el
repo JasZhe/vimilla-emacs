@@ -24,6 +24,14 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (interactive)                                  
   (compile "git fetch -v"))
 
+(defalias 'gt #'>)
+(defalias 'gt= #'>=)
+(defalias 'lt #'<)
+(defalias 'lt= #'<=)
+(defun neq (obj1 obj2)
+  "Convenience for not 'eq'"
+  (not (eq obj1 obj2)))
+
 (use-package ediff :defer t
   :config
   (advice-remove 'ediff-quit #'disable-y-or-n-p)
