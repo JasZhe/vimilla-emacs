@@ -189,7 +189,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (defun my/igrep-minibuf-after-edit (beg end len)
   (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
-  (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
+  (when (gt (length (string-replace ".*" "" my/igrep-string)) 4)
     (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
       (ignore-errors (project-find-regexp my/igrep-string)))))
 
@@ -376,6 +376,14 @@ Meant for eshell in mind."
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
   )
+
+(use-package shell :defer t
+  :config
+  (setq my/shell-insert-state-modify-map (make-sparse-keymap))
+
+  (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
+  (define-key my/shell-insert-state-modify-map (kbd "<down>") #'comint-next-input)
+  (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 
 (use-package eglot :defer t
   :config
