@@ -189,10 +189,9 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (defun my/igrep-minibuf-after-edit (beg end len)
   (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
-  (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
-    (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
-      (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
-        (ignore-errors (project-find-regexp my/igrep-string))))))
+  (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
+    (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+      (ignore-errors (project-find-regexp my/igrep-string)))))
 
 (setq my/igrep-prompt-string "Find in proj: ")
 (setq my/igrep-string "")
@@ -205,25 +204,21 @@ With a prefix-arg run normally and specfiy a directory"
   (if arg
       (let ((current-prefix-arg '(4)))
         (call-interactively #'project-find-regexp))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (keymap-local-set "<space>" (lambda () (interactive) (insert ".*")))
-          (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
-      (project-find-regexp (read-regexp my/igrep-prompt-string)))))
+    (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
+            (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
+        (project-find-regexp (read-regexp my/igrep-prompt-string))))))
 
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
 (add-hook 'completion-at-point-functions #'dabbrev-capf 100)
 
-(use-package xref :defer t
-  :config
-  (progn
-    (setq xref-search-program 'ripgrep)
-    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)      
-    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-    )
-  )
+(setq xref-search-program 'ripgrep)
+(setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
