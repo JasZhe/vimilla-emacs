@@ -194,18 +194,20 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
       (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
         (ignore-errors (project-find-regexp my/igrep-string))))))
 
+(setq my/igrep-prompt-string "Find in proj: ")
+(setq my/igrep-string "")
+
 (defun my/igrep (arg)
   "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
 With a prefix-arg run normally and specfiy a directory"
   (interactive "P")
+  (setq my/igrep-string "")
   (if arg
       (let ((current-prefix-arg '(4)))
         (call-interactively #'project-find-regexp))
     (minibuffer-with-setup-hook
         (lambda ()
           (keymap-local-set "<space>" (lambda () (interactive) (insert ".*")))
-          (setq-local my/igrep-string "")
-          (setq-local my/igrep-prompt-string "Find in proj: ")
           (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
       (project-find-regexp (read-regexp my/igrep-prompt-string)))))
 
