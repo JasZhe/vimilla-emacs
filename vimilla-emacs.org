@@ -381,13 +381,18 @@ and source some.envrc, then using that same shell, just copy all the environment
             (let* ((split (split-string env-var-string "="))
                    (name (cl-first split))
                    (val (cl-second split)))
-              (if (string-equal "PATH" name)
-                  (progn
-                    ;; eshell path
-                    (setq eshell-path-env val)
-                    (when (fboundp 'eshell-set-path) (eshell-set-path val)))
-                (setenv name val))))
+              (unless (string-equal "TERM" name)
+                (if (string-equal "PATH" name)
+                    (progn
+                      ;; eshell path
+                      (setq eshell-path-env val)
+                      (when (fboundp 'eshell-set-path) (eshell-set-path val)))
+                  (setenv name val)))))
           (split-string (shell-command-to-string "tr \'\\0\' \'\\n\' < /proc/1/environ") "\n")))
+
+  (use-package tramp :defer t
+    :config
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
 
 ** qol
@@ -1603,7 +1608,8 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
       (define-key my/org-vi-state-modify-map [C-i]
                   (lambda ()
                     (interactive)
-                    (if (org-at-heading-p)
+                    ;; want org cycle if region active for indenting, or heading for collapsing
+                    (if (or (org-at-heading-p) (region-active-p))
                         (call-interactively (lookup-key org-mode-map "\t"))
                       (call-interactively (lookup-key viper-vi-basic-map [C-i])))))
 
