@@ -220,6 +220,18 @@ With a prefix-arg run normally and specfiy a directory"
 (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
 (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
+(use-package xref :defer t
+  :config
+  (setq my/xref-vi-state-modify-map
+        (make-composed-keymap
+         nil
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          xref--xref-buffer-mode-map)))
+  (viper-modify-major-mode 'xref--xref-buffer-mode 'vi-state my/xref-vi-state-modify-map))
+
 (setq enable-recursive-minibuffers t)
 (defun completing-read-in-region (start end collection &optional predicate)
   "Prompt for completion of region in the minibuffer if non-unique.
