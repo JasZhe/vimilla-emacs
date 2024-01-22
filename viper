@@ -478,9 +478,12 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "bn" #'next-buffer)
 (define-key my/leader-prefix-map "bi" #'ibuffer)
 
-(define-key my/leader-prefix-map "\tn" #'tab-bar-new-tab)
-(define-key my/leader-prefix-map "\td" #'tab-bar-close-tab)
-(define-key my/leader-prefix-map "\tr" #'tab-bar-rename-tab)
+(setq my/tab-prefix-map (make-sparse-keymap))
+(define-key my/leader-prefix-map "\t" my/tab-prefix-map)
+(define-key my/leader-prefix-map [C-i] my/tab-prefix-map) ;; so it works in terminal
+(define-key my/tab-prefix-map "n" #'tab-bar-new-tab)
+(define-key my/tab-prefix-map "d" #'tab-bar-close-tab)
+(define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
 
 (define-key my/leader-prefix-map "ss" #'my/ioccur)
 (define-key my/leader-prefix-map "si" #'imenu)

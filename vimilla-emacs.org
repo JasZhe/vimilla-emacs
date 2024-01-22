@@ -1150,18 +1150,18 @@ need to remap isearch-backward since i wanna use C-r for redo
 
 TODO imenu keybinding
 #+begin_src elisp
-    (setq my/leader-prefix-map (make-sparse-keymap))
-    (define-key viper-vi-basic-map " " my/leader-prefix-map)
+  (setq my/leader-prefix-map (make-sparse-keymap))
+  (define-key viper-vi-basic-map " " my/leader-prefix-map)
 
-    (define-key my/leader-prefix-map ","
-                (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
-    (define-key my/leader-prefix-map "<" #'switch-to-buffer)
-              
-    (define-key my/leader-prefix-map "u" #'universal-argument)
-    (define-key universal-argument-map " u" #'universal-argument-more)
+  (define-key my/leader-prefix-map ","
+              (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
+  (define-key my/leader-prefix-map "<" #'switch-to-buffer)
 
-    (define-key my/leader-prefix-map "F" #'project-find-file)
-    (define-key my/leader-prefix-map "G" #'my/igrep) 
+  (define-key my/leader-prefix-map "u" #'universal-argument)
+  (define-key universal-argument-map " u" #'universal-argument-more)
+
+  (define-key my/leader-prefix-map "F" #'project-find-file)
+  (define-key my/leader-prefix-map "G" #'my/igrep)
 #+end_src
 
 *** "open" prefix
@@ -1214,9 +1214,12 @@ TODO imenu keybinding
 
 *** "tab" bar prefix
 #+begin_src elisp
-  (define-key my/leader-prefix-map "\tn" #'tab-bar-new-tab)
-  (define-key my/leader-prefix-map "\td" #'tab-bar-close-tab)
-  (define-key my/leader-prefix-map "\tr" #'tab-bar-rename-tab)
+  (setq my/tab-prefix-map (make-sparse-keymap))
+  (define-key my/leader-prefix-map "\t" my/tab-prefix-map)
+  (define-key my/leader-prefix-map [C-i] my/tab-prefix-map) ;; so it works in terminal
+  (define-key my/tab-prefix-map "n" #'tab-bar-new-tab)
+  (define-key my/tab-prefix-map "d" #'tab-bar-close-tab)
+  (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
 #+end_src 
 
 *** "search" prefix
@@ -1576,14 +1579,24 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
       (define-key my/org-vi-state-modify-map " mll" #'org-insert-link)
       (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
 
-      (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)
+      (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
 
       (define-key org-mode-map "\t"
                   (lambda (arg)
                     (interactive "P")
                     (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
                         (dabbrev-expand arg)
-                      (org-cycle arg))))))
+                      (org-cycle arg))))
+
+      ;; for terminal issues with C-i
+      (define-key my/org-vi-state-modify-map [C-i]
+                  (lambda ()
+                    (interactive)
+                    (if (org-at-heading-p)
+                        (call-interactively (lookup-key org-mode-map "\t"))
+                      (call-interactively (lookup-key viper-vi-basic-map [C-i])))))
+
+      (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)))
 #+end_src
 
 * (blasphemy) external packages

@@ -499,14 +499,24 @@ Meant for eshell in mind."
     (define-key my/org-vi-state-modify-map " mll" #'org-insert-link)
     (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
 
-    (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)
+    (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
 
     (define-key org-mode-map "\t"
                 (lambda (arg)
                   (interactive "P")
                   (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
                       (dabbrev-expand arg)
-                    (org-cycle arg))))))
+                    (org-cycle arg))))
+
+    ;; for terminal issues with C-i
+    (define-key my/org-vi-state-modify-map [C-i]
+                (lambda ()
+                  (interactive)
+                  (if (org-at-heading-p)
+                      (call-interactively (lookup-key org-mode-map "\t"))
+                    (call-interactively (lookup-key viper-vi-basic-map [C-i])))))
+
+    (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)))
 
 (setq native-comp-async-report-warnings-errors 'silent)
 
