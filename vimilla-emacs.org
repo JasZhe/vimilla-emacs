@@ -246,6 +246,37 @@ M-j to exit minibuffer with whatever is in the input
   (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 #+end_src
 
+* incremental grep
+Acts like occur, deferring a lot of the work to the existing xref buffer functionality
+good enough without getting too complicated
+
+don't actually run it until we have at least 3 chars to prevent initial lag
+
+then with prefix arg we basically do the normal project-find-regexp but we can specify the directory
+#+begin_src elisp
+  (defun my/igrep-minibuf-after-edit (beg end len)
+    (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
+    (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+      (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
+        (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+          (ignore-errors (project-find-regexp my/igrep-string))))))
+
+  (defun my/igrep (arg)
+    "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+  With a prefix-arg run normally and specfiy a directory"
+    (interactive "P")
+    (if arg
+        (let ((current-prefix-arg '(4)))
+          (call-interactively #'project-find-regexp))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (keymap-local-set "<space>" (lambda () (interactive) (insert ".*")))
+            (setq-local my/igrep-string "")
+            (setq-local my/igrep-prompt-string "Find in proj: ")
+            (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
+        (project-find-regexp (read-regexp my/igrep-prompt-string)))))
+#+end_src
+
 * completion
 
 ** default to dabbrev-capf
@@ -1121,7 +1152,7 @@ TODO imenu keybinding
     (define-key universal-argument-map " u" #'universal-argument-more)
 
     (define-key my/leader-prefix-map "F" #'project-find-file)
-    (define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
+    (define-key my/leader-prefix-map "G" #'my/igrep) 
 #+end_src
 
 *** "open" prefix

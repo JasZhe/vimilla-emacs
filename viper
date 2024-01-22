@@ -443,7 +443,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key universal-argument-map " u" #'universal-argument-more)
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
-(define-key my/leader-prefix-map "G" #'project-find-regexp) ;; good enough
+(define-key my/leader-prefix-map "G" #'my/igrep)
 
 (define-key my/leader-prefix-map "oe" #'eshell)
 (define-key my/leader-prefix-map "os" #'shell)

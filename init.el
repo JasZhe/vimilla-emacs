@@ -187,6 +187,28 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
               (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
 (add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
 
+(defun my/igrep-minibuf-after-edit (beg end len)
+  (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
+  (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+    (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
+      (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+        (ignore-errors (project-find-regexp my/igrep-string))))))
+
+(defun my/igrep (arg)
+  "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+With a prefix-arg run normally and specfiy a directory"
+  (interactive "P")
+  (if arg
+      (let ((current-prefix-arg '(4)))
+        (call-interactively #'project-find-regexp))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (keymap-local-set "<space>" (lambda () (interactive) (insert ".*")))
+          (setq-local my/igrep-string "")
+          (setq-local my/igrep-prompt-string "Find in proj: ")
+          (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
+      (project-find-regexp (read-regexp my/igrep-prompt-string)))))
+
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
