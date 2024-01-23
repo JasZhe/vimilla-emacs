@@ -486,7 +486,11 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
 
 (define-key my/leader-prefix-map "ss" #'my/ioccur)
-(define-key my/leader-prefix-map "si" #'imenu)
+;; not sure why but we need to rescan the imenu for our igrep xref buffer
+(define-key my/leader-prefix-map "si"
+            (lambda () (interactive)
+              (imenu--menubar-select imenu--rescan-item)
+              (call-interactively 'imenu)))
 
 (setq bookmark-use-annotations t)
 

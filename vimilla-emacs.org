@@ -1164,7 +1164,6 @@ need to remap isearch-backward since i wanna use C-r for redo
 :VISIBILITY: children
 :END:
 
-TODO imenu keybinding
 #+begin_src elisp
   (setq my/leader-prefix-map (make-sparse-keymap))
   (define-key viper-vi-basic-map " " my/leader-prefix-map)
@@ -1241,7 +1240,11 @@ TODO imenu keybinding
 *** "search" prefix
 #+begin_src elisp
   (define-key my/leader-prefix-map "ss" #'my/ioccur)
-  (define-key my/leader-prefix-map "si" #'imenu)
+  ;; not sure why but we need to rescan the imenu for our igrep xref buffer
+  (define-key my/leader-prefix-map "si"
+              (lambda () (interactive)
+                (imenu--menubar-select imenu--rescan-item)
+                (call-interactively 'imenu)))
 #+end_src
 
 *** "notes" prefix (bookmarks)
