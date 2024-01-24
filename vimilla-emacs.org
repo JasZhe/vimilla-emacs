@@ -1772,6 +1772,19 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
   (use-package cider :ensure t :pin nongnu :defer 5)
 #+end_src
 
+** kotlin
+#+begin_src elisp :tangle no
+  (when (not (require 'kotlin-mode nil 'noerror))
+    (package-vc-install '(kotlin-ts-mode :url "https://gitlab.com/bricka/emacs-kotlin-ts-mode"
+                                         :rev "c884b3442806a21cbcf28ac24853f05da8ac6658")))
+  (use-package kotlin-ts-mode :ensure nil :mode "\\.kt\\'"
+    :config
+    (with-eval-after-load 'eglot
+      (add-to-list 'eglot-server-programs '(kotlin-ts-mode . ("kotlin-language-server")))))
+
+  (add-hook 'kotlin-ts-mode #'eglot-ensure)
+#+end_src
+
 * custom
 #+begin_src elisp
   (custom-set-variables
