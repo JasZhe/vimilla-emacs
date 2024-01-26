@@ -95,12 +95,16 @@ The P9 can go to like P56. [1;P9 maps to like CTRL CMD OPTION A, which we probab
 
 * terminal settings
 #+begin_src elisp
-    ;; ITERM2 MOUSE SUPPORT
-    (unless window-system
-      (require 'mouse)
-      (xterm-mouse-mode t)
-      (defun track-mouse (e)) 
-      (setq mouse-sel-mode t))
+  (defun macos-term-select-text-to-clipboard (text)
+    (shell-command (concat "echo \"" text "\" | pbcopy" )))
+
+  ;; ITERM2 MOUSE SUPPORT
+  (unless window-system
+    (require 'mouse)
+    (xterm-mouse-mode t)
+    (defun track-mouse (e)) 
+    (setq mouse-sel-mode t)
+    (setq interprogram-cut-function #'macos-term-select-text-to-clipboard)) ;; good enough
 #+end_src
 
 * Window commands
@@ -1234,6 +1238,12 @@ need to remap isearch-backward since i wanna use C-r for redo
 
   (define-key my/leader-prefix-map "F" #'project-find-file)
   (define-key my/leader-prefix-map "G" #'my/igrep)
+
+  (define-key my/leader-prefix-map "x"
+              (lambda () (interactive)
+                (split-window-vertically)
+                (windmove-down)
+                (scratch-buffer)))
 #+end_src
 
 *** "open" prefix
@@ -1560,6 +1570,23 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
             vc-dir-mode-map)))
     (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
     (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
+#+end_src
+
+*** diff mode
+#+begin_src elisp
+  (use-package diff-mode :defer t
+    :config
+    (setq my/diff-mode-vi-state-map
+          (make-composed-keymap
+           nil 
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            diff-mode-map)))
+    (define-key my/diff-mode-vi-state-map [C-i] #'diff-hunk-next)
+    (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map)
+    )
 #+end_src
 
 ** dired

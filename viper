@@ -448,6 +448,12 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "F" #'project-find-file)
 (define-key my/leader-prefix-map "G" #'my/igrep)
 
+(define-key my/leader-prefix-map "x"
+            (lambda () (interactive)
+              (split-window-vertically)
+              (windmove-down)
+              (scratch-buffer)))
+
 (define-key my/leader-prefix-map "oe" #'eshell)
 (define-key my/leader-prefix-map "os" #'shell)
 
@@ -682,6 +688,20 @@ respects rectangle mode in a similar way to vim/doom"
           vc-dir-mode-map)))
   (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
   (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
+
+(use-package diff-mode :defer t
+  :config
+  (setq my/diff-mode-vi-state-map
+        (make-composed-keymap
+         nil 
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          diff-mode-map)))
+  (define-key my/diff-mode-vi-state-map [C-i] #'diff-hunk-next)
+  (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map)
+  )
 
 (use-package dired :defer t
   :config

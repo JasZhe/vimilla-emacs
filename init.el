@@ -53,12 +53,16 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (define-key global-map (kbd "C-_") #'comment-line)
 (define-key input-decode-map "\e[1;P9" (kbd "s-/"))
 
+(defun macos-term-select-text-to-clipboard (text)
+  (shell-command (concat "echo \"" text "\" | pbcopy" )))
+
 ;; ITERM2 MOUSE SUPPORT
 (unless window-system
   (require 'mouse)
   (xterm-mouse-mode t)
   (defun track-mouse (e)) 
-  (setq mouse-sel-mode t))
+  (setq mouse-sel-mode t)
+  (setq interprogram-cut-function #'macos-term-select-text-to-clipboard)) ;; good enough
 
 (winner-mode)
 
