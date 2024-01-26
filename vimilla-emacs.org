@@ -197,6 +197,8 @@ stole the completing read stuff from:
 
   (viper-mode)
   (global-hl-line-mode)
+  (global-auto-revert-mode)
+  (setq auto-revert-verbose nil)
   (global-visual-line-mode)
   (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
@@ -1605,9 +1607,7 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
             dired-mode-map)))
     (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
     (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
-    (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
-    (add-hook 'dired-mode-hook 'auto-revert-mode)
-    )
+    (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
 #+end_src
 
 ** ibuffer

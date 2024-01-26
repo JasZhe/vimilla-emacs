@@ -715,9 +715,7 @@ respects rectangle mode in a similar way to vim/doom"
           dired-mode-map)))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
-  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
-  (add-hook 'dired-mode-hook 'auto-revert-mode)
-  )
+  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
 
 (use-package ibuffer :defer t
   :config

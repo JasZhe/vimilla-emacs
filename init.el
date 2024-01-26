@@ -141,6 +141,8 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 
 (viper-mode)
 (global-hl-line-mode)
+(global-auto-revert-mode)
+(setq auto-revert-verbose nil)
 (global-visual-line-mode)
 (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
