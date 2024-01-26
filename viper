@@ -542,7 +542,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
 (define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
 (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
-(define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
+(define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
 (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
 (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
 (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
@@ -694,7 +694,9 @@ respects rectangle mode in a similar way to vim/doom"
                 my/viper-vi-motion-leader-keymap)
           dired-mode-map)))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+  (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+  (add-hook 'dired-mode-hook 'auto-revert-mode)
   )
 
 (use-package ibuffer :defer t

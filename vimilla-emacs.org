@@ -72,10 +72,35 @@ org really hates the parens matching when < or > is involved
 
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
+
+Also keybinds for super key
+see the emacs wiki page for how this works:
+https://www.emacswiki.org/emacs/iTerm2
+
+Basically go to iterm settings -> keys -> + button to add a keybind
+make a keybind for cmd-/ and set it to send an escape sequence for [1;P9
+then map that [1;P9 to whatever we want.
+
+The P9 can go to like P56. [1;P9 maps to like CTRL CMD OPTION A, which we probably aren't gonna use lol so it's safe to map that to something more useful
 #+begin_src elisp
   (setq mac-option-modifier 'meta)
   (setq mac-command-modifier 'super)
   (define-key global-map (kbd "s-/") #'comment-line)
+
+  ;; terminal stuff, C-/ in case we don't have iterm config
+  (define-key global-map (kbd "C-/") #'comment-line)
+  (define-key global-map (kbd "C-_") #'comment-line)
+  (define-key input-decode-map "\e[1;P9" (kbd "s-/"))
+#+end_src
+
+* terminal settings
+#+begin_src elisp
+    ;; ITERM2 MOUSE SUPPORT
+    (unless window-system
+      (require 'mouse)
+      (xterm-mouse-mode t)
+      (defun track-mouse (e)) 
+      (setq mouse-sel-mode t))
 #+end_src
 
 * Window commands
@@ -425,6 +450,16 @@ and source some.envrc, then using that same shell, just copy all the environment
     (call-interactively 'eglot-reconnect))
 #+end_src
 
+** javascript/typescript
+#+begin_src elisp
+  (use-package js :defer t
+    :config
+    (setq js-indent-level tab-width) 
+    (add-hook 'js-mode #'eglot-ensure))
+
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+#+end_src
+
 ** elisp highlighting
 :PROPERTIES:
 :VISIBILITY: folded
@@ -625,6 +660,25 @@ basically minimal projectile and persp
 :header-args: :tangle viper :results silent
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
+
+** forward word separator
+#+begin_src elisp :tangle no
+  (defconst viper-SEP-char-class " -_"
+    "String of syntax classes for Vi separators.
+    Usually contains ` ', linefeed, TAB or formfeed.")
+
+  (defun viper-forward-word-kernel (val)
+    (while (> val 0)
+      (cond ((viper-looking-at-alpha)
+             (viper-skip-alpha-forward) ;; before had "_" as arg
+             (viper-skip-separators t))
+            ((viper-looking-at-separator)
+             (viper-skip-separators t))
+            ((not (viper-looking-at-alphasep))
+             (viper-skip-nonalphasep-forward)
+             (viper-skip-separators t)))
+      (setq val (1- val))))
+#+end_src
 
 ** vi state stuff
 hacky global var to have a "global" viper state
@@ -1320,7 +1374,7 @@ in special modes
   (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
   (define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
   (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
-  (define-key my/viper-vi-basic-motion-keymap "C-v" #'my/visual-block)
+  (define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
   (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
   (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
   (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
@@ -1521,7 +1575,9 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
                   my/viper-vi-motion-leader-keymap)
             dired-mode-map)))
     (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
+    (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map)
+    (add-hook 'dired-mode-hook 'auto-revert-mode)
     )
 #+end_src
 
@@ -1666,7 +1722,7 @@ https://github.com/justbur/emacs-which-key
 
 no good replacement for this outside of just describe function to find the keybind but we have to know the function first
 #+begin_src elisp
-  (use-package which-key :ensure nil :pin gnu :defer 2
+  (use-package which-key :ensure t :pin gnu :defer 2
     :config
     (which-key-mode))
 #+end_src

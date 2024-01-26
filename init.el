@@ -48,6 +48,18 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (setq mac-command-modifier 'super)
 (define-key global-map (kbd "s-/") #'comment-line)
 
+;; terminal stuff, C-/ in case we don't have iterm config
+(define-key global-map (kbd "C-/") #'comment-line)
+(define-key global-map (kbd "C-_") #'comment-line)
+(define-key input-decode-map "\e[1;P9" (kbd "s-/"))
+
+;; ITERM2 MOUSE SUPPORT
+(unless window-system
+  (require 'mouse)
+  (xterm-mouse-mode t)
+  (defun track-mouse (e)) 
+  (setq mouse-sel-mode t))
+
 (winner-mode)
 
 (defun my/set-transparency-in-terminal ()
@@ -317,6 +329,13 @@ Meant for eshell in mind."
         (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
   (call-interactively 'eglot-reconnect))
 
+(use-package js :defer t
+  :config
+  (setq js-indent-level tab-width) 
+  (add-hook 'js-mode #'eglot-ensure))
+
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+
 (use-package elisp-mode :defer t
   :config
   (require 'advice) ;; for ad-get-orig-definition
@@ -539,7 +558,7 @@ Meant for eshell in mind."
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
   (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 
-(use-package which-key :ensure nil :pin gnu :defer 2
+(use-package which-key :ensure t :pin gnu :defer 2
   :config
   (which-key-mode))
 
