@@ -400,6 +400,7 @@ Meant for eshell in mind."
   (define-key my/eshell-vi-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
   (define-key my/eshell-vi-state-modify-map " ma" #'my/eshell-send-cmd-async)
   (define-key my/eshell-insert-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+  (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'eshell-list-history)
 
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
@@ -411,6 +412,7 @@ Meant for eshell in mind."
 
   (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
   (define-key my/shell-insert-state-modify-map (kbd "<down>") #'comint-next-input)
+  (define-key my/shell-insert-state-modify-map (kbd "C-r") #'comint-history-isearch-backward-regexp)
   (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 
 (use-package eglot :defer t
