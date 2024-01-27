@@ -674,6 +674,8 @@ respects rectangle mode in a similar way to vim/doom"
                 my/viper-vi-motion-g-keymap
                 my/viper-vi-motion-leader-keymap)
           vc-git-log-view-mode-map)))
+  (define-key my/vc-log-vi-state-modify-map (kbd "C-j") #'log-view-msg-next)
+  (define-key my/vc-log-vi-state-modify-map (kbd "C-k") #'log-view-msg-prev)
   (viper-modify-major-mode 'vc-git-log-view-mode 'vi-state my/vc-log-vi-state-modify-map))
 
 (use-package vc-dir :defer t
@@ -700,8 +702,9 @@ respects rectangle mode in a similar way to vim/doom"
                 my/viper-vi-motion-leader-keymap)
           diff-mode-map)))
   (define-key my/diff-mode-vi-state-map [C-i] #'diff-hunk-next)
-  (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map)
-  )
+  (define-key my/diff-mode-vi-state-map (kbd "C-j") #'diff-hunk-next)
+  (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
+  (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
 
 (use-package dired :defer t
   :config
