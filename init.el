@@ -408,16 +408,14 @@ Meant for eshell in mind."
       (insert-file-contents f)
       (buffer-substring-no-properties (point-min) (point-max))))
 
-  (completing-read "History: " (split-string (slurp eshell-history-file-name) "\n" t))
-
   (define-key my/eshell-insert-state-modify-map (kbd "C-r")
               (lambda ()
                 (interactive)
-                (end-of-line)
-                (eshell-kill-input)
-                (insert (completing-read "History: "
-                                         (split-string (slurp eshell-history-file-name) "\n" t)))))
-
+                (let ((selected (completing-read "History: " (ring-elements eshell-history-ring))))
+                  (when selected 
+                    (end-of-line)
+                    (eshell-kill-input)
+                    (input selected)))))
 
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
@@ -432,12 +430,16 @@ Meant for eshell in mind."
   (define-key my/shell-insert-state-modify-map (kbd "C-r")
               (lambda ()
                 (interactive)
-                (completing-read "History: "
-                                 (cl-remove-if-not
-                                  (lambda (elem)
-                                    (get-text-property 0 'fontified elem))
-                                  (ring-elements comint-input-ring)))))
-  (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
+                (let ((selected (completing-read "History: "
+                                                 (cl-remove-if-not
+                                                  (lambda (elem)
+                                                    (get-text-property 0 'fontified elem))
+                                                  (ring-elements comint-input-ring)))))
+                  (when selected
+                    (end-of-line)
+                    (comint-kill-input)
+                    (input selected)))))
+              (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 
 (use-package eglot :defer t
   :config
