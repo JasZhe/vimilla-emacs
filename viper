@@ -665,6 +665,12 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key global-map "\C-xvRi" #'my/vc-git-rebase-i)
 (define-key global-map "\C-xvRa" #'my/vc-git-rebase-abort)
 (define-key global-map "\C-xvRc" #'my/vc-git-rebase-continue)
+
+(define-key global-map "\C-xvSs" #'vc-git-stash)
+(define-key global-map "\C-xvSS" #'vc-git-stash-show)
+(define-key global-map "\C-xvSp" #'vc-git-stash-pop)
+(define-key global-map "\C-xvSa" #'vc-git-stash-apply)
+(define-key global-map "\C-xvSd" #'vc-git-stash-delete)
 (use-package vc-git :defer t
   :config
   (setq my/vc-log-vi-state-modify-map
