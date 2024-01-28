@@ -512,7 +512,7 @@ Meant for eshell in mind."
 (defun line-before-point-empty-p ()
   (string-blank-p (buffer-substring-no-properties (point-at-bol) (point))))
 
-(use-package org
+(use-package org :defer t
   :config
   (progn
     (setq org-image-actual-width '(300))

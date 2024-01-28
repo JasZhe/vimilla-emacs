@@ -447,6 +447,7 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
 (define-key my/leader-prefix-map "G" #'my/igrep)
+(define-key my/leader-prefix-map "X" #'org-capture)
 
 (define-key my/leader-prefix-map "x"
             (lambda () (interactive)
