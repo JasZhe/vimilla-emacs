@@ -411,12 +411,15 @@ Meant for eshell in mind."
   (define-key my/eshell-insert-state-modify-map (kbd "C-r")
               (lambda ()
                 (interactive)
-                (let ((selected (completing-read "History: " (ring-elements eshell-history-ring))))
+                (let ((selected (completing-read "History: "
+                                                 (cl-remove-if-not
+                                                  (lambda (elem)
+                                                    (text-properties-at 0 elem))
+                                                  (ring-elements eshell-history-ring)))))
                   (when selected 
                     (end-of-line)
                     (eshell-kill-input)
-                    (input selected)))))
-
+                    (insert selected)))))
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
   )
@@ -433,13 +436,13 @@ Meant for eshell in mind."
                 (let ((selected (completing-read "History: "
                                                  (cl-remove-if-not
                                                   (lambda (elem)
-                                                    (get-text-property 0 'fontified elem))
+                                                    (text-properties-at 0 elem))
                                                   (ring-elements comint-input-ring)))))
                   (when selected
                     (end-of-line)
                     (comint-kill-input)
-                    (input selected)))))
-              (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
+                    (insert selected)))))
+  (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 
 (use-package eglot :defer t
   :config

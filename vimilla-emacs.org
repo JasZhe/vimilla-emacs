@@ -547,12 +547,15 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
     (define-key my/eshell-insert-state-modify-map (kbd "C-r")
                 (lambda ()
                   (interactive)
-                  (let ((selected (completing-read "History: " (ring-elements eshell-history-ring))))
+                  (let ((selected (completing-read "History: "
+                                                   (cl-remove-if-not
+                                                    (lambda (elem)
+                                                      (text-properties-at 0 elem))
+                                                    (ring-elements eshell-history-ring)))))
                     (when selected 
                       (end-of-line)
                       (eshell-kill-input)
-                      (input selected)))))
-
+                      (insert selected)))))
     (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
     (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
     )
@@ -560,25 +563,25 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 
 ** shell mode
 #+begin_src elisp
-    (use-package shell :defer t
-      :config
-      (setq my/shell-insert-state-modify-map (make-sparse-keymap))
+  (use-package shell :defer t
+    :config
+    (setq my/shell-insert-state-modify-map (make-sparse-keymap))
 
-      (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
-      (define-key my/shell-insert-state-modify-map (kbd "<down>") #'comint-next-input)
-      (define-key my/shell-insert-state-modify-map (kbd "C-r")
-                  (lambda ()
-                    (interactive)
-                    (let ((selected (completing-read "History: "
-                                                     (cl-remove-if-not
-                                                      (lambda (elem)
-                                                        (get-text-property 0 'fontified elem))
-                                                      (ring-elements comint-input-ring)))))
-                      (when selected
-                        (end-of-line)
-                        (comint-kill-input)
-                        (input selected)))))
-                  (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
+    (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
+    (define-key my/shell-insert-state-modify-map (kbd "<down>") #'comint-next-input)
+    (define-key my/shell-insert-state-modify-map (kbd "C-r")
+                (lambda ()
+                  (interactive)
+                  (let ((selected (completing-read "History: "
+                                                   (cl-remove-if-not
+                                                    (lambda (elem)
+                                                      (text-properties-at 0 elem))
+                                                    (ring-elements comint-input-ring)))))
+                    (when selected
+                      (end-of-line)
+                      (comint-kill-input)
+                      (insert selected)))))
+    (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 #+end_src
 
 ** eglot booster
