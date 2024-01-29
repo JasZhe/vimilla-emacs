@@ -229,6 +229,25 @@ With a prefix-arg run normally and specfiy a directory"
             (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
         (project-find-regexp (read-regexp my/igrep-prompt-string))))))
 
+(defun ripgrep ()
+  (interactive)
+  (call-interactively 'grep))
+
+(defun rripgrep ()
+  (interactive)
+  (call-interactively 'rgrep))
+
+(advice-add
+ #'grep-compute-defaults
+ :before (lambda ()
+           (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
+               (progn
+                 (grep-apply-setting 'grep-command "rg -nS --no-heading ")
+                 (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
+             (progn
+               (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
+               (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
+
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
