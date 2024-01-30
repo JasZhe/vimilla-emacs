@@ -188,22 +188,30 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 ;; keep highlighting after isearch
 (setq lazy-highlight-cleanup nil)
 
-;; be explicit about using this advice
-(setq my/ioccur-p nil)
-(defun my/ioccur ()
-  (interactive)
-  (setq my/ioccur-p t)
-  (call-interactively 'isearch-forward))
+(defun my/ioccur-minibuf-after-edit (beg end len)
+  (setq my/ioccur-string (buffer-substring-no-properties (1+ (length my/ioccur-prompt-string)) (point-max)))
+  (when (gt (length (string-replace ".*" "" my/ioccur-string)) 2)
+    (ignore-errors (occur-1 my/ioccur-string
+                            my/ioccur-nlines-arg
+                            (list my/occur-buffer)))))
 
-(add-hook 'isearch-mode-hook
-         (lambda ()
-            (if my/ioccur-p
-                (advice-add #'isearch-printing-char :after
-                            (lambda (&rest args)
-                              (if isearch-regexp (isearch-occur isearch-regexp)
-                                (isearch-occur isearch-string))))
-              (advice-mapc `(lambda (fun props) (advice-remove 'isearch-printing-char fun)) 'isearch-printing-char))))
-(add-hook 'isearch-mode-end-hook (lambda () (setq my/ioccur-p nil)))
+(setq my/ioccur-prompt-string "Find: ")
+(setq my/ioccur-string "")
+
+(defun my/ioccur (arg)
+  "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+With a prefix-arg run normally and specfiy a directory"
+  (interactive "P")
+  (setq my/ioccur-string "")
+  (setq my/occur-buffer (current-buffer))
+  (setq my/ioccur-nlines-arg (when arg (prefix-numeric-value arg)))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
+        (add-hook 'after-change-functions #'my/ioccur-minibuf-after-edit nil 'local))
+    (occur-1 (read-regexp my/ioccur-prompt-string)
+             my/ioccur-nlines-arg
+             (list my/occur-buffer))))
 
 (defun my/igrep-minibuf-after-edit (beg end len)
   (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
