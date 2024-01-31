@@ -416,11 +416,11 @@ simple dwim heuristic to check if the char before the cursor is a char which mea
 we probably want to complete a symbol
 
 #+begin_src elisp
-  (advice-remove 'indent-for-tab-command
-                 (lambda (&optional arg)
-                   (unless (memq (get-char-code-property (char-before) 'general-category)
-                                 '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
-                     (complete-symbol arg))))
+  (advice-add 'indent-for-tab-command
+              :after (lambda (&optional arg)
+                       (when (memq (get-char-code-property (char-before) 'general-category)
+                                     '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
+                         (complete-symbol arg))))
 #+end_src
 
 * development

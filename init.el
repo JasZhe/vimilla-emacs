@@ -302,11 +302,11 @@ With a prefix-arg run normally and specfiy a directory"
         (t (message "No completion") nil))))
 (setq completion-in-region-function #'completing-read-in-region)
 
-(advice-remove 'indent-for-tab-command
-               (lambda (&optional arg)
-                 (unless (memq (get-char-code-property (char-before) 'general-category)
-                               '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
-                   (complete-symbol arg))))
+(advice-add 'indent-for-tab-command
+            :after (lambda (&optional arg)
+                     (when (memq (get-char-code-property (char-before) 'general-category)
+                                   '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
+                       (complete-symbol arg))))
 
 (defun copy-env-vars-from-shell ()
   (interactive)
