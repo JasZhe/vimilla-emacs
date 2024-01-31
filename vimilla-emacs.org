@@ -411,15 +411,16 @@ no idea how necessary that is
 #+end_src
 
 ** better tab completion
-simple dwim heuristic to check if the text before the cursor is nonempty which means
-we probably want to complete instead of indent
+https://emacs.stackexchange.com/questions/8261/how-to-determine-if-the-current-character-is-a-letter
+simple dwim heuristic to check if the char before the cursor is a char which means
+we probably want to complete a symbol
 
 #+begin_src elisp
-  (advice-add 'indent-for-tab-command
-               :after (lambda (&optional arg)
-                       (unless (string-match "^[[:blank:]]*$"
-                                             (buffer-substring-no-properties (line-beginning-position) (point)))
-                         (complete-symbol arg))))
+  (advice-remove 'indent-for-tab-command
+                 (lambda (&optional arg)
+                   (unless (memq (get-char-code-property (char-before) 'general-category)
+                                 '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
+                     (complete-symbol arg))))
 #+end_src
 
 * development
