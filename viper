@@ -715,6 +715,7 @@ respects rectangle mode in a similar way to vim/doom"
 
 (use-package dired :defer t
   :config
+  (add-hook 'dired-mode-hook #'auto-revert-mode)
   (setq my/dired-vi-state-modify-map
         (make-composed-keymap
          nil

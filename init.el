@@ -370,8 +370,11 @@ Meant for eshell in mind."
 
 (use-package js :defer t
   :config
-  (setq js-indent-level tab-width) 
+  (setq js-indent-level tab-width)
   (add-hook 'js-mode #'eglot-ensure))
+(use-package typescript-ts-mode :defer t
+  :config
+  (setq typescript-ts-mode-indent-offset tab-width))
 
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
