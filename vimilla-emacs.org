@@ -410,6 +410,18 @@ no idea how necessary that is
   (setq completion-in-region-function #'completing-read-in-region)
 #+end_src
 
+** better tab completion
+simple dwim heuristic to check if the text before the cursor is nonempty which means
+we probably want to complete instead of indent
+
+#+begin_src elisp
+  (advice-add 'indent-for-tab-command
+               :after (lambda (&optional arg)
+                       (unless (string-match "^[[:blank:]]*$"
+                                             (buffer-substring-no-properties (line-beginning-position) (point)))
+                         (complete-symbol arg))))
+#+end_src
+
 * development
 ** set environment vars at path
 this might be nice if we need to set env vars without direnv
