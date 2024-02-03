@@ -69,7 +69,13 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun my/set-transparency-in-terminal ()
   (interactive)
   (unless (display-graphic-p (selected-frame))
+    (setq prev-default-face-bg (face-background 'default))
     (set-face-background 'default "unspecified-bg" (selected-frame))))
+
+(defun my/unset-transparency-in-terminal ()
+  (interactive)
+  (unless (display-graphic-p (selected-frame))
+    (set-face-background 'default prev-default-face-bg (selected-frame))))
 
 (defun my/set-frame-alpha (&optional arg)
   (interactive "sFrame Alpha? ")
@@ -215,7 +221,7 @@ With a prefix-arg run normally and specfiy a directory"
 
 (defun my/igrep-minibuf-after-edit (beg end len)
   (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
-  (when (gt (length (string-replace ".*" "" my/igrep-string)) 4)
+  (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
     (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
       (ignore-errors (project-find-regexp my/igrep-string)))))
 
@@ -305,7 +311,7 @@ With a prefix-arg run normally and specfiy a directory"
 (advice-add 'indent-for-tab-command
             :after (lambda (&optional arg)
                      (when (memq (get-char-code-property (char-before) 'general-category)
-                                   '(Ll Lu Lo Lt Lm Mn Mc Me Nl))
+                                   '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
                        (complete-symbol arg))))
 
 (defun copy-env-vars-from-shell ()
