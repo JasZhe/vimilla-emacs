@@ -501,6 +501,9 @@ and source some.envrc, then using that same shell, just copy all the environment
 #+end_src
 
 ** javascript/typescript
+
+for typescript, when installing interactively, need to make sure that for the subdirectory where
+parser.c lives, we input typescript/src
 #+begin_src elisp
   (use-package js :defer t
     :config
