@@ -583,7 +583,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "gD" #'xref-find-references)
 
 (define-key my/leader-prefix-map "cr" #'eglot-rename)
-(define-key my/leader-prefix-map "fm" #'eglot-format-buffer)
+(define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
 
 (define-key viper-vi-basic-map "K" #'eldoc)

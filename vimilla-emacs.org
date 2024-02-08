@@ -1538,7 +1538,7 @@ leader commands
 
 #+begin_src elisp
   (define-key my/leader-prefix-map "cr" #'eglot-rename)
-  (define-key my/leader-prefix-map "fm" #'eglot-format-buffer)
+  (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
   (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
 #+end_src
 
