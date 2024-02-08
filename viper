@@ -210,7 +210,9 @@
         (forward-to-indentation (1- val))
         (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 
-(define-key viper-vi-basic-map (kbd "RET") nil)
+(define-key viper-vi-basic-map (kbd "RET")
+            `(menu-item "" browse-url-at-pointt
+                        :filter ,(lambda (cmd) (if (thing-at-point-url-at-point) cmd))))
 (define-key viper-vi-basic-map "q" nil)
 
 (setq selected-start-line -1)

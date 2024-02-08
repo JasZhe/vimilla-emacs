@@ -739,6 +739,12 @@ basically minimal projectile and persp
 #+end_src
 
 
+* eww
+lookup with eww first, then use =eww-browse-with-external-browser= if we need to browse in a normal browser
+#+begin_src elisp
+  (setq browse-url-browser-function 'eww-browse-url)
+  (add-hook 'eww-after-render-hook 'eww-readable)
+#+end_src
 
 * Viper
 :PROPERTIES:
@@ -1028,8 +1034,18 @@ and these are pretty useful in some buffers
 
 default behavior of the enter key is pretty meh anyways
 q is just bound to viper-nil as well
+
+actually could have enter browse url if point is on a url
+otherwise do the normal enter action
+
+for forwarding, layering, or context-aware keybindings see this
+https://stackoverflow.com/questions/16090517/elisp-conditionally-change-keybinding/22863701#22863701
+https://endlessparentheses.com/define-context-aware-keys-in-emacs.html
+
 #+begin_src elisp
-  (define-key viper-vi-basic-map (kbd "RET") nil)
+  (define-key viper-vi-basic-map (kbd "RET")
+              `(menu-item "" browse-url-at-pointt
+                          :filter ,(lambda (cmd) (if (thing-at-point-url-at-point) cmd))))
   (define-key viper-vi-basic-map "q" nil)
 #+end_src
 

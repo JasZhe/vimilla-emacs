@@ -562,6 +562,9 @@ Meant for eshell in mind."
   "Groups tabs in tabbar-mode by the git repository they are in."
   (list (find-git-dir (buffer-file-name (current-buffer)))))
 
+(setq browse-url-browser-function 'eww-browse-url)
+(add-hook 'eww-after-render-hook 'eww-readable)
+
 (setq org-directory "~/orgmode/")
 (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
 (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))
