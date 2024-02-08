@@ -511,6 +511,8 @@ and source some.envrc, then using that same shell, just copy all the environment
 
 for typescript, when installing interactively, need to make sure that for the subdirectory where
 parser.c lives, we input typescript/src
+
+some weird issue with typescript treesitter v0.20.4, would avoid that branch until its fixed <2024-02-08 Thu>
 #+begin_src elisp
   (use-package js :defer t
     :config
