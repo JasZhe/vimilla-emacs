@@ -211,7 +211,7 @@
         (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 
 (define-key viper-vi-basic-map (kbd "RET")
-            `(menu-item "" browse-url-at-pointt
+            `(menu-item "" browse-url-at-point
                         :filter ,(lambda (cmd) (if (thing-at-point-url-at-point) cmd))))
 (define-key viper-vi-basic-map "q" nil)
 
