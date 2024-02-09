@@ -1,15 +1,25 @@
 (setq my/global-viper-state 'vi)
-(defun set-global-viper-state (arg)
+(defun set-global-viper-state ()
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
         ((eq my/global-viper-state 'emacs) (viper-change-state-to-emacs))
         ((eq my/global-viper-state 'insert) (viper-change-state-to-insert))
         (t (viper-change-state-to-vi))
-  ))
+        ))
 
-(add-hook 'viper-vi-state-hook (lambda () (setq my/global-viper-state 'vi)))
-(add-hook 'viper-emacs-state-hook (lambda () (setq my/global-viper-state 'emacs)))
-(add-hook 'viper-insert-state-hook (lambda () (setq my/global-viper-state 'insert)))
-(add-to-list 'window-state-change-functions #'set-global-viper-state)
+(add-hook 'viper-vi-state-hook (lambda ()
+                                 (unless (minibuffer-window-active-p (selected-window))
+                                   (setq my/global-viper-state 'vi))))
+(add-hook 'viper-emacs-state-hook (lambda ()
+                                    (unless (minibuffer-window-active-p (selected-window))
+                                      (setq my/global-viper-state 'emacs))))
+(add-hook 'viper-insert-state-hook (lambda ()
+                                     (unless (minibuffer-window-active-p (selected-window))
+                                       (setq my/global-viper-state 'insert))))
+(add-to-list 'window-state-change-functions
+             (lambda (_)
+               (if (minibuffer-window-active-p (selected-window))
+                   (viper-change-state-to-insert)
+                 (set-global-viper-state))))
 
 (setq viper-emacs-state-mode-list nil)
 (setq viper-insert-state-mode-list nil)
@@ -36,8 +46,6 @@
                                       (set-face-attribute 'hl-line nil :underline t))
                                     (when (not (display-graphic-p)) (send-string-to-terminal "\033[0 q"))))
 
-(add-hook 'minibuffer-mode-hook #'viper-change-state-to-emacs)
-(add-hook 'minibuffer-exit-hook #'viper-change-state-to-vi)
 (setq viper-insert-state-cursor-color nil)
 
 ;; This is so backspace/delete goes backward directories instead of just deleting characters
