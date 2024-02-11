@@ -597,6 +597,23 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map "K" #'eldoc)
 (define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)
 
+(setq show-paren-highlight-openparen t)
+(setq show-paren-when-point-inside-paren t)
+(defun show-paren--locate-near-paren-ad (orig-fun &rest args)
+  "Locate an unescaped paren \"near\" point to show.
+If one is found, return the cons (DIR . OUTSIDE), where DIR is 1
+for an open paren, -1 for a close paren, and OUTSIDE is the buffer
+position of the outside of the paren.  Otherwise return nil."
+  (if (eq my/global-viper-state 'vi)
+      (let* ((before (show-paren--categorize-paren (point))))
+        (when (or
+               (eq (car before) 1)
+               (eq (car before) -1))
+          before))
+    (funcall orig-fun)))
+
+(advice-add 'show-paren--locate-near-paren :around #'show-paren--locate-near-paren-ad)
+
 (define-key viper-vi-basic-map "H"
             (lambda (arg) (interactive "P")
               (if arg (viper-window-top arg)
