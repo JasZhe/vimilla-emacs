@@ -325,8 +325,7 @@ With a prefix-arg run normally and specfiy a directory"
               (setq exec-path (append (parse-colon-path val) (list exec-directory)))
               ;; eshell path
               (setq-default eshell-path-env val)
-              (when (fboundp 'eshell-set-path) (eshell-set-path val))
-              )))
+              (when (fboundp 'eshell-set-path) (eshell-set-path val)))))
         (split-string (shell-command-to-string "bash --login -c printenv"))))
 
 (defun get-docker-env-vars ()
@@ -362,8 +361,19 @@ Meant for eshell in mind."
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 
+(defun unset-go-env-vars ()
+  "This is needed so that for example, if one project has a go work file but the other doesn't,
+  we don't still use the other project's go work file."
+  (mapc (lambda (env-var-string)
+          (let* ((split (split-string env-var-string "="))
+                 (name (cl-first split)))
+            (when (and name (not (string-empty-p name)))
+              (setenv name ""))))
+        (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n")))
+
 (defun copy-go-env-vars-from-shell ()
   (interactive)
+  (unset-go-env-vars)
   (copy-env-vars-from-shell)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))
