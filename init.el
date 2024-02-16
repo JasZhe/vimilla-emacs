@@ -145,6 +145,7 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (require 'viper)
 (require 'rect)
 
+(scroll-bar-mode -1)
 (viper-mode)
 (global-hl-line-mode)
 (global-auto-revert-mode)
@@ -694,6 +695,7 @@ Meant for eshell in mind."
   (package-vc-install "https://github.com/JasZhe/window-stool"))
 (use-package window-stool :defer 2
   :config
+  (setq window-stool-use-overlays nil)
   (add-hook 'prog-mode-hook #'window-stool-mode)
   (add-hook 'org-mode-hook #'window-stool-mode))
 
@@ -706,7 +708,7 @@ Meant for eshell in mind."
     (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
     (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
     (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
-    (setq pdf-view-resize-factor 1.10)
+   (setq pdf-view-resize-factor 1.10)
     (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
     (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
 
