@@ -567,6 +567,26 @@ Meant for eshell in mind."
   ;; for some reason modus gets rid of diff-header
   (set-face-attribute 'diff-header nil :background "gray80"))
 
+(midnight-mode)
+
+(defun load-light-theme ()
+  (load-theme 'modus-operandi t))
+
+(defun load-dark-theme ()
+  (load-theme 'modus-vivendi t))
+
+(defun load-dark-theme1 ()
+  (load-dark-theme))
+
+(defun auto-light-dark-midnight-setup ()
+  (run-at-time "0:00" t #'load-dark-theme)
+  (run-at-time "10:00" t #'load-light-theme)
+  (run-at-time "16:00" t #'load-dark-theme1))
+
+(add-hook 'midnight-hook #'auto-light-dark-midnight-setup)
+
+(auto-light-dark-midnight-setup)
+
 (defun find-git-dir (dir)
  "Search up the directory tree looking for a .git folder."
  (cond
