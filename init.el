@@ -1,6 +1,8 @@
+;;; -*- lexical-binding: t; -*-
+
 (defun my/vc-git-editor-command (command)
   "command is a git subcommand that requires an editor.
-example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
+ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
   (interactive "P")
   (unless server-mode (server-force-delete) (server-mode))
   (let ((command (if command command (read-string "command: git "))))
@@ -23,6 +25,24 @@ example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
 (defun my/vc-git-fetch ()                  
   (interactive)                                  
   (compile "git fetch -v"))
+
+(defun my/vc-set-remote ()
+  (let* ((remote-names (split-string (shell-command-to-string "git remote")))
+         (remote-urls
+          (mapcar (lambda (r)
+                    (cons r 
+                          (string-trim
+                           (shell-command-to-string (concat "git remote get-url " r)))))
+                  remote-names))
+         (annotation-fn (lambda (candidate) (cdr (assoc candidate remote-urls))))
+         (completion-extra-properties `(:annotation-function ,annotation-fn))
+         (remote (completing-read "Remote: " remote-urls)))
+    remote
+    ))
+
+(defun my/vc-add-remote ())
+(defun my/vc-delete-remote ())
+(defun my/vc-set-remote-url ())
 
 (defalias 'gt #'>)
 (defalias 'gt= #'>=)
