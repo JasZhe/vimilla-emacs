@@ -455,9 +455,7 @@ Meant for eshell in mind."
   (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
     (unless (eshell-head-process)
       (delete-region eshell-last-output-end (point))
-      (insert (format "async-shell-command \"%s\"" cmd)))
-    )
-  )
+      (insert (format "async-shell-command \"%s\"" cmd)))))
 
 (use-package eshell :defer t
   :config
@@ -487,8 +485,7 @@ Meant for eshell in mind."
                     (eshell-kill-input)
                     (insert selected)))))
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
-  (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
-  )
+  (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map))
 
 (use-package shell :defer t
   :config

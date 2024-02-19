@@ -616,9 +616,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
     (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
       (unless (eshell-head-process)
         (delete-region eshell-last-output-end (point))
-        (insert (format "async-shell-command \"%s\"" cmd)))
-      )
-    )
+        (insert (format "async-shell-command \"%s\"" cmd)))))
 
   (use-package eshell :defer t
     :config
@@ -648,8 +646,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
                       (eshell-kill-input)
                       (insert selected)))))
     (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
-    (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map)
-    )
+    (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map))
 #+end_src
 
 ** shell mode
@@ -1510,8 +1507,7 @@ pretty handy tbh
         (let ((prefix (concat (project-name (project-current)) ": ")))
           (when (project-name (project-current))
             (insert prefix))))
-        (call-interactively 'bookmark-set))
-)
+        (call-interactively 'bookmark-set)))
 
 (defun my/jump-to-project-bookmark ()
   (interactive)
@@ -1520,8 +1516,7 @@ pretty handy tbh
         (let ((prefix (concat (project-name (project-current)) ": ")))
           (when (project-name (project-current))
             (insert prefix))))
-        (call-interactively 'bookmark-jump))
-)
+        (call-interactively 'bookmark-jump)))
 #+end_src
 
 #+begin_src elisp
@@ -1712,10 +1707,7 @@ otherwise this works lol
                         (t
                          ;; hack so that we can override read-char and only need input once
                          (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                           (apply orig-fun args)
-                           )
-                         )
-                        ))))
+                           (apply orig-fun args)))))))
   ;; ] - forwards
   (advice-mapc `(lambda (fun props) (advice-remove 'viper-key-function fun)) 'viper-key-function)
   (advice-add 'viper-ket-function :around
@@ -1727,10 +1719,7 @@ otherwise this works lol
                         (t
                          ;; hack so that we can override read-char and only need input once
                          (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                           (apply orig-fun args)
-                           )
-                         )
-                        ))))
+                           (apply orig-fun args)))))))
 #+end_src
 
 ** extra VC keybindings
@@ -2078,8 +2067,7 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
     :config
-    (setq completion-in-region-function #'consult-completion-in-region)
-    )
+    (setq completion-in-region-function #'consult-completion-in-region))
 #+end_src
 
 * external language packages

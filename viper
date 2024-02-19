@@ -528,8 +528,7 @@ respects rectangle mode in a similar way to vim/doom"
         (let ((prefix (concat (project-name (project-current)) ": ")))
           (when (project-name (project-current))
             (insert prefix))))
-        (call-interactively 'bookmark-set))
-)
+        (call-interactively 'bookmark-set)))
 
 (defun my/jump-to-project-bookmark ()
   (interactive)
@@ -538,8 +537,7 @@ respects rectangle mode in a similar way to vim/doom"
         (let ((prefix (concat (project-name (project-current)) ": ")))
           (when (project-name (project-current))
             (insert prefix))))
-        (call-interactively 'bookmark-jump))
-)
+        (call-interactively 'bookmark-jump)))
 
 (setq bookmark-save-flag 1)
 (setq bookmark-use-annotations t)
@@ -671,10 +669,7 @@ position of the outside of the paren.  Otherwise return nil."
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                         (apply orig-fun args)
-                         )
-                       )
-                      ))))
+                         (apply orig-fun args)))))))
 ;; ] - forwards
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-key-function fun)) 'viper-key-function)
 (advice-add 'viper-ket-function :around
@@ -686,10 +681,7 @@ position of the outside of the paren.  Otherwise return nil."
                       (t
                        ;; hack so that we can override read-char and only need input once
                        (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                         (apply orig-fun args)
-                         )
-                       )
-                      ))))
+                         (apply orig-fun args)))))))
 
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
