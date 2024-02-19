@@ -292,6 +292,20 @@ M-j to exit minibuffer with whatever is in the input
                (list my/occur-buffer))))
 #+end_src
 
+* project search
+
+** advice to use xref buffer for project search only
+Kinda like using the xref buffer, plus matches how we use it for the incremental search below.
+Other than project search, we want to use completing read though.
+#+begin_src elisp
+  (setq project-find-regexp-prev "")
+  (advice-add 'project-find-regexp :around
+              (lambda (orig-fun regexp)
+                (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+                  (setq project-find-regexp-prev regexp)
+                  (funcall orig-fun regexp))))
+#+end_src
+
 * incremental grep
 Acts like occur, deferring a lot of the work to the existing xref buffer functionality
 good enough without getting too complicated
@@ -1410,6 +1424,17 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key my/leader-prefix-map "pd" #'project-forget-project)
   (define-key my/leader-prefix-map "px" #'flymake-show-project-diagnostics)
 #+end_src
+
+**** command to use previous search
+see: [[project search][project search]]
+#+begin_src elisp
+  (define-key my/leader-prefix-map "'"
+              (lambda ()
+                (interactive)
+                (minibuffer-with-setup-hook (lambda () (insert project-find-regexp-prev))
+                  (call-interactively 'project-find-regexp))))
+#+end_src
+
 
 *** "code" prefix
 #+begin_src elisp

@@ -474,6 +474,12 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "pd" #'project-forget-project)
 (define-key my/leader-prefix-map "px" #'flymake-show-project-diagnostics)
 
+(define-key my/leader-prefix-map "'"
+            (lambda ()
+              (interactive)
+              (minibuffer-with-setup-hook (lambda () (insert project-find-regexp-prev))
+                (call-interactively 'project-find-regexp))))
+
 (defun my/flymake-diagnostics-at-point ()
   (interactive)
   (let ((diags (flymake-diagnostics (point))))

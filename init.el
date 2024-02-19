@@ -220,6 +220,13 @@ With a prefix-arg run normally and specfiy a directory"
              my/ioccur-nlines-arg
              (list my/occur-buffer))))
 
+(setq project-find-regexp-prev "")
+(advice-add 'project-find-regexp :around
+            (lambda (orig-fun regexp)
+              (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+                (setq project-find-regexp-prev regexp)
+                (funcall orig-fun regexp))))
+
 (defun my/igrep-minibuf-after-edit (beg end len)
   (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
   (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
