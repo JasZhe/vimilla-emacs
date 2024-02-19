@@ -278,7 +278,10 @@ With a prefix-arg run normally and specfiy a directory"
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
 (add-hook 'completion-at-point-functions #'dabbrev-capf 100)
 
-(setq xref-search-program 'ripgrep)
+(setq xref-search-program
+      (cond ((executable-find "rg") 'ripgrep)
+            ((executable-find "ugrep") 'ugrep)
+            (t 'grep)))
 (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
 (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 

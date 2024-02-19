@@ -378,7 +378,10 @@ then with prefix arg we basically do the normal project-find-regexp but we can s
 ** xref completion settings
 luckily this is built in lol
 #+begin_src elisp
-  (setq xref-search-program 'ripgrep)
+  (setq xref-search-program
+        (cond ((executable-find "rg") 'ripgrep)
+              ((executable-find "ugrep") 'ugrep)
+              (t 'grep)))
   (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
