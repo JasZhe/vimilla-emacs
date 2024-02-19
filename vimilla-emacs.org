@@ -1798,6 +1798,8 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
                   my/viper-vi-motion-g-keymap
                   my/viper-vi-motion-leader-keymap)
             ibuffer-mode-map)))
+    (define-key my/ibuffer-vi-state-modify-map "sp" #'ibuffer-pop-filter)
+    (define-key my/ibuffer-vi-state-modify-map "sn" #'ibuffer-filter-by-name)
     (viper-modify-major-mode 'ibuffer-mode 'vi-state my/ibuffer-vi-state-modify-map))
 #+end_src
 

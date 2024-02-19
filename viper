@@ -765,6 +765,8 @@ position of the outside of the paren.  Otherwise return nil."
                 my/viper-vi-motion-g-keymap
                 my/viper-vi-motion-leader-keymap)
           ibuffer-mode-map)))
+  (define-key my/ibuffer-vi-state-modify-map "sp" #'ibuffer-pop-filter)
+  (define-key my/ibuffer-vi-state-modify-map "sn" #'ibuffer-filter-by-name)
   (viper-modify-major-mode 'ibuffer-mode 'vi-state my/ibuffer-vi-state-modify-map))
 
 (setq my/elisp-vi-state-modify-map (make-sparse-keymap))
