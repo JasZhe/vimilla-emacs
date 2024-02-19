@@ -244,11 +244,14 @@ With a prefix-arg run normally and specfiy a directory"
   (if arg
       (let ((current-prefix-arg '(4)))
         (call-interactively #'project-find-regexp))
-    (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+    (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
+          (starting-regexp (read-regexp "start searching with: ")))
+      (setq my/igrep-string starting-regexp)
       (minibuffer-with-setup-hook
           (lambda ()
             (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
-            (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local))
+            (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local)
+            (insert starting-regexp))
         (project-find-regexp (read-regexp my/igrep-prompt-string))))))
 
 (defun ripgrep ()
