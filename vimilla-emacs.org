@@ -47,7 +47,7 @@ just a simple wrapper in the case where we can't install magit
     (interactive)                                  
     (compile "git fetch -v"))
 
-  (defun my/vc-set-remote ()
+  (defun my/vc-get-remote ()
     (let* ((remote-names (split-string (shell-command-to-string "git remote")))
            (remote-urls
             (mapcar (lambda (r)
@@ -58,8 +58,26 @@ just a simple wrapper in the case where we can't install magit
            (annotation-fn (lambda (candidate) (cdr (assoc candidate remote-urls))))
            (completion-extra-properties `(:annotation-function ,annotation-fn))
            (remote (completing-read "Remote: " remote-urls)))
-      remote
-      ))
+      remote))
+
+  (defun my/vc-set-remote-url ()
+    (interactive)
+    (let* ((remote (my/vc-get-remote))
+           (curr-url (string-trim
+                      (shell-command-to-string (concat "git remote get-url " remote))))
+
+           (new-url (minibuffer-with-setup-hook (lambda () (insert curr-url))
+                      (read-string (concat "Set url for remote <" remote ">: ")))))
+      (compile (concat "git remote set-url " remote " " new-url))))
+
+  (defun my/vc-set-branch-upstream ()
+    (interactive)
+    (let* ((remote (my/vc-get-remote))
+           (curr-branch (car (vc-git-branches)))
+           (upstream (minibuffer-with-setup-hook
+                         (lambda () (insert remote "/" curr-branch))
+                       (read-string (concat "set branch <" curr-branch "> upstream to: ")))))
+      (compile (concat "git branch -u " upstream))))
 
   (defun my/vc-add-remote ())
   (defun my/vc-delete-remote ())
