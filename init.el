@@ -201,6 +201,16 @@
 (setq eval-expression-print-level nil)
 (setq eval-expression-print-length nil)
 
+(ignore-errors
+  (make-directory (concat (file-name-directory user-init-file) ".local/"))
+  (make-directory (concat (file-name-directory user-init-file) ".local/autosave/"))
+  (make-directory (concat (file-name-directory user-init-file) ".local/backups/")))
+
+(setq auto-save-file-name-transforms 
+      `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/Users/jason.z/.emacs.d/.local/cache/autosave/tramp-\\2" t)
+        (".*" ,(concat (file-name-directory user-init-file) ".local/autosave/\\1") t)))
+(setq back-directory-alist `((".*" ,(concat (file-name-directory user-init-file) ".local/backups/"))))
+
 (fido-vertical-mode)
 
 (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)

@@ -261,6 +261,20 @@ stole the completing read stuff from:
   (setq eval-expression-print-length nil)
 #+end_src
 
+** steam doom's auto save transform
+#+begin_src elisp
+  (ignore-errors
+    (make-directory (concat (file-name-directory user-init-file) ".local/"))
+    (make-directory (concat (file-name-directory user-init-file) ".local/autosave/"))
+    (make-directory (concat (file-name-directory user-init-file) ".local/backups/")))
+
+  (setq auto-save-file-name-transforms 
+        `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" "/Users/jason.z/.emacs.d/.local/cache/autosave/tramp-\\2" t)
+          (".*" ,(concat (file-name-directory user-init-file) ".local/autosave/\\1") t)))
+  (setq back-directory-alist `((".*" ,(concat (file-name-directory user-init-file) ".local/backups/"))))
+
+#+end_src
+
 * minibuffer setup
 
 Use partial-completion by default, most similar to orderless
