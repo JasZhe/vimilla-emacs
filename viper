@@ -456,7 +456,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key universal-argument-map " u" #'universal-argument-more)
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
-(define-key my/leader-prefix-map "G" #'my/igrep)
+(define-key my/leader-prefix-map "G" #'my/iproject-find)
 (define-key my/leader-prefix-map "X" #'org-capture)
 
 (define-key my/leader-prefix-map "x"
@@ -597,6 +597,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "cr" #'eglot-rename)
 (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
+(define-key my/leader-prefix-map "cj" #'my/ixref-apropos)
 
 (define-key viper-vi-basic-map "K" #'eldoc)
 (define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)

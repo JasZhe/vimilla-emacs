@@ -267,32 +267,69 @@ With a prefix-arg run normally and specfiy a directory"
                 (setq project-find-regexp-prev regexp)
                 (funcall orig-fun regexp))))
 
-(defun my/igrep-minibuf-after-edit (beg end len)
-  (setq my/igrep-string (buffer-substring-no-properties (1+ (length my/igrep-prompt-string)) (point-max)))
-  (when (gt (length (string-replace ".*" "" my/igrep-string)) 2)
+(setq xref-find-apropos-prev "")
+(advice-add 'xref-find-apropos :around
+            (lambda (orig-fun regexp)
+              (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+                (setq xref-find-apropos-prev regexp)
+                (funcall orig-fun regexp))))
+
+(defun my/ixref-apropos-minibuf-after-edit (beg end len)
+  (setq my/ixref-apropos-string (buffer-substring-no-properties (1+ (length my/ixref-apropos-prompt-string)) (point-max)))
+  (when (gt (length (string-replace ".*" "" my/ixref-apropos-string)) 2)
     (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
-      (ignore-errors (project-find-regexp my/igrep-string)))))
+      (with-current-buffer current-xref-buffer (xref-find-apropos my/ixref-apropos-string)))))
 
-(setq my/igrep-prompt-string "Find in proj: ")
-(setq my/igrep-string "")
+(setq my/ixref-apropos-prompt-string "Find symbol apropos: ")
+(setq my/ixref-apropos-string "")
 
-(defun my/igrep (arg)
+(defun my/ixref-apropos (arg)
   "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
 With a prefix-arg run normally and specfiy a directory"
   (interactive "P")
-  (setq my/igrep-string "")
+  (setq my/ixref-apropos-string "")
+  ;; this is needed, otherwise xref-apropos in the minibuf-after-edit fn will try to find the xref-backend using the minibuffer instead of the
+  ;; a buffer belonging to the project we care about
+  (setq current-xref-buffer (current-buffer))
+  (if arg
+      (let ((current-prefix-arg '(4)))
+        (call-interactively #'xref-find-apropos))
+    (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
+          (starting-regexp (read-regexp "start searching symbols with: ")))
+      (setq my/ixref-apropos-string starting-regexp)
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (local-set-key (kbd "SPC") (lambda () (interactive) (insert " ")))
+            (add-hook 'after-change-functions #'my/ixref-apropos-minibuf-after-edit nil 'local)
+            (insert starting-regexp))
+        (xref-find-apropos (read-regexp my/ixref-apropos-prompt-string))))))
+
+(defun my/iproject-find-minibuf-after-edit (beg end len)
+  (setq my/iproject-find-string (buffer-substring-no-properties (1+ (length my/iproject-find-prompt-string)) (point-max)))
+  (when (gt (length (string-replace ".*" "" my/iproject-find-string)) 2)
+    (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+      (ignore-errors (project-find-regexp my/iproject-find-string)))))
+
+(setq my/iproject-find-prompt-string "Find in proj: ")
+(setq my/iproject-find-string "")
+
+(defun my/iproject-find (arg)
+  "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+With a prefix-arg run normally and specfiy a directory"
+  (interactive "P")
+  (setq my/iproject-find-string "")
   (if arg
       (let ((current-prefix-arg '(4)))
         (call-interactively #'project-find-regexp))
     (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
           (starting-regexp (read-regexp "start searching with: ")))
-      (setq my/igrep-string starting-regexp)
+      (setq my/iproject-find-string starting-regexp)
       (minibuffer-with-setup-hook
           (lambda ()
             (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
-            (add-hook 'after-change-functions #'my/igrep-minibuf-after-edit nil 'local)
+            (add-hook 'after-change-functions #'my/iproject-find-minibuf-after-edit nil 'local)
             (insert starting-regexp))
-        (project-find-regexp (read-regexp my/igrep-prompt-string))))))
+        (project-find-regexp (read-regexp my/iproject-find-prompt-string))))))
 
 (defun ripgrep ()
   (interactive)
