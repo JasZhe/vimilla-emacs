@@ -106,8 +106,9 @@
 
 (defun my/set-transparency-in-terminal ()
   (interactive)
+  (unless (string= (face-background 'default) "unspecified-bg")
+    (setq prev-default-face-bg (face-background 'default)))
   (unless (display-graphic-p (selected-frame))
-    (setq prev-default-face-bg (face-background 'default))
     (set-face-background 'default "unspecified-bg" (selected-frame))))
 
 (defun my/unset-transparency-in-terminal ()
