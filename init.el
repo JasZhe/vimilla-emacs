@@ -192,6 +192,7 @@
 (global-visual-line-mode)
 (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
+(setq revert-without-query '(".*")) ;; allow reverting without confirm
 (setq column-number-mode t)
 (setq scroll-margin 8)
 (setq visual-bell t)
