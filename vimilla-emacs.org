@@ -94,6 +94,7 @@ org really hates the parens matching when < or > is involved
   (defun neq (obj1 obj2)
     "Convenience for not 'eq'"
     (not (eq obj1 obj2)))
+
 #+end_src
 
 * ediff-setup
@@ -727,6 +728,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
     (define-key my/eshell-vi-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
     (define-key my/eshell-vi-state-modify-map " ma" #'my/eshell-send-cmd-async)
     (define-key my/eshell-insert-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+    (define-key my/eshell-insert-state-modify-map (kbd "M-<return>") #'my/eshell-send-cmd-async)
 
     (defun slurp (f)
       (with-temp-buffer

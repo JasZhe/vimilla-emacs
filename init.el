@@ -553,6 +553,7 @@ Meant for eshell in mind."
   (define-key my/eshell-vi-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
   (define-key my/eshell-vi-state-modify-map " ma" #'my/eshell-send-cmd-async)
   (define-key my/eshell-insert-state-modify-map (kbd "C-<return>") #'my/eshell-send-cmd-async)
+  (define-key my/eshell-insert-state-modify-map (kbd "M-<return>") #'my/eshell-send-cmd-async)
 
   (defun slurp (f)
     (with-temp-buffer
