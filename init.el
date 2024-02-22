@@ -427,7 +427,7 @@ With a prefix-arg run normally and specfiy a directory"
               ;; eshell path
               (setq-default eshell-path-env val)
               (when (fboundp 'eshell-set-path) (eshell-set-path val)))))
-        (split-string (shell-command-to-string "bash --login -c printenv"))))
+        (split-string (shell-command-to-string "bash --login -i -c printenv"))))
 
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
@@ -485,13 +485,17 @@ Meant for eshell in mind."
         (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
   (call-interactively 'eglot-reconnect))
 
+(setq-default tab-width 4)
+
 (use-package js :defer t
   :config
-  (setq js-indent-level tab-width)
+  (setq js-indent-level 4)
   (add-hook 'js-mode #'eglot-ensure))
+
 (use-package typescript-ts-mode :defer t
   :config
-  (setq typescript-ts-mode-indent-offset tab-width))
+  (setq typescript-ts-mode-indent-offset 4)
+  (add-hook 'js-mode #'eglot-ensure))
 
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
@@ -594,55 +598,6 @@ Meant for eshell in mind."
                     (comint-kill-input)
                     (insert selected)))))
   (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
-
-(use-package eglot :defer t
-  :config
-  (require 'eglot)
-  (require 'jsonrpc)
-  (eval-when-compile (require 'cl-lib))
-
-  (defun eglot-booster-plain-command (com)
-    "Test if command COM is a plain eglot server command."
-    (and (consp com)
-         (not (integerp (cadr com)))
-         (not (seq-intersection '(:initializationOptions :autoport) com))))
-
-  (defun eglot-booster ()
-    "Boost plain eglot server programs with emacs-lsp-booster.
-  The emacs-lsp-booster program must be compiled and available on
-  variable `exec-path'.  Only local stdin/out based lsp servers can
-  be boosted."
-    (interactive)
-    (unless (executable-find "emacs-lsp-booster")
-      (user-error "The emacs-lsp-booster program is not installed"))
-    (if (get 'eglot-server-programs 'lsp-booster-p)
-        (message "eglot-server-programs already boosted.")
-      (let ((cnt 0)
-            (orig-read (symbol-function 'jsonrpc--json-read)))
-        (dolist (entry eglot-server-programs)
-          (cond
-           ((functionp (cdr entry))
-            (cl-incf cnt)
-            (let ((fun (cdr entry)))
-              (setcdr entry (lambda (&rest r) ; wrap function
-                              (let ((res (apply fun r)))
-                                (if (eglot-booster-plain-command res)
-                                    (cons "emacs-lsp-booster" res)
-                                  res))))))
-           ((eglot-booster-plain-command (cdr entry))
-            (cl-incf cnt)
-            (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
-        (defalias 'jsonrpc--json-read
-          (lambda ()
-            (or (and (= (following-char) ?#)
-                     (let ((bytecode (read (current-buffer))))
-                       (when (byte-code-function-p bytecode)
-                         (funcall bytecode))))
-                (funcall orig-read))))
-        (message "Boosted %d eglot-server-programs" cnt))
-      (put 'eglot-server-programs 'lsp-booster-p t)))
-  ;; need to run it on eglot load
-  (eglot-booster))
 
 (when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
   (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height 130))
@@ -816,6 +771,12 @@ Meant for eshell in mind."
   (setq window-stool-use-overlays nil)
   (add-hook 'prog-mode-hook #'window-stool-mode)
   (add-hook 'org-mode-hook #'window-stool-mode))
+
+(when (not (require 'eglot-booster nil 'noerrror))
+  (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
+(use-package eglot-booster :after eglot
+  :config
+  (eglot-booster-mode))
 
 (use-package pdf-tools :ensure nil :pin gnu
   :mode "\\.pdf\\'"

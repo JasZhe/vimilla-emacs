@@ -571,7 +571,7 @@ and source some.envrc, then using that same shell, just copy all the environment
                 ;; eshell path
                 (setq-default eshell-path-env val)
                 (when (fboundp 'eshell-set-path) (eshell-set-path val)))))
-          (split-string (shell-command-to-string "bash --login -c printenv"))))
+          (split-string (shell-command-to-string "bash --login -i -c printenv"))))
 #+end_src
 
 ** tramp environment variables
@@ -647,13 +647,17 @@ parser.c lives, we input typescript/src
 
 some weird issue with typescript treesitter v0.20.4, would avoid that branch until its fixed <2024-02-08 Thu>
 #+begin_src elisp
+  (setq-default tab-width 4)
+  
   (use-package js :defer t
     :config
-    (setq js-indent-level tab-width)
+    (setq js-indent-level 4)
     (add-hook 'js-mode #'eglot-ensure))
+
   (use-package typescript-ts-mode :defer t
     :config
-    (setq typescript-ts-mode-indent-offset tab-width))
+    (setq typescript-ts-mode-indent-offset 4)
+    (add-hook 'js-mode #'eglot-ensure))
 
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 #+end_src
@@ -773,64 +777,6 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
                       (insert selected)))))
     (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 #+end_src
-
-** eglot booster
-:PROPERTIES:
-:VISIBILITY: folded
-:END:
-
-https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
-#+begin_src elisp
-  (use-package eglot :defer t
-    :config
-    (require 'eglot)
-    (require 'jsonrpc)
-    (eval-when-compile (require 'cl-lib))
-
-    (defun eglot-booster-plain-command (com)
-      "Test if command COM is a plain eglot server command."
-      (and (consp com)
-           (not (integerp (cadr com)))
-           (not (seq-intersection '(:initializationOptions :autoport) com))))
-
-    (defun eglot-booster ()
-      "Boost plain eglot server programs with emacs-lsp-booster.
-    The emacs-lsp-booster program must be compiled and available on
-    variable `exec-path'.  Only local stdin/out based lsp servers can
-    be boosted."
-      (interactive)
-      (unless (executable-find "emacs-lsp-booster")
-        (user-error "The emacs-lsp-booster program is not installed"))
-      (if (get 'eglot-server-programs 'lsp-booster-p)
-          (message "eglot-server-programs already boosted.")
-        (let ((cnt 0)
-              (orig-read (symbol-function 'jsonrpc--json-read)))
-          (dolist (entry eglot-server-programs)
-            (cond
-             ((functionp (cdr entry))
-              (cl-incf cnt)
-              (let ((fun (cdr entry)))
-                (setcdr entry (lambda (&rest r) ; wrap function
-                                (let ((res (apply fun r)))
-                                  (if (eglot-booster-plain-command res)
-                                      (cons "emacs-lsp-booster" res)
-                                    res))))))
-             ((eglot-booster-plain-command (cdr entry))
-              (cl-incf cnt)
-              (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
-          (defalias 'jsonrpc--json-read
-            (lambda ()
-              (or (and (= (following-char) ?#)
-                       (let ((bytecode (read (current-buffer))))
-                         (when (byte-code-function-p bytecode)
-                           (funcall bytecode))))
-                  (funcall orig-read))))
-          (message "Boosted %d eglot-server-programs" cnt))
-        (put 'eglot-server-programs 'lsp-booster-p t)))
-    ;; need to run it on eglot load
-    (eglot-booster))
-#+end_src
-
 
 * Font and theme
 current system uses iosevka custom nerd font
@@ -2108,6 +2054,18 @@ well this oen is self explanatory
     (setq window-stool-use-overlays nil)
     (add-hook 'prog-mode-hook #'window-stool-mode)
     (add-hook 'org-mode-hook #'window-stool-mode))
+#+end_src
+
+** eglot booster
+alternative gist here
+https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
+
+#+begin_src elisp
+  (when (not (require 'eglot-booster nil 'noerrror))
+    (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
+  (use-package eglot-booster :after eglot
+    :config
+    (eglot-booster-mode))
 #+end_src
 
 
