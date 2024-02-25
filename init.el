@@ -835,7 +835,7 @@ Meant for eshell in mind."
   (package-vc-install "https://github.com/JasZhe/window-stool"))
 (use-package window-stool :defer 2
   :config
-  (setq window-stool-use-overlays nil)
+  (setq window-stool-use-overlays t)
   (add-hook 'prog-mode-hook #'window-stool-mode)
   (add-hook 'org-mode-hook #'window-stool-mode))
 
