@@ -28,7 +28,6 @@
 (setq viper-expert-level '5)
 
 (add-hook 'viper-insert-state-hook (lambda ()
-                                     (global-hl-line-mode -1)
                                      (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                      (setq viper-ex-style-editing nil)))
 
@@ -507,9 +506,14 @@ respects rectangle mode in a similar way to vim/doom"
 (setq my/tab-prefix-map (make-sparse-keymap))
 (define-key my/leader-prefix-map "\t" my/tab-prefix-map)
 (define-key my/leader-prefix-map [C-i] my/tab-prefix-map) ;; so it works in terminal
+
 (define-key my/tab-prefix-map "n" #'tab-bar-new-tab)
 (define-key my/tab-prefix-map "d" #'tab-bar-close-tab)
 (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
+(define-key my/tab-prefix-map "." #'tab-bar-switch-to-tab)
+
+(define-key my/tab-prefix-map "\t" #'get-tab-names)
+(define-key my/tab-prefix-map [C-i] #'get-tab-names)
 
 (define-key my/leader-prefix-map "ss" #'my/ioccur)
 ;; not sure why but we need to rescan the imenu for our igrep xref buffer

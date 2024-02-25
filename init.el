@@ -641,16 +641,55 @@ Meant for eshell in mind."
 (auto-light-dark-midnight-setup)
 
 (defun find-git-dir (dir)
- "Search up the directory tree looking for a .git folder."
- (cond
-  ((eq major-mode 'dired-mode) "Dired")
-  ((not dir) "process")
-  ((string= dir "/") "no-git")
-  (t (vc-root-dir))))
+  "Search up the directory tree looking for a .git folder."
+  (cond
+   ((eq major-mode 'dired-mode) "Dired")
+   ((not dir) "process")
+   ((string= dir "/") "no-git")
+   (t (vc-root-dir))))
 
 (defun git-tabbar-buffer-groups ()
   "Groups tabs in tabbar-mode by the git repository they are in."
   (list (find-git-dir (buffer-file-name (current-buffer)))))
+
+(defun get-file-buffers-in-window ()
+  (seq-filter #'buffer-file-name
+              (delete-dups (mapcar #'window-buffer
+                                   (window-list-1 (frame-first-window)
+                                                  'nomini)))))
+
+(defun tab-bar-tab-name-projects ()
+  (let ((file-buffers (get-file-buffers-in-window)))
+    (if file-buffers
+        (mapconcat (lambda (b)
+                     (with-current-buffer b
+                       (if (project-current) (project-name (project-current)) (buffer-name))))
+                   file-buffers
+                   ", ")
+      (tab-bar-tab-name-current))))
+
+(setq tab-bar-tab-name-function #'tab-bar-tab-name-projects)
+;; (truncate-string-to-width (tab-bar-tab-name-all) (/ (frame-width) (length (tab-bar-tabs))))
+
+(defun get-tab-names (&rest _)
+  (interactive "P")
+  (message "%s |"
+           (mapconcat
+            (lambda (tab)
+              (let* ((current-tab-p (eq (car tab) 'current-tab))
+                     (tab-name1 (cdr (cl-second tab)))
+                     (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit isearch)) tab-name1)))
+                tab-name))
+            (tab-bar-tabs)
+            " | ")))
+
+(advice-add 'tab-bar-new-tab :after #'get-tab-names)
+(advice-add 'tab-bar-close-tab :after #'get-tab-names)
+(advice-add 'tab-bar-rename-tab :after #'get-tab-names)
+(advice-add 'tab-bar-select-tab :after #'get-tab-names)
+
+(setq tab-bar-show nil)
+(tab-bar-mode)
 
 (setq browse-url-browser-function 'eww-browse-url)
 (add-hook 'eww-after-render-hook 'eww-readable)

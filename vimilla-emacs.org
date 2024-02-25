@@ -1,4 +1,4 @@
-#+title: Minimalistic Vim Flavoured Emacs Config
+q#+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle init.el :results silent :lexical t
 
 * lexical
@@ -835,16 +835,55 @@ instead
 basically minimal projectile and persp
 #+begin_src elisp
   (defun find-git-dir (dir)
-   "Search up the directory tree looking for a .git folder."
-   (cond
-    ((eq major-mode 'dired-mode) "Dired")
-    ((not dir) "process")
-    ((string= dir "/") "no-git")
-    (t (vc-root-dir))))
+    "Search up the directory tree looking for a .git folder."
+    (cond
+     ((eq major-mode 'dired-mode) "Dired")
+     ((not dir) "process")
+     ((string= dir "/") "no-git")
+     (t (vc-root-dir))))
 
   (defun git-tabbar-buffer-groups ()
     "Groups tabs in tabbar-mode by the git repository they are in."
     (list (find-git-dir (buffer-file-name (current-buffer)))))
+
+  (defun get-file-buffers-in-window ()
+    (seq-filter #'buffer-file-name
+                (delete-dups (mapcar #'window-buffer
+                                     (window-list-1 (frame-first-window)
+                                                    'nomini)))))
+
+  (defun tab-bar-tab-name-projects ()
+    (let ((file-buffers (get-file-buffers-in-window)))
+      (if file-buffers
+          (mapconcat (lambda (b)
+                       (with-current-buffer b
+                         (if (project-current) (project-name (project-current)) (buffer-name))))
+                     file-buffers
+                     ", ")
+        (tab-bar-tab-name-current))))
+
+  (setq tab-bar-tab-name-function #'tab-bar-tab-name-projects)
+  ;; (truncate-string-to-width (tab-bar-tab-name-all) (/ (frame-width) (length (tab-bar-tabs))))
+
+  (defun get-tab-names (&rest _)
+    (interactive "P")
+    (message "%s |"
+             (mapconcat
+              (lambda (tab)
+                (let* ((current-tab-p (eq (car tab) 'current-tab))
+                       (tab-name1 (cdr (cl-second tab)))
+                       (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit isearch)) tab-name1)))
+                  tab-name))
+              (tab-bar-tabs)
+              " | ")))
+
+  (advice-add 'tab-bar-new-tab :after #'get-tab-names)
+  (advice-add 'tab-bar-close-tab :after #'get-tab-names)
+  (advice-add 'tab-bar-rename-tab :after #'get-tab-names)
+  (advice-add 'tab-bar-select-tab :after #'get-tab-names)
+  
+  (setq tab-bar-show nil)
+  (tab-bar-mode)
 #+end_src
 
 
@@ -962,7 +1001,6 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (setq viper-expert-level '5)
 
   (add-hook 'viper-insert-state-hook (lambda ()
-                                       (global-hl-line-mode -1)
                                        (when (not (display-graphic-p)) (send-string-to-terminal "\033[6 q"))
                                        (setq viper-ex-style-editing nil)))
 
@@ -1556,9 +1594,14 @@ see: [[project search][project search]]
   (setq my/tab-prefix-map (make-sparse-keymap))
   (define-key my/leader-prefix-map "\t" my/tab-prefix-map)
   (define-key my/leader-prefix-map [C-i] my/tab-prefix-map) ;; so it works in terminal
+
   (define-key my/tab-prefix-map "n" #'tab-bar-new-tab)
   (define-key my/tab-prefix-map "d" #'tab-bar-close-tab)
   (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
+  (define-key my/tab-prefix-map "." #'tab-bar-switch-to-tab)
+
+  (define-key my/tab-prefix-map "\t" #'get-tab-names)
+  (define-key my/tab-prefix-map [C-i] #'get-tab-names)
 #+end_src 
 
 *** "search" prefix
