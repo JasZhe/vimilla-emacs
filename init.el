@@ -462,6 +462,10 @@ Meant for eshell in mind."
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 
+(use-package go-ts-mode :defer t
+  :config
+  (setq go-ts-mode-indent-offset tab-width))
+
 (defun unset-go-env-vars ()
   "This is needed so that for example, if one project has a go work file but the other doesn't,
   we don't still use the other project's go work file."
@@ -490,12 +494,12 @@ Meant for eshell in mind."
 (use-package js :defer t
   :config
   (setq js-indent-level 4)
-  (add-hook 'js-mode #'eglot-ensure))
+  (add-hook 'js-mode-hook #'eglot-ensure))
 
 (use-package typescript-ts-mode :defer t
   :config
   (setq typescript-ts-mode-indent-offset 4)
-  (add-hook 'js-mode #'eglot-ensure))
+  (add-hook 'typescript-ts-mode-hook #'eglot-ensure))
 
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
