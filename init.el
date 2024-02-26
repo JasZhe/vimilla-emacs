@@ -661,10 +661,14 @@ Meant for eshell in mind."
 (defun tab-bar-tab-name-projects ()
   (let ((file-buffers (get-file-buffers-in-window)))
     (if file-buffers
-        (mapconcat (lambda (b)
-                     (with-current-buffer b
-                       (if (project-current) (project-name (project-current)) (buffer-name))))
-                   file-buffers
+        (mapconcat #'identity
+                   (delete-dups
+                    (cl-mapcar (lambda (b)
+                                 (with-current-buffer b
+                                   (if (project-current)
+                                       (project-name (project-current))
+                                     (buffer-name))))
+                               file-buffers))
                    ", ")
       (tab-bar-tab-name-current))))
 
