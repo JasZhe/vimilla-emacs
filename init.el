@@ -627,10 +627,14 @@ Meant for eshell in mind."
 (midnight-mode)
 
 (defun load-light-theme ()
-  (load-theme 'modus-operandi t))
+  (load-theme 'modus-operandi t)
+  (viper-change-cursor-color "white")
+  (setq viper-vi-state-cursor-color "white")
+  (set-cursor-color "black"))
 
 (defun load-dark-theme ()
-  (load-theme 'modus-vivendi t))
+  (load-theme 'modus-vivendi t)
+  (set-cursor-color "white"))
 
 (defun load-dark-theme1 ()
   (load-dark-theme))

@@ -814,25 +814,29 @@ instead
 
 ** simple auto dark/light mode with midnight mode
 #+begin_src elisp
-(midnight-mode)
+  (midnight-mode)
 
-(defun load-light-theme ()
-  (load-theme 'modus-operandi t))
+  (defun load-light-theme ()
+    (load-theme 'modus-operandi t)
+    (viper-change-cursor-color "white")
+    (setq viper-vi-state-cursor-color "white")
+    (set-cursor-color "black"))
 
-(defun load-dark-theme ()
-  (load-theme 'modus-vivendi t))
+  (defun load-dark-theme ()
+    (load-theme 'modus-vivendi t)
+    (set-cursor-color "white"))
 
-(defun load-dark-theme1 ()
-  (load-dark-theme))
+  (defun load-dark-theme1 ()
+    (load-dark-theme))
 
-(defun auto-light-dark-midnight-setup ()
-  (run-at-time "0:00" t #'load-dark-theme)
-  (run-at-time "10:00" t #'load-light-theme)
-  (run-at-time "16:00" t #'load-dark-theme1))
+  (defun auto-light-dark-midnight-setup ()
+    (run-at-time "0:00" t #'load-dark-theme)
+    (run-at-time "10:00" t #'load-light-theme)
+    (run-at-time "16:00" t #'load-dark-theme1))
 
-(add-hook 'midnight-hook #'auto-light-dark-midnight-setup)
+  (add-hook 'midnight-hook #'auto-light-dark-midnight-setup)
 
-(auto-light-dark-midnight-setup)
+  (auto-light-dark-midnight-setup)
 #+end_src
 
 * Tab bar
