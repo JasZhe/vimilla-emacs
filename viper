@@ -663,30 +663,50 @@ position of the outside of the paren.  Otherwise return nil."
 (define-key viper-vi-basic-map "zc" #'hs-hide-block)
 (define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
 
+;; local alist that can be used as part of a major mode hook to
+;; add pseudo keybinds to brac and ket
+(setq-local brac-char-cmd-alist '((?i . (lambda () (interactive) (message "hello")))))
+(setq-default brac-char-cmd-alist '())
+
+(cdr (cl-find-if (lambda (e) (= (car e) ?i)) brac-char-cmd-alist))
+
 ;; [ - backwards
-(advice-mapc `(lambda (fun props) (advice-remove 'viper-brac-function fun)) 'viper-brac-function)
-(advice-add 'viper-brac-function :around
-            (lambda (orig-fun &rest args)
-              (let ((char (read-char)))
-                (cond ((viper= ?b char) (previous-buffer))
-                      ((viper= ?t char) (tab-bar-switch-to-prev-tab))
-                      ((viper= ?e char) (call-interactively 'flymake-goto-prev-error))
-                      (t
-                       ;; hack so that we can override read-char and only need input once
-                       (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                         (apply orig-fun args)))))))
+(defun viper-brac-advice (orig-fun &rest args)
+  (let ((char (read-char)))
+    (cond ((viper= ?b char) (previous-buffer))
+          ((viper= ?t char) (tab-bar-switch-to-prev-tab))
+          ((viper= ?e char) (call-interactively 'flymake-goto-prev-error))
+          (t
+           (let ((other-cmd
+                  (cdr (cl-find-if (lambda (e)
+                                     (viper= (car e) char))
+                                   brac-char-cmd-alist))))
+             (if other-cmd
+                 (call-interactively other-cmd)
+               ;; hack so that we can override read-char and only need input once
+               (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
+                 (apply orig-fun args))))))))
+(advice-add 'viper-brac-function :around #'viper-brac-advice)
+
+(setq-local ket-char-cmd-alist '((?i . (lambda () (interactive) (message "goodbye")))))
+(setq-default ket-char-cmd-alist '())
 ;; ] - forwards
-(advice-mapc `(lambda (fun props) (advice-remove 'viper-key-function fun)) 'viper-key-function)
-(advice-add 'viper-ket-function :around
-            (lambda (orig-fun &rest args)
-              (let ((char (read-char)))
-                (cond ((viper= ?b char) (next-buffer))
-                      ((viper= ?t char) (tab-bar-switch-to-next-tab))
-                      ((viper= ?e char) (call-interactively 'flymake-goto-next-error))
-                      (t
-                       ;; hack so that we can override read-char and only need input once
-                       (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
-                         (apply orig-fun args)))))))
+(defun viper-ket-advice (orig-fun &rest args)
+  (let ((char (read-char)))
+    (cond ((viper= ?b char) (next-buffer))
+          ((viper= ?t char) (tab-bar-switch-to-next-tab))
+          ((viper= ?e char) (call-interactively 'flymake-goto-next-error))
+          (t
+           (let ((other-cmd
+                  (cdr (cl-find-if (lambda (e)
+                                     (viper= (car e) char))
+                                   ket-char-cmd-alist))))
+             (if other-cmd
+                 (call-interactively other-cmd)
+               ;; hack so that we can override read-char and only need input once
+               (cl-letf (((symbol-function 'read-char) (lambda (_ _ _) char)))
+                 (apply orig-fun args))))))))
+(advice-add 'viper-ket-function :around #'viper-ket-advice)
 
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
