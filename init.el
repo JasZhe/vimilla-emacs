@@ -421,13 +421,15 @@ With a prefix-arg run normally and specfiy a directory"
           (let* ((split (split-string env-var-string "="))
                  (name (cl-first split))
                  (val (cl-second split)))
-            (setenv name val)
-            (when (string-equal "PATH" name)
-              (setq exec-path (append (parse-colon-path val) (list exec-directory)))
-              ;; eshell path
-              (setq-default eshell-path-env val)
-              (when (fboundp 'eshell-set-path) (eshell-set-path val)))))
-        (split-string (shell-command-to-string "bash --login -i -c printenv"))))
+            (when (and name val)
+              (setq val (string-replace " " "\\ " val))
+              (setenv name val)
+              (when (string-equal "PATH" name)
+                (setq exec-path (append (parse-colon-path val) (list exec-directory)))
+                ;; eshell path
+                (setq-default eshell-path-env val)
+                (when (fboundp 'eshell-set-path) (eshell-set-path val))))))
+        (split-string (shell-command-to-string "bash --login -i -c printenv") "\n")))
 
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.

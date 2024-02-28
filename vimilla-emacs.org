@@ -565,13 +565,15 @@ and source some.envrc, then using that same shell, just copy all the environment
             (let* ((split (split-string env-var-string "="))
                    (name (cl-first split))
                    (val (cl-second split)))
-              (setenv name val)
-              (when (string-equal "PATH" name)
-                (setq exec-path (append (parse-colon-path val) (list exec-directory)))
-                ;; eshell path
-                (setq-default eshell-path-env val)
-                (when (fboundp 'eshell-set-path) (eshell-set-path val)))))
-          (split-string (shell-command-to-string "bash --login -i -c printenv"))))
+              (when (and name val)
+                (setq val (string-replace " " "\\ " val))
+                (setenv name val)
+                (when (string-equal "PATH" name)
+                  (setq exec-path (append (parse-colon-path val) (list exec-directory)))
+                  ;; eshell path
+                  (setq-default eshell-path-env val)
+                  (when (fboundp 'eshell-set-path) (eshell-set-path val))))))
+          (split-string (shell-command-to-string "bash --login -i -c printenv") "\n")))
 #+end_src
 
 ** tramp environment variables
