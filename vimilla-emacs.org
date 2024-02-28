@@ -1945,6 +1945,24 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
     (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
 #+end_src
 
+*** annotate
+#+begin_src elisp
+  (use-package vc-annotate :defer t
+    :config
+    (setq my/vc-annotate-mode-vi-state-map
+          (make-composed-keymap
+           nil 
+           (make-composed-keymap
+            (list my/viper-vi-basic-motion-keymap
+                  my/viper-vi-motion-g-keymap
+                  my/viper-vi-motion-leader-keymap)
+            vc-annotate-mode-map)))
+    (define-key my/vc-annotate-mode-vi-state-map (kbd "C-j") #'vc-annotate-next-revision)
+    (define-key my/vc-annotate-mode-vi-state-map (kbd "C-k") #'vc-annotate-prev-revision)
+    (viper-modify-major-mode 'vc-annotate-mode 'vi-state my/vc-annotate-mode-vi-state-map))
+  (add-hook 'vc-annotate-mode-hook #'viper-mode)
+#+end_src
+
 ** dired
 #+begin_src elisp
   (use-package dired :defer t

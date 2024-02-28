@@ -763,6 +763,21 @@ position of the outside of the paren.  Otherwise return nil."
   (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
   (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
 
+(use-package vc-annotate :defer t
+  :config
+  (setq my/vc-annotate-mode-vi-state-map
+        (make-composed-keymap
+         nil 
+         (make-composed-keymap
+          (list my/viper-vi-basic-motion-keymap
+                my/viper-vi-motion-g-keymap
+                my/viper-vi-motion-leader-keymap)
+          vc-annotate-mode-map)))
+  (define-key my/vc-annotate-mode-vi-state-map (kbd "C-j") #'vc-annotate-next-revision)
+  (define-key my/vc-annotate-mode-vi-state-map (kbd "C-k") #'vc-annotate-prev-revision)
+  (viper-modify-major-mode 'vc-annotate-mode 'vi-state my/vc-annotate-mode-vi-state-map))
+(add-hook 'vc-annotate-mode-hook #'viper-mode)
+
 (use-package dired :defer t
   :config
   (add-hook 'dired-mode-hook #'auto-revert-mode)
