@@ -430,7 +430,10 @@ respects rectangle mode in a similar way to vim/doom"
 
 (define-key viper-vi-basic-map "u" #'undo-only)
 (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)
-(define-key viper-vi-basic-map (kbd "C-M-r")  #'isearch-backward)
+(define-key viper-vi-basic-map (kbd "C-S-r")  #'isearch-backward)
+;; replaces move-to-window-line-top-bottom but we use H M L in vi anyways
+(define-key viper-vi-basic-map (kbd "M-r")  #'isearch-backward) 
+(define-key viper-vi-basic-map (kbd "C-M-r") #'isearch-backward-regexp)
 
 (setq my/g-prefix-map (make-sparse-keymap))
 (define-key viper-vi-basic-map "g" my/g-prefix-map)

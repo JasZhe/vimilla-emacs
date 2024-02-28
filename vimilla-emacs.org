@@ -1484,13 +1484,16 @@ if the region exists then we jump to the beginning of the region and merge the n
   (define-key global-map (kbd "s-v") #'viper-paste-into-region)
 #+end_src
 
-** undo
+** undo redo isearch backwards
 thank god for undo-only but emacs > 28 only
 need to remap isearch-backward since i wanna use C-r for redo
 #+begin_src elisp
   (define-key viper-vi-basic-map "u" #'undo-only)
   (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)
-  (define-key viper-vi-basic-map (kbd "C-M-r")  #'isearch-backward)
+  (define-key viper-vi-basic-map (kbd "C-S-r")  #'isearch-backward)
+  ;; replaces move-to-window-line-top-bottom but we use H M L in vi anyways
+  (define-key viper-vi-basic-map (kbd "M-r")  #'isearch-backward) 
+  (define-key viper-vi-basic-map (kbd "C-M-r") #'isearch-backward-regexp)
 #+end_src
 
 ** "g" prefix commands
