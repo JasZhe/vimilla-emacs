@@ -1,9 +1,3 @@
-(defun viper-join-lines-advice (orig-fun &rest args)
-  (interactive "*P")
-  (cl-letf (((symbol-function 'insert) (lambda (&rest args) nil)))
-    (apply orig-fun args)))
-(advice-add 'viper-join-lines :around #'viper-join-lines-advice)
-
 (setq my/global-viper-state 'vi)
 (defun set-global-viper-state ()
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
@@ -334,16 +328,16 @@
                   (apply orig-fun args)))))
 
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
-(advice-add 'viper-join-lines :around
-            (lambda (orig-fun arg &rest args)
-              (interactive "P")
+(defun viper-join-lines-region-advice (orig-fun arg &rest args)
+  (interactive "P")
               (if (use-region-p)
                   (let* ((start (region-beginning))
                         (end (region-end))
                         (numlines (count-lines start end)))
                     (goto-char start)
                     (apply orig-fun `(,numlines)))
-                (apply orig-fun `(,arg)))))
+                (apply orig-fun `(,arg))))
+(advice-add 'viper-join-lines :around #'viper-join-lines-region-advice)
 
 (setq my/line-yank-p nil)
 (defun viper-delete-region-or-motion-command (arg)

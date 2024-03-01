@@ -945,16 +945,6 @@ lookup with eww first, then use =eww-browse-with-external-browser= if we need to
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
-** join lines
-I hate how joining lines adds spaces between the lines joined
-#+begin_src elisp
-  (defun viper-join-lines-advice (orig-fun &rest args)
-    (interactive "*P")
-    (cl-letf (((symbol-function 'insert) (lambda (&rest args) nil)))
-      (apply orig-fun args)))
-  (advice-add 'viper-join-lines :around #'viper-join-lines-advice)
-#+end_src
-
 ** vi state stuff
 hacky global var to have a "global" viper state
 is this better than the default behavior?
@@ -1367,21 +1357,37 @@ deactivate mark on esc
                     (apply orig-fun args)))))
 #+end_src
 
-*** join lines on selected region
+*** join lines 
 if the region exists then we jump to the beginning of the region and merge the number of lines selected
 #+begin_src elisp
   ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
-  (advice-add 'viper-join-lines :around
-              (lambda (orig-fun arg &rest args)
-                (interactive "P")
+  (defun viper-join-lines-region-advice (orig-fun arg &rest args)
+    (interactive "P")
                 (if (use-region-p)
                     (let* ((start (region-beginning))
                           (end (region-end))
                           (numlines (count-lines start end)))
                       (goto-char start)
                       (apply orig-fun `(,numlines)))
-                  (apply orig-fun `(,arg)))))
+                  (apply orig-fun `(,arg))))
+  (advice-add 'viper-join-lines :around #'viper-join-lines-region-advice)
 #+end_src
+
+I hate how joining lines adds spaces between the lines joined
+still kinda WIP need to think about this one
+#+begin_src elisp :tangle no
+    (defun viper-join-lines-advice (orig-fun &rest args)
+      (interactive "*P")
+      (cl-letf (((symbol-function 'looking-at)
+                 (lambda (regexp &optional _)
+                   (looking-at (rx-to-string
+                                `(: (or "[" "]" "(" ")" "," "{" "}")))))))
+                (apply orig-fun args)))
+  
+    (advice-remove 'viper-join-lines #'viper-join-lines-advice)
+    (advice-add 'viper-join-lines :around #'viper-join-lines-advice)
+#+end_src
+
 
 *** hacky stuff to make yanking/killing work for our line visual selection
 #+begin_src elisp
