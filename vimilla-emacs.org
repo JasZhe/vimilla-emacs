@@ -2136,19 +2136,39 @@ disable native comp warnings buffer from popping up
 (setq native-comp-async-report-warnings-errors 'silent)
 #+end_src
 
-** orderless
+** minibuffer
+#+PROPERTY: header-args :tangle no
+
+The classic minibuffer trifecta, should we not want to use the built in facilities
+*** vertico
+#+begin_src elisp
+  (use-package vertico :ensure t :pin gnu
+    :config
+    (setq vertico-count 12)
+    (fido-vertical-mode -1)
+    (icomplete-mode -1)
+    (vertico-mode))
+#+end_src
+
+*** orderless
 https://github.com/oantolin/orderless
 I like orderless too much, and it's not too complicated of a package.
 
 Otherwise the default custom partial-completion stuff we have works well enough to not impact our workflow too much
-#+begin_src elisp :tangle no
-  (use-package orderless :ensure nil :pin gnu
+#+begin_src elisp
+  (use-package orderless :ensure t :pin gnu
     :config
     (setq completion-styles '(orderless) completion-category-overrides nil completion-category-defaults nil)
     (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
     (remove-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
     (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
     (define-key icomplete-minibuffer-map " " #'self-insert-command))
+#+end_src
+
+*** marginalia
+#+begin_src elisp
+  (use-package marginalia :ensure t :pin gnu :defer 5
+    :config (marginalia-mode))
 #+end_src
 
 ** avy
@@ -2190,7 +2210,7 @@ well this oen is self explanatory
     :config
     (setq window-stool-use-overlays t)
     (add-hook 'prog-mode-hook #'window-stool-mode)
-    (add-hook 'org-mode-hook #'window-stool-mode))
+
 #+end_src
 
 ** eglot booster

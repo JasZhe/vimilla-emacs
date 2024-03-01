@@ -832,6 +832,24 @@ Meant for eshell in mind."
 
 (setq native-comp-async-report-warnings-errors 'silent)
 
+(use-package vertico :ensure t :pin gnu
+  :config
+  (setq vertico-count 12)
+  (fido-vertical-mode -1)
+  (icomplete-mode -1)
+  (vertico-mode))
+
+(use-package orderless :ensure t :pin gnu
+  :config
+  (setq completion-styles '(orderless) completion-category-overrides nil completion-category-defaults nil)
+  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
+  (remove-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
+  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+  (define-key icomplete-minibuffer-map " " #'self-insert-command))
+
+(use-package marginalia :ensure t :pin gnu :defer 5
+  :config (marginalia-mode))
+
 (use-package avy :ensure nil :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
@@ -851,7 +869,6 @@ Meant for eshell in mind."
   :config
   (setq window-stool-use-overlays t)
   (add-hook 'prog-mode-hook #'window-stool-mode)
-  (add-hook 'org-mode-hook #'window-stool-mode))
 
 (when (not (require 'eglot-booster nil 'noerrror))
   (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
