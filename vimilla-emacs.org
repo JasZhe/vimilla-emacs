@@ -2248,11 +2248,11 @@ just browse pdfs with external tools
 
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
-#+begin_src elisp :tangle no
-  (use-package magit :ensure nil :pin gnu :defer 5
+#+begin_src elisp
+  (use-package magit :ensure t :pin gnu :defer t
     :config
     (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . git-rebase-mode))
-    
+
     (define-key my/leader-prefix-map "gg" #'magit)
     (setq my/magit-vi-state-modify-map
           (make-composed-keymap
@@ -2270,6 +2270,10 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (define-key my/magit-vi-state-modify-map "p" #'magit-push)
     (define-key my/magit-vi-state-modify-map "F" #'magit-pull)
     (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
+    ;; for terminal issues with C-i
+    (define-key my/magit-vi-state-modify-map [C-i]
+                (lambda ()
+                  (interactive) (call-interactively (lookup-key magit-mode-map "\t"))))
 
     (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
 #+end_src
