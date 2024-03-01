@@ -876,22 +876,6 @@ Meant for eshell in mind."
   :config
   (eglot-booster-mode))
 
-(use-package pdf-tools :ensure nil :pin gnu
-  :mode "\\.pdf\\'"
-  :config
-    (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
-    (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
-    (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
-    (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
-    (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
-    (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
-   (setq pdf-view-resize-factor 1.10)
-    (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
-    (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
-
-    (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
-  )
-
 (use-package magit :ensure t :pin gnu :defer t
   :config
   (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . git-rebase-mode))
@@ -937,6 +921,22 @@ Meant for eshell in mind."
   :mode "\\.gohtml\\'"
   :config
   (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'"))))
+
+(use-package pdf-tools :ensure nil :pin gnu
+  :mode "\\.pdf\\'"
+  :config
+    (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
+    (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
+    (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
+    (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
+    (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
+    (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
+   (setq pdf-view-resize-factor 1.10)
+    (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
+    (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
+
+    (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
+  )
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

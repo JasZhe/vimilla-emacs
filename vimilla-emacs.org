@@ -2171,6 +2171,16 @@ Otherwise the default custom partial-completion stuff we have works well enough 
     :config (marginalia-mode))
 #+end_src
 
+*** consult
+#+begin_src elisp :tangle no
+  (use-package consult :ensure t :pin gnu :defer 5
+    :init
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+    :config
+    (setq completion-in-region-function #'consult-completion-in-region))
+#+end_src
+
 ** avy
 avy jumping is so nice
 https://github.com/abo-abo/avy
@@ -2225,27 +2235,6 @@ https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
     (eglot-booster-mode))
 #+end_src
 
-
-** pdf tools
-just browse pdfs with external tools
-#+begin_src elisp
-  (use-package pdf-tools :ensure nil :pin gnu
-    :mode "\\.pdf\\'"
-    :config
-      (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
-      (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
-      (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
-      (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
-      (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
-      (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
-     (setq pdf-view-resize-factor 1.10)
-      (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
-      (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
-
-      (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
-    )
-#+end_src
-
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
@@ -2280,16 +2269,6 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
 
 #+begin_src elisp
   (rassq-delete-all 'git-rebase-mode auto-mode-alist)
-#+end_src
-
-** consult
-#+begin_src elisp :tangle no
-  (use-package consult :ensure t :pin gnu :defer 5
-    :init
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
-    :config
-    (setq completion-in-region-function #'consult-completion-in-region))
 #+end_src
 
 ** denote
@@ -2339,6 +2318,27 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 #+begin_src elisp :tangle no
   (use-package markdown-mode :ensure t :defer 5)
 #+end_src
+
+** pdf tools
+just browse pdfs with external tools
+#+begin_src elisp
+  (use-package pdf-tools :ensure nil :pin gnu
+    :mode "\\.pdf\\'"
+    :config
+      (setq my/pdf-vi-state-modify-map (make-sparse-keymap))
+      (define-key my/pdf-vi-state-modify-map "o" #'pdf-outline)
+      (define-key my/pdf-vi-state-modify-map "H" #'pdf-view-fit-height-to-window)
+      (define-key my/pdf-vi-state-modify-map "W" #'pdf-view-fit-width-to-window)
+      (define-key my/pdf-vi-state-modify-map "j" #'pdf-view-next-line-or-next-page)
+      (define-key my/pdf-vi-state-modify-map "k" #'pdf-view-previous-line-or-previous-page)
+     (setq pdf-view-resize-factor 1.10)
+      (define-key my/pdf-vi-state-modify-map "+" #'pdf-view-enlarge)
+      (define-key my/pdf-vi-state-modify-map "-" #'pdf-view-shrink)
+
+      (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
+    )
+#+end_src
+
 
 * custom
 #+begin_src elisp
