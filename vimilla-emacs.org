@@ -2294,6 +2294,11 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
   (add-hook 'kotlin-ts-mode #'eglot-ensure)
 #+end_src
 
+** markdown
+#+begin_src elisp :tangle no
+  (use-package markdown-mode :ensure t :defer 5)
+#+end_src
+
 * custom
 #+begin_src elisp
   (custom-set-variables
