@@ -877,6 +877,14 @@ Meant for eshell in mind."
 
 (rassq-delete-all 'git-rebase-mode auto-mode-alist)
 
+(use-package denote :ensure t :pin gnu :defer 5
+  :config
+  (setq denote-directory "~/orgmode/notes")
+  (define-key my/leader-prefix-map "do" #'denote-open-or-create)
+  (define-key my/leader-prefix-map "dd" #'denote-open-or-create)
+  (define-key my/leader-prefix-map "dt" #'denote-type)
+  (define-key my/leader-prefix-map "dn" #'denote))
+
 (when (not (require 'web-mode nil 'noerrror))
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                  :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
