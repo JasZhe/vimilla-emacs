@@ -1,3 +1,9 @@
+(defun viper-join-lines-advice (orig-fun &rest args)
+  (interactive "*P")
+  (cl-letf (((symbol-function 'insert) (lambda (&rest args) nil)))
+    (apply orig-fun args)))
+(advice-add 'viper-join-lines :around #'viper-join-lines-advice)
+
 (setq my/global-viper-state 'vi)
 (defun set-global-viper-state ()
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))

@@ -945,23 +945,14 @@ lookup with eww first, then use =eww-browse-with-external-browser= if we need to
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 
-** forward word separator
-#+begin_src elisp :tangle no
-  (defconst viper-SEP-char-class " -_"
-    "String of syntax classes for Vi separators.
-    Usually contains ` ', linefeed, TAB or formfeed.")
-
-  (defun viper-forward-word-kernel (val)
-    (while (> val 0)
-      (cond ((viper-looking-at-alpha)
-             (viper-skip-alpha-forward) ;; before had "_" as arg
-             (viper-skip-separators t))
-            ((viper-looking-at-separator)
-             (viper-skip-separators t))
-            ((not (viper-looking-at-alphasep))
-             (viper-skip-nonalphasep-forward)
-             (viper-skip-separators t)))
-      (setq val (1- val))))
+** join lines
+I hate how joining lines adds spaces between the lines joined
+#+begin_src elisp
+  (defun viper-join-lines-advice (orig-fun &rest args)
+    (interactive "*P")
+    (cl-letf (((symbol-function 'insert) (lambda (&rest args) nil)))
+      (apply orig-fun args)))
+  (advice-add 'viper-join-lines :around #'viper-join-lines-advice)
 #+end_src
 
 ** vi state stuff
