@@ -787,6 +787,7 @@ position of the outside of the paren.  Otherwise return nil."
           vc-annotate-mode-map)))
   (define-key my/vc-annotate-mode-vi-state-map (kbd "C-j") #'vc-annotate-next-revision)
   (define-key my/vc-annotate-mode-vi-state-map (kbd "C-k") #'vc-annotate-prev-revision)
+  (define-key my/vc-annotate-mode-vi-state-map (kbd "L") #'vc-annotate-show-log-revision-at-line)
   (viper-modify-major-mode 'vc-annotate-mode 'vi-state my/vc-annotate-mode-vi-state-map))
 (add-hook 'vc-annotate-mode-hook #'viper-mode)
 

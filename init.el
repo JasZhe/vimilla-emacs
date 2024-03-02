@@ -218,6 +218,7 @@
 (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
 
 (setq completion-styles '(partial-completion basic) completion-category-overrides nil completion-category-defaults nil)
+;; need this hook otherwise i think fido setup or something overrides the completion which is annoying
 (defun my-icomplete-styles () (setq-local completion-styles '(partial-completion basic)))
 (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
 
@@ -747,7 +748,7 @@ Meant for eshell in mind."
                 (lambda ()
                   (interactive)
                   ;; want org cycle if region active for indenting, or heading for collapsing
-                  (if (or (org-at-heading-p) (region-active-p))
+                  (if (or (org-at-heading-p) (region-active-p) (org-at-property-block-p) (org-at-property-drawer-p))
                       (call-interactively (lookup-key org-mode-map "\t"))
                     (call-interactively (lookup-key viper-vi-basic-map [C-i])))))
 
