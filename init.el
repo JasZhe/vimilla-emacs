@@ -270,95 +270,18 @@ With a prefix-arg run normally and specfiy a directory"
              my/ioccur-nlines-arg
              (list my/occur-buffer))))
 
-(setq project-find-regexp-prev "")
-(advice-add 'project-find-regexp :around
-            (lambda (orig-fun regexp)
-              (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
-                (setq project-find-regexp-prev regexp)
-                (funcall orig-fun regexp))))
-
-(setq xref-find-apropos-prev "")
-(advice-add 'xref-find-apropos :around
-            (lambda (orig-fun regexp)
-              (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
-                (setq xref-find-apropos-prev regexp)
-                (funcall orig-fun regexp))))
-
-(defun my/ixref-apropos-minibuf-after-edit (beg end len)
-  (setq my/ixref-apropos-string (buffer-substring-no-properties (1+ (length my/ixref-apropos-prompt-string)) (point-max)))
-  (when (gt (length (string-replace ".*" "" my/ixref-apropos-string)) 2)
-    (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
-      (with-current-buffer current-xref-buffer (xref-find-apropos my/ixref-apropos-string)))))
-
-(setq my/ixref-apropos-prompt-string "Find symbol apropos: ")
-(setq my/ixref-apropos-string "")
-
-(defun my/ixref-apropos (arg)
-  "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
-With a prefix-arg run normally and specfiy a directory"
-  (interactive "P")
-  (setq my/ixref-apropos-string "")
-  ;; this is needed, otherwise xref-apropos in the minibuf-after-edit fn will try to find the xref-backend using the minibuffer instead of the
-  ;; a buffer belonging to the project we care about
-  (setq current-xref-buffer (current-buffer))
-  (if arg
-      (let ((current-prefix-arg '(4)))
-        (call-interactively #'xref-find-apropos))
-    (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
-          (starting-regexp (read-regexp "start searching symbols with: ")))
-      (setq my/ixref-apropos-string starting-regexp)
-      (minibuffer-with-setup-hook
-          (lambda ()
-            (local-set-key (kbd "SPC") (lambda () (interactive) (insert " ")))
-            (add-hook 'after-change-functions #'my/ixref-apropos-minibuf-after-edit nil 'local)
-            (insert starting-regexp))
-        (xref-find-apropos (read-regexp my/ixref-apropos-prompt-string))))))
-
-(defun my/iproject-find-minibuf-after-edit (beg end len)
-  (setq my/iproject-find-string (buffer-substring-no-properties (1+ (length my/iproject-find-prompt-string)) (point-max)))
-  (when (gt (length (string-replace ".*" "" my/iproject-find-string)) 2)
-    (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
-      (ignore-errors (project-find-regexp my/iproject-find-string)))))
-
-(setq my/iproject-find-prompt-string "Find in proj: ")
-(setq my/iproject-find-string "")
-
-(defun my/iproject-find (arg)
-  "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
-With a prefix-arg run normally and specfiy a directory"
-  (interactive "P")
-  (setq my/iproject-find-string "")
-  (if arg
-      (let ((current-prefix-arg '(4)))
-        (call-interactively #'project-find-regexp))
-    (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
-          (starting-regexp (read-regexp "start searching with: ")))
-      (setq my/iproject-find-string starting-regexp)
-      (minibuffer-with-setup-hook
-          (lambda ()
-            (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
-            (add-hook 'after-change-functions #'my/iproject-find-minibuf-after-edit nil 'local)
-            (insert starting-regexp))
-        (project-find-regexp (read-regexp my/iproject-find-prompt-string))))))
-
-(defun ripgrep ()
-  (interactive)
-  (call-interactively 'grep))
-
-(defun rripgrep ()
-  (interactive)
-  (call-interactively 'rgrep))
-
-(advice-add
- #'grep-compute-defaults
- :before (lambda ()
-           (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
-               (progn
-                 (grep-apply-setting 'grep-command "rg -nS --no-heading ")
-                 (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
-             (progn
-               (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
-               (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
+(defun search-advice (orig-fun regexp)
+  (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          ;; for some reason this doesn't apply in xref find apropos but that's honestly ok
+          ;; cause it uses a space separated list of words anyways
+          (local-set-key (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+          (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*"))))
+      (funcall orig-fun regexp))))
+(advice-add 'project-find-regexp :around #'search-advice)
+(advice-add 'xref-find-apropos :around #'search-advice)
+(advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
 
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same

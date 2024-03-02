@@ -66,3 +66,109 @@ https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
 #+end_src
 
 
+
+* incremental project search
+:PROPERTIES:
+:ARCHIVE_TIME: 2024-03-02 Sat 02:20
+:ARCHIVE_FILE: ~/vimilla-emacs/vimilla-emacs.org
+:ARCHIVE_CATEGORY: vimilla-emacs
+:END:
+Acts like occur, deferring a lot of the work to the existing xref buffer functionality
+good enough without getting too complicated
+
+don't actually run it until we have at least 5 chars to prevent initial lag
+
+then with prefix arg we basically do the normal project-find-regexp but we can specify the directory
+#+begin_src elisp
+  (defun my/iproject-find-minibuf-after-edit (beg end len)
+    (setq my/iproject-find-string (buffer-substring-no-properties (1+ (length my/iproject-find-prompt-string)) (point-max)))
+    (when (gt (length (string-replace ".*" "" my/iproject-find-string)) 2)
+      (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+        (ignore-errors (project-find-regexp my/iproject-find-string)))))
+
+  (setq my/iproject-find-prompt-string "Find in proj: ")
+  (setq my/iproject-find-string "")
+
+  (defun my/iproject-find (arg)
+    "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+  With a prefix-arg run normally and specfiy a directory"
+    (interactive "P")
+    (setq my/iproject-find-string "")
+    (if arg
+        (let ((current-prefix-arg '(4)))
+          (call-interactively #'project-find-regexp))
+      (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
+            (starting-regexp (read-regexp "start searching with: ")))
+        (setq my/iproject-find-string starting-regexp)
+        (minibuffer-with-setup-hook
+            (lambda ()
+              (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*")))
+              (add-hook 'after-change-functions #'my/iproject-find-minibuf-after-edit nil 'local)
+              (insert starting-regexp))
+          (project-find-regexp (read-regexp my/iproject-find-prompt-string))))))
+#+end_src
+
+** command to use ripgrep instead
+#+begin_src elisp
+  (defun ripgrep ()
+    (interactive)
+    (call-interactively 'grep))
+
+  (defun rripgrep ()
+    (interactive)
+    (call-interactively 'rgrep))
+
+  (advice-add
+   #'grep-compute-defaults
+   :before (lambda ()
+             (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
+                 (progn
+                   (grep-apply-setting 'grep-command "rg -nS --no-heading ")
+                   (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
+               (progn
+                 (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
+                 (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
+
+  #+end_src
+
+
+* incremental xref-find-apropos
+:PROPERTIES:
+:ARCHIVE_TIME: 2024-03-02 Sat 02:49
+:ARCHIVE_FILE: ~/vimilla-emacs/vimilla-emacs.org
+:ARCHIVE_CATEGORY: vimilla-emacs
+:END:
+#+begin_src elisp
+  (defun my/ixref-apropos-minibuf-after-edit (beg end len)
+    (setq my/ixref-apropos-string (buffer-substring-no-properties (1+ (length my/ixref-apropos-prompt-string)) (point-max)))
+    (setq xref-find-apropos-prev my/ixref-apropos-string)
+    (when (gt (length (string-replace ".*" "" my/ixref-apropos-string)) 2)
+      (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buf &optional _ _) (display-buffer buf))))
+        (with-current-buffer current-xref-buffer (ignore-errors (xref-find-apropos my/ixref-apropos-string))))))
+
+  (setq my/ixref-apropos-prompt-string "Find symbol apropos: ")
+  (setq my/ixref-apropos-string "")
+
+  (defun my/ixref-apropos (arg)
+    "Run a pseudo interactive grep, which will incrementally update the xref buffer based on minibuffer input.
+  With a prefix-arg run normally and specfiy a directory"
+    (interactive "P")
+    (setq my/ixref-apropos-string "")
+    ;; this is needed, otherwise xref-apropos in the minibuf-after-edit fn will try to find the xref-backend using the minibuffer instead of the
+    ;; a buffer belonging to the project we care about
+    (setq current-xref-buffer (current-buffer))
+    (if arg
+        (let ((current-prefix-arg '(4)))
+          (call-interactively #'xref-find-apropos))
+      (let ((xref-show-xrefs-function #'xref--show-xref-buffer)
+            (starting-regexp (read-regexp "start searching symbols with: ")))
+        (setq my/ixref-apropos-string starting-regexp)
+        (setq xref-find-apropos-prev starting-regexp)
+        (minibuffer-with-setup-hook
+            (lambda ()
+              (local-set-key (kbd "SPC") (lambda () (interactive) (insert " ")))
+              (add-hook 'after-change-functions #'my/ixref-apropos-minibuf-after-edit nil 'local)
+              (insert starting-regexp))
+          (xref-find-apropos (read-regexp my/ixref-apropos-prompt-string))))))
+#+end_src
+

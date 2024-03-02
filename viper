@@ -458,7 +458,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key universal-argument-map " u" #'universal-argument-more)
 
 (define-key my/leader-prefix-map "F" #'project-find-file)
-(define-key my/leader-prefix-map "G" #'my/iproject-find)
+(define-key my/leader-prefix-map "G" #'project-find-regexp)
 (define-key my/leader-prefix-map "X" #'org-capture)
 
 (define-key my/leader-prefix-map "x"
@@ -477,9 +477,9 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "px" #'flymake-show-project-diagnostics)
 
 (define-key my/leader-prefix-map "'"
-            (lambda ()
-              (interactive)
-              (minibuffer-with-setup-hook (lambda () (insert project-find-regexp-prev))
+            (lambda () (interactive)
+              (minibuffer-with-setup-hook
+                  (lambda () (previous-history-element 1))
                 (call-interactively 'project-find-regexp))))
 
 (defun my/flymake-diagnostics-at-point ()
@@ -613,7 +613,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "cr" #'eglot-rename)
 (define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
 (define-key my/leader-prefix-map "ca" #'eglot-code-actions)
-(define-key my/leader-prefix-map "cj" #'my/ixref-apropos)
+(define-key my/leader-prefix-map "cj" #'xref-find-apropos)
 
 (define-key viper-vi-basic-map "K" #'eldoc)
 (define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)
