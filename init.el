@@ -509,6 +509,9 @@ Meant for eshell in mind."
   (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
   (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map))
 
+(use-package eshell :after consult :config
+  (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'consult-history))
+
 (use-package shell :defer t
   :config
   (setq my/shell-insert-state-modify-map (make-sparse-keymap))
