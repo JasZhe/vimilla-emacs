@@ -758,21 +758,64 @@ Meant for eshell in mind."
 
 (use-package vertico :ensure t :pin gnu
   :config
+  (setq vertico-cycle t)
   (setq vertico-count 12)
+  (setq vertico-resize nil)
   (fido-vertical-mode -1)
   (icomplete-mode -1)
+  (define-key vertico-map (kbd "RET") #'vertico-exit)
   (vertico-mode))
 
-(use-package orderless :ensure t :pin gnu
+(use-package orderless :ensure t :pin gnu :after icomplete
   :config
-  (setq completion-styles '(orderless) completion-category-overrides nil completion-category-defaults nil)
-  (defun my-icomplete-styles () (setq-local completion-styles '(orderless)))
-  (remove-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
-  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
-  (define-key icomplete-minibuffer-map " " #'self-insert-command))
+  ;; stolen from doom
+  (defun +vertico-orderless-dispatch (pattern _index _total)
+    (cond
+     ;; Ensure $ works with Consult commands, which add disambiguation suffixess
+     ((string-suffix-p "$" pattern)
+      `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x200000-\x300000]*$")))
+     ;; Ignore single !
+     ((string= "!" pattern) `(orderless-literal . ""))
+     ;; Without literal
+     ((string-prefix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 1)))
+     ;; Character folding
+     ((string-prefix-p "%" pattern) `(char-fold-to-regexp . ,(substring pattern 1)))
+     ((string-suffix-p "%" pattern) `(char-fold-to-regexp . ,(substring pattern 0 -1)))
+     ;; Initialism matching
+     ((string-prefix-p "`" pattern) `(orderless-initialism . ,(substring pattern 1)))
+     ((string-suffix-p "`" pattern) `(orderless-initialism . ,(substring pattern 0 -1)))
+     ;; Literal matching
+     ((string-prefix-p "=" pattern) `(orderless-literal . ,(substring pattern 1)))
+     ((string-suffix-p "=" pattern) `(orderless-literal . ,(substring pattern 0 -1)))
+     ;; Flex matching
+     ((string-prefix-p "~" pattern) `(orderless-flex . ,(substring pattern 1)))
+     ((string-suffix-p "~" pattern) `(orderless-flex . ,(substring pattern 0 -1)))))
 
-(use-package marginalia :ensure t :pin gnu :defer 5
+  (setq completion-styles '(orderless basic) completion-category-overrides nil completion-category-defaults nil)
+  (setq orderless-style-dispatchers '(+vertico-orderless-dispatch))
+  (setq orderless-component-separator "[ &]")
+  (define-key icomplete-minibuffer-map " " #'self-insert-command)
+  (remove-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
+  (remove-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+  (defun my-icomplete-styles () (setq-local completion-styles '(orderless basic)))
+  (remove-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
+  (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles))
+
+(use-package marginalia :ensure t :pin gnu
   :config (marginalia-mode))
+
+(use-package consult :ensure t :pin gnu
+  :config
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref
+        completion-in-region-function #'consult-completion-in-region)
+  (define-key my/leader-prefix-map "," #'consult-project-buffer)
+  (define-key my/leader-prefix-map "G"
+              (lambda () (interactive)
+                (call-interactively (if (executable-find "rg") #'consult-ripgrep #'consult-grep))))
+  (define-key my/leader-prefix-map "cx" #'consult-flymake)
+  (define-key my/leader-prefix-map "ss" #'consult-line)
+  (define-key my/leader-prefix-map "si" #'consult-imenu))
 
 (use-package avy :ensure nil :pin gnu :defer 2
   :config
@@ -792,15 +835,9 @@ Meant for eshell in mind."
 (use-package window-stool :defer 2
   :config
   (setq window-stool-use-overlays t)
-  (add-hook 'prog-mode-hook #'window-stool-mode)
+  (add-hook 'prog-mode-hook #'window-stool-mode))
 
-(when (not (require 'eglot-booster nil 'noerrror))
-  (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
-(use-package eglot-booster :after eglot
-  :config
-  (eglot-booster-mode))
-
-(use-package magit :ensure t :pin gnu :defer t
+(use-package magit :ensure t :pin nongnu :defer 3
   :config
   (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . git-rebase-mode))
 
@@ -830,7 +867,7 @@ Meant for eshell in mind."
 
 (rassq-delete-all 'git-rebase-mode auto-mode-alist)
 
-(use-package denote :ensure t :pin gnu :defer 5
+(use-package denote :ensure t :pin gnu :defer 2
   :config
   (setq denote-directory "~/orgmode/notes")
   (define-key my/leader-prefix-map "do" #'denote-open-or-create)
