@@ -687,6 +687,9 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
                       (comint-kill-input)
                       (insert selected)))))
     (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
+  
+  (use-package shell :after consult :config
+    (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 #+end_src
 
 * Font and theme

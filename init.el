@@ -532,6 +532,9 @@ Meant for eshell in mind."
                     (insert selected)))))
   (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
 
+(use-package shell :after consult :config
+  (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
+
 (when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
   (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height 130))
 (when (member "Iosevka Etoile" (font-family-list))
