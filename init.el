@@ -550,7 +550,7 @@ Meant for eshell in mind."
 (setq modus-themes-bold-constructs t)
 (setq modus-themes-italic-constructs t)
 (setq modus-themes-org-blocks 'gray-background)
-(load-theme 'modus-operandi)
+;; (load-theme 'modus-operandi)
 ;; (use-package vc :defer t
 ;;   :config
 ;;   ;; for some reason modus gets rid of diff-header
@@ -559,14 +559,23 @@ Meant for eshell in mind."
 (midnight-mode)
 
 (defun load-light-theme ()
-  (load-theme 'modus-operandi t)
-  (viper-change-cursor-color "white")
-  (setq viper-vi-state-cursor-color "white")
-  (set-cursor-color "black"))
+  (condition-case nil
+      (progn 
+        (load-theme 'modus-operandi-tinted t)
+        (set-cursor-color "#a60000"))
+    (error (progn
+             (load-theme 'modus-operandi t)
+             (set-cursor-color "black")))))
 
 (defun load-dark-theme ()
-  (load-theme 'modus-vivendi t)
-  (set-cursor-color "white"))
+  (condition-case nil
+      (progn
+        (load-theme 'modus-vivendi-tinted t)
+        (set-cursor-color "#f78fe7"))
+    (error
+     (progn
+       (load-theme 'modus-vivendi t)
+       (set-cursor-color "white")))))
 
 (defun load-dark-theme1 ()
   (load-dark-theme))
