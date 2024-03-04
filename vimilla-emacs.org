@@ -1,4 +1,4 @@
-q#+title: Minimalistic Vim Flavoured Emacs Config
+#+title: Minimalistic Vim Flavoured Emacs Config
 #+PROPERTY: header-args :tangle init.el :results silent :lexical t
 
 * lexical
@@ -2033,6 +2033,11 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 #+end_src
 
 * (blasphemy) external packages
+#+begin_src elisp
+  (unless (boundp 'package-archives)
+    (package-initialize))
+#+end_src
+
 Need to install these seperately, but some configuration here
 These packages are all good enough to be built in to be honest
 
@@ -2040,7 +2045,7 @@ Lets at least stick with gnu/nongnu elpa
 
 disable native comp warnings buffer from popping up
 #+begin_src elisp
-(setq native-comp-async-report-warnings-errors 'silent)
+  (setq native-comp-async-report-warnings-errors 'silent)
 #+end_src
 
 ** minibuffer

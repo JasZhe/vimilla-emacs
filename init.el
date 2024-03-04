@@ -760,6 +760,9 @@ Meant for eshell in mind."
 
     (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)))
 
+(unless (boundp 'package-archives)
+  (package-initialize))
+
 (setq native-comp-async-report-warnings-errors 'silent)
 
 (use-package vertico :ensure t :pin gnu
