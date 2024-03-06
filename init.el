@@ -391,6 +391,10 @@ Meant for eshell in mind."
             (unless (eq major-mode 'web-mode)
               (electric-pair-local-mode))))
 
+(add-to-list 'display-buffer-alist
+             '("\\*eldoc\\*"
+               (display-buffer-in-side-window)))
+
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 
@@ -655,6 +659,11 @@ Meant for eshell in mind."
 (setq browse-url-browser-function 'eww-browse-url)
 (add-hook 'eww-after-render-hook 'eww-readable)
 
+(add-to-list 'display-buffer-alist
+             '("\\*eww\\*"
+               (display-buffer-in-side-window)
+               (window-height . 0.5)))
+
 (use-package newst-backend :defer t
   :config
   (setq newsticker-url-list
@@ -854,7 +863,12 @@ Meant for eshell in mind."
 
 (when (not (require 'hurl-mode nil 'noerrror))
   (package-vc-install "https://github.com/JasZhe/hurl-mode"))
-(use-package hurl-mode :mode "\\.hurl\\'")
+(use-package hurl-mode :mode "\\.hurl\\'"
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\*hurl-response*\\*"
+                 (display-buffer-in-side-window)
+                 (window-height . 0.4))))
 
 (when (not (require 'window-stool nil 'noerrror))
   (package-vc-install "https://github.com/JasZhe/window-stool"))
@@ -889,7 +903,12 @@ Meant for eshell in mind."
               (lambda ()
                 (interactive) (call-interactively (lookup-key magit-mode-map "\t"))))
 
-  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
+  (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+
+  (add-to-list 'display-buffer-alist
+               '("magit:.*"
+                 (display-buffer-same-window)))
+  )
 
 (rassq-delete-all 'git-rebase-mode auto-mode-alist)
 

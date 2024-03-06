@@ -523,6 +523,13 @@ and source some.envrc, then using that same shell, just copy all the environment
                 (electric-pair-local-mode))))
 #+end_src
 
+*** eldoc display buffer in bottom side window
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist
+               '("\\*eldoc\\*"
+                 (display-buffer-in-side-window)))
+#+end_src
+
 ** golang
 
 #+begin_src elisp
@@ -836,6 +843,14 @@ lookup with eww first, then use =eww-browse-with-external-browser= if we need to
 #+begin_src elisp
   (setq browse-url-browser-function 'eww-browse-url)
   (add-hook 'eww-after-render-hook 'eww-readable)
+#+end_src
+
+display eww in side window with a large height
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist
+               '("\\*eww\\*"
+                 (display-buffer-in-side-window)
+                 (window-height . 0.5)))
 #+end_src
 
 * Rss feed via newsticker
@@ -2178,7 +2193,12 @@ well this oen is self explanatory
 #+begin_src elisp
   (when (not (require 'hurl-mode nil 'noerrror))
     (package-vc-install "https://github.com/JasZhe/hurl-mode"))
-  (use-package hurl-mode :mode "\\.hurl\\'")
+  (use-package hurl-mode :mode "\\.hurl\\'"
+    :config
+    (add-to-list 'display-buffer-alist
+                 '("\\*hurl-response*\\*"
+                   (display-buffer-in-side-window)
+                   (window-height . 0.4))))
 #+end_src
 
 ** my own window stool mode :)
@@ -2232,7 +2252,12 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
                 (lambda ()
                   (interactive) (call-interactively (lookup-key magit-mode-map "\t"))))
 
-    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map))
+    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+
+    (add-to-list 'display-buffer-alist
+                 '("magit:.*"
+                   (display-buffer-same-window)))
+    )
 #+end_src
 
 #+begin_src elisp
