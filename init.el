@@ -751,6 +751,8 @@ Meant for eshell in mind."
         ("PROJ" . +org-todo-project)
         ("NO"   . +org-todo-cancel)
         ("KILL" . +org-todo-cancel)))
+(setq org-agenda-window-setup 'current-window)
+(setq org-agenda-restore-windows-after-quit t)
 
 ;; allow dabbrev expand on tab when in insert mode
 (defun line-before-point-empty-p ()
@@ -763,6 +765,14 @@ Meant for eshell in mind."
     (setq org-goto-interface 'outline-path-completionp)
     (setq org-outline-path-complete-in-steps nil)
     (setq org-return-follows-link t)
+    (advice-add 'org-agenda-get-restriction-and-command :around
+                (lambda (orig-fun &rest args)
+                  (cl-letf (((symbol-function 'delete-other-windows) (lambda () nil)))
+                    (apply orig-fun args))))
+    (add-to-list 'display-buffer-alist
+                 '("\\*Agenda Commands\\*"
+                   (display-buffer-in-side-window)))
+
     (setq my/org-vi-state-modify-map (make-sparse-keymap))
 
     (define-key my/org-vi-state-modify-map "zi" #'org-toggle-inline-images)
