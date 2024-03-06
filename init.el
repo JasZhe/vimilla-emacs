@@ -82,6 +82,10 @@
   (setq ediff-window-setup-function #'ediff-setup-windows-plain)
   (setq ediff-split-window-function #'split-window-horizontally))
 
+(when (eq system-type 'gnu/linux)
+  (setq x-super-keysym 'meta)
+  (setq x-meta-keysym 'super))
+
 (setq mac-option-modifier 'meta)
 (setq mac-command-modifier 'super)
 (define-key global-map (kbd "s-/") #'comment-line)
@@ -92,10 +96,11 @@
 (define-key input-decode-map "\e[1;P9" (kbd "s-/"))
 
 (defun macos-term-select-text-to-clipboard (text)
-  (shell-command (concat "echo \"" text "\" | pbcopy" )))
+  (unless (eq system-type 'gnu/linux)
+    (shell-command (concat "echo \"" text "\" | pbcopy" ))))
 
 ;; ITERM2 MOUSE SUPPORT
-(unless window-system
+(unless (or window-system (daemonp))
   (require 'mouse)
   (xterm-mouse-mode t)
   (defun track-mouse (e)) 
@@ -178,7 +183,8 @@
           (lambda ()
             (setq gc-cons-threshold (expt 2 23))))
 
-(setq inhibit-startup-screen t)  
+(setq inhibit-startup-screen t)
+(menu-bar-mode 0)
 (tool-bar-mode 0)
 (setq viper-mode t)
 (require 'viper)

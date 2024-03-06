@@ -112,6 +112,13 @@ org really hates the parens matching when < or > is involved
     (setq ediff-split-window-function #'split-window-horizontally))
 #+end_src
 
+* linux settings
+#+begin_src elisp
+  (when (eq system-type 'gnu/linux)
+    (setq x-super-keysym 'meta)
+    (setq x-meta-keysym 'super))
+#+end_src
+
 * Mac settings
 if machine isn't a mac then this won't do anything anyways so need to do some OS version check or whatever
 
@@ -138,10 +145,11 @@ The P9 can go to like P56. [1;P9 maps to like CTRL CMD OPTION A, which we probab
 * terminal settings
 #+begin_src elisp
   (defun macos-term-select-text-to-clipboard (text)
-    (shell-command (concat "echo \"" text "\" | pbcopy" )))
+    (unless (eq system-type 'gnu/linux)
+      (shell-command (concat "echo \"" text "\" | pbcopy" ))))
 
   ;; ITERM2 MOUSE SUPPORT
-  (unless window-system
+  (unless (or window-system (daemonp))
     (require 'mouse)
     (xterm-mouse-mode t)
     (defun track-mouse (e)) 
@@ -238,7 +246,8 @@ stole the completing read stuff from:
             (lambda ()
               (setq gc-cons-threshold (expt 2 23))))
 
-  (setq inhibit-startup-screen t)  
+  (setq inhibit-startup-screen t)
+  (menu-bar-mode 0)
   (tool-bar-mode 0)
   (setq viper-mode t)
   (require 'viper)
@@ -1592,7 +1601,10 @@ pretty handy tbh
   (define-key my/leader-prefix-map "bmm" #'my/set-project-bookmark)
   (define-key my/leader-prefix-map "bmj" #'my/jump-to-project-bookmark)
 #+end_src
-
+*** news prefix
+#+begin_src elisp
+  (define-key my/leader-prefix-map "Nt" #'newsticker-treeview)
+#+end_src
 *** pseudo "files" "f" prefix
 #+begin_src elisp
     (define-key my/leader-prefix-map "ff" #'find-file)

@@ -567,6 +567,8 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "bmm" #'my/set-project-bookmark)
 (define-key my/leader-prefix-map "bmj" #'my/jump-to-project-bookmark)
 
+(define-key my/leader-prefix-map "Nt" #'newsticker-treeview)
+
 (define-key my/leader-prefix-map "ff" #'find-file)
 
 (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
