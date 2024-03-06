@@ -345,8 +345,7 @@ With a prefix-arg run normally and specfiy a directory"
                                    '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
                        (complete-symbol arg))))
 
-(defun copy-env-vars-from-shell ()
-  (interactive)
+(defun copy-env-vars-from-shell-1 (cmd)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))
                  (name (cl-first split))
@@ -359,7 +358,11 @@ With a prefix-arg run normally and specfiy a directory"
                 ;; eshell path
                 (setq-default eshell-path-env val)
                 (when (fboundp 'eshell-set-path) (eshell-set-path val))))))
-        (split-string (shell-command-to-string "bash --login -i -c printenv") "\n")))
+        (split-string (shell-command-to-string cmd) "\n")))
+
+(defun copy-env-vars-from-shell ()
+  (interactive)
+  (copy-env-vars-from-shell-1 "bash --login -i -c printenv"))
 
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
@@ -429,6 +432,10 @@ Meant for eshell in mind."
               (setenv name (string-trim val "[ '\"]" "[ '\"]")))))
         (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
   (call-interactively 'eglot-reconnect))
+
+(defun copy-pipenv-vars-from-shell ()
+  (interactive)
+  (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
 
 (setq-default tab-width 4)
 

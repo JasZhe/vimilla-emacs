@@ -470,8 +470,7 @@ this might be nice if we need to set env vars without direnv
 idea is to maybe pass some shell command to cd into a folder
 and source some.envrc, then using that same shell, just copy all the environment vars from there using =setenv=
 #+begin_src elisp
-  (defun copy-env-vars-from-shell ()
-    (interactive)
+  (defun copy-env-vars-from-shell-1 (cmd)
     (mapc (lambda (env-var-string)
             (let* ((split (split-string env-var-string "="))
                    (name (cl-first split))
@@ -484,7 +483,11 @@ and source some.envrc, then using that same shell, just copy all the environment
                   ;; eshell path
                   (setq-default eshell-path-env val)
                   (when (fboundp 'eshell-set-path) (eshell-set-path val))))))
-          (split-string (shell-command-to-string "bash --login -i -c printenv") "\n")))
+          (split-string (shell-command-to-string cmd) "\n")))
+
+  (defun copy-env-vars-from-shell ()
+    (interactive)
+    (copy-env-vars-from-shell-1 "bash --login -i -c printenv"))
 #+end_src
 
 ** tramp environment variables
@@ -570,6 +573,13 @@ and source some.envrc, then using that same shell, just copy all the environment
                 (setenv name (string-trim val "[ '\"]" "[ '\"]")))))
           (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
     (call-interactively 'eglot-reconnect))
+#+end_src
+
+** python
+#+begin_src elisp
+  (defun copy-pipenv-vars-from-shell ()
+    (interactive)
+    (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
 #+end_src
 
 ** javascript/typescript
@@ -2339,7 +2349,6 @@ just browse pdfs with external tools
       (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
     )
 #+end_src
-
 
 * custom
 #+begin_src elisp
