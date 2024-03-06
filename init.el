@@ -546,6 +546,8 @@ Meant for eshell in mind."
 (when (member "Iosevka Etoile" (font-family-list))
   (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height 130))
 
+(use-package modus-themes :ensure t :pin gnu)
+
 (setq modus-themes-headings
       '((1 . (rainbow overline background variable-pitch 1.25))
         (2 . (rainbow background variable-pitch 1.15))

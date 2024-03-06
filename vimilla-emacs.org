@@ -714,6 +714,10 @@ There is a weird thing where vc-diff won't highlight some stuff since the modus 
 instead
 ** modus
 #+begin_src elisp
+  (use-package modus-themes :ensure t :pin gnu)
+#+end_src
+
+#+begin_src elisp
   (setq modus-themes-headings
         '((1 . (rainbow overline background variable-pitch 1.25))
           (2 . (rainbow background variable-pitch 1.15))
@@ -2280,7 +2284,7 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 
 ** markdown
 #+begin_src elisp :tangle no
-  (use-package markdown-mode :ensure t :defer 5)
+  (use-package markdown-mode :ensure t)
 #+end_src
 
 ** pdf tools
