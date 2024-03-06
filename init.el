@@ -403,6 +403,11 @@ Meant for eshell in mind."
                (display-buffer-in-side-window)
                (window-height . 0.35)))
 
+(add-to-list 'display-buffer-alist
+             '("\\*Messages\\*"
+               (display-buffer-in-side-window)
+               (window-height . 0.15)))
+
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 

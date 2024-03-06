@@ -541,6 +541,14 @@ and source some.envrc, then using that same shell, just copy all the environment
                  (window-height . 0.35)))
 #+end_src
 
+*** messages display buffer in bottom side window
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist
+               '("\\*Messages\\*"
+                 (display-buffer-in-side-window)
+                 (window-height . 0.15)))
+#+end_src
+
 ** golang
 
 #+begin_src elisp
