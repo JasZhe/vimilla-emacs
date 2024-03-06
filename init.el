@@ -395,6 +395,11 @@ Meant for eshell in mind."
              '("\\*eldoc\\*"
                (display-buffer-in-side-window)))
 
+(add-to-list 'display-buffer-alist
+             '("\\*help\\*"
+               (display-buffer-in-side-window)
+               (window-height . 0.35)))
+
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 

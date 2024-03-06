@@ -530,6 +530,14 @@ and source some.envrc, then using that same shell, just copy all the environment
                  (display-buffer-in-side-window)))
 #+end_src
 
+*** help display buffer in bottom side window
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist
+               '("\\*help\\*"
+                 (display-buffer-in-side-window)
+                 (window-height . 0.35)))
+#+end_src
+
 ** golang
 
 #+begin_src elisp
