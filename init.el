@@ -361,11 +361,7 @@ With a prefix-arg run normally and specfiy a directory"
         (t (message "No completion") nil))))
 (setq completion-in-region-function #'completing-read-in-region)
 
-(advice-add 'indent-for-tab-command
-            :after (lambda (&optional arg)
-                     (when (memq (get-char-code-property (char-before) 'general-category)
-                                   '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
-                       (complete-symbol arg))))
+(setq tab-always-indent 'complete)
 
 (defun copy-env-vars-from-shell-1 (cmd)
   (mapc (lambda (env-var-string)
@@ -942,6 +938,26 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "cx" #'consult-flymake)
   (define-key my/leader-prefix-map "ss" #'consult-line)
   (define-key my/leader-prefix-map "si" #'consult-imenu))
+
+(use-package corfu :ensure t
+  :init (global-corfu-mode)
+  :config
+  (setq corfu-auto t)
+  (defun corfu-move-to-minibuffer ()
+    (interactive)
+    (pcase completion-in-region--data
+      (`(,beg ,end ,table ,pred ,extras)
+       (let ((completion-extra-properties extras)
+             completion-cycle-threshold completion-cycling)
+         (consult-completion-in-region beg end table pred)))))
+
+  (define-key corfu-map (kbd "C-M-i") #'corfu-move-to-minibuffer)
+  (define-key corfu-map (kbd "M-<tab>") #'corfu-move-to-minibuffer)
+  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
+
+(use-package corfu-terminal :ensure t
+  :config
+  (unless (display-graphic-p) (corfu-terminal-mode)))
 
 (use-package avy :ensure nil :pin gnu :defer 2
   :config

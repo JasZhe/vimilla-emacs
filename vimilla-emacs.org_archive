@@ -172,3 +172,25 @@ then with prefix arg we basically do the normal project-find-regexp but we can s
           (xref-find-apropos (read-regexp my/ixref-apropos-prompt-string))))))
 #+end_src
 
+
+* better tab completion
+:PROPERTIES:
+:ARCHIVE_TIME: 2024-03-07 Thu 00:22
+:ARCHIVE_FILE: ~/vimilla-emacs/vimilla-emacs.org
+:ARCHIVE_OLPATH: completion
+:ARCHIVE_CATEGORY: vimilla-emacs
+:END:
+https://emacs.stackexchange.com/questions/8261/how-to-determine-if-the-current-character-is-a-letter
+simple dwim heuristic to check if the char before the cursor is a char which means
+we probably want to complete a symbol
+
+Po is for "."
+#+begin_src elisp
+  (advice-add 'indent-for-tab-command
+              :after (lambda (&optional arg)
+                       (when (memq (get-char-code-property (char-before) 'general-category)
+                                     '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
+                         (complete-symbol arg))))
+
+#+end_src
+
