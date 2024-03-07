@@ -529,7 +529,7 @@ and source some.envrc, then using that same shell, just copy all the environment
 *** eldoc display buffer in bottom side window
 #+begin_src elisp
   (add-to-list 'display-buffer-alist
-               '("\\*eldoc\\*"
+               '("\\*eldoc.*\\*"
                  (display-buffer-in-side-window)))
 #+end_src
 

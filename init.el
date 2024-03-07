@@ -395,7 +395,7 @@ Meant for eshell in mind."
               (electric-pair-local-mode))))
 
 (add-to-list 'display-buffer-alist
-             '("\\*eldoc\\*"
+             '("\\*eldoc.*\\*"
                (display-buffer-in-side-window)))
 
 (add-to-list 'display-buffer-alist
