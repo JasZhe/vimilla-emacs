@@ -460,6 +460,46 @@ Meant for eshell in mind."
         (split-string (shell-command-to-string "bash --login -c \"go env\"") "\n"))
   (call-interactively 'eglot-reconnect))
 
+(defvar +go-test-last nil
+  "The last test run.")
+
+(defun +go--spawn (cmd)
+  (save-selected-window
+    (compile cmd)))
+
+(defun +go--run-tests (args)
+  (let ((cmd (concat "go test -test.v " args)))
+    (setq +go-test-last (concat "cd " default-directory ";" cmd))
+    (+go--spawn cmd)))
+
+(defun +go/test-single ()
+  "Run single test at point."
+  (interactive)
+  (if (string-match "_test\\.go" buffer-file-name)
+      (save-excursion
+        (re-search-backward "^func[ ]+\\(([[:alnum:]]*?[ ]?[*]?[[:alnum:]]+)[ ]+\\)?\\(Test[[:alnum:]_]+\\)(.*)")
+        (+go--run-tests (concat "-run" "='^\\Q" (match-string-no-properties 2) "\\E$'")))
+    (error "Must be in a _test.go file")))
+
+(defun +go/test-file ()
+  "Run all tests in current file."
+  (interactive)
+  (if (string-match "_test\\.go" buffer-file-name)
+      (save-excursion
+        (goto-char (point-min))
+        (let ((func-list))
+          (while (re-search-forward "^func[ ]+\\(([[:alnum:]]*?[ ]?[*]?[[:alnum:]]+)[ ]+\\)?\\(Test[[:alnum:]_]+\\)(.*)" nil t)
+            (push (match-string-no-properties 2) func-list))
+          (+go--run-tests (concat "-run" "='^(" (string-join func-list "|")  ")$'"))))
+    (error "Must be in a _test.go file")))
+
+(use-package go-ts-mode :defer t
+  :config
+  (setq my/go-vi-state-modify-map (make-sparse-keymap))
+  (define-key my/go-vi-state-modify-map " mts" #'+go/test-single)
+  (define-key my/go-vi-state-modify-map " mtf" #'+go/test-file)
+  (viper-modify-major-mode 'go-ts-mode 'vi-state my/go-vi-state-modify-map))
+
 (defun copy-pipenv-vars-from-shell ()
   (interactive)
   (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
