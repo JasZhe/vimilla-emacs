@@ -631,10 +631,26 @@ Meant for eshell in mind."
 (use-package shell :after consult :config
   (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
+(setq current-font-height 130)
 (when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
-  (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height 130))
+  (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
 (when (member "Iosevka Etoile" (font-family-list))
-  (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height 130))
+  (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+
+(defun my/set-font-size ()
+  (interactive)
+  (let ((new-size (string-to-numberr
+                   (minibuffer-with-setup-hook
+                       (lambda () (insert (number-to-string current-font-height)))
+                     (read-string "Edit font size: ")))))
+    (setq current-font-height new-size)
+    (set-face-attribute 'default nil :height new-size)
+    (set-face-attribute 'variable-pitch nil :height new-size)))
+
+(cond ((member "Apple Color Emoji" (font-family-list))
+       (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))
+      ((member "Apple Color Emoji" (font-family-list))
+       (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append)))
 
 (use-package modus-themes :ensure t :pin gnu)
 
