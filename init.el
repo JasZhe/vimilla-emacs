@@ -228,6 +228,28 @@
 (defun my-icomplete-styles () (setq-local completion-styles '(partial-completion basic)))
 (add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
 
+(defvar my-icomplete-prev-command nil)
+(defun my-icomplete-save ()
+  "save the previous icomplete session"
+  (setq my-icomplete-prev-command this-command)
+  (add-hook 'post-command-hook #'my-icomplete-exit-save-input nil 'local))
+
+(defvar my-icomplete-prev-input "")
+(defun my-icomplete-exit-save-input ()
+  (setq my-icomplete-prev-input (minibuffer-contents-no-properties)))
+
+(add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-save)
+
+(defun my-icomplete-repeat ()
+  (interactive)
+  (when (and (not (equal my-icomplete-prev-command #'my-icomplete-repeat))
+             (commandp my-icomplete-prev-command))
+    (minibuffer-with-setup-hook
+        (lambda () (insert my-icomplete-prev-input))
+      (call-interactively my-icomplete-prev-command))))
+
+(define-key my/leader-prefix-map "'" #'my-icomplete-repeat)
+
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
 (defun icomplete-partial-completion-setup ()
