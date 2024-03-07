@@ -1040,9 +1040,10 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(window-stool))
+ '(package-selected-packages '(hurl-mode window-stool))
  '(package-vc-selected-packages
-   '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
+   '((hurl-mode :vc-backend Git :url "https://github.com/JasZhe/hurl-mode")
+     (window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
    '((eval add-hook 'after-save-hook
            (lambda nil
