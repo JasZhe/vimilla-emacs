@@ -243,8 +243,9 @@ stole the completing read stuff from:
 
   ;; Lower threshold back to 8 MiB (default is 800kB)
   (add-hook 'emacs-startup-hook
-            (lambda ()
-              (setq gc-cons-threshold (expt 2 23))))
+            (lambda () (setq gc-cons-threshold (* 1024 1024 16)))) ;; 16MB
+  
+  (run-with-idle-timer 2 t #'garbage-collect)
 
   (setq inhibit-startup-screen t)
   (menu-bar-mode 0)
@@ -1000,6 +1001,11 @@ display eww in side window with a large height
 :header-args: :tangle viper :results silent
 :END:
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
+
+** viper search settings
+#+begin_src elisp
+  (setq viper-case-fold-search t)
+#+end_src
 
 ** vi state stuff
 hacky global var to have a "global" viper state
@@ -1903,11 +1909,7 @@ otherwise this works lol
 #+begin_src elisp
   ;; local alist that can be used as part of a major mode hook to
   ;; add pseudo keybinds to brac and ket
-  (setq-local brac-char-cmd-alist '((?i . (lambda () (interactive) (message "hello")))))
-  (setq-default brac-char-cmd-alist '())
-
-  (cdr (cl-find-if (lambda (e) (= (car e) ?i)) brac-char-cmd-alist))
-
+  (setq brac-char-cmd-alist '())
   ;; [ - backwards
   (defun viper-brac-advice (orig-fun &rest args)
     (let ((char (read-char)))
@@ -1926,8 +1928,7 @@ otherwise this works lol
                    (apply orig-fun args))))))))
   (advice-add 'viper-brac-function :around #'viper-brac-advice)
 
-  (setq-local ket-char-cmd-alist '((?i . (lambda () (interactive) (message "goodbye")))))
-  (setq-default ket-char-cmd-alist '())
+  (setq ket-char-cmd-alist '())
   ;; ] - forwards
   (defun viper-ket-advice (orig-fun &rest args)
     (let ((char (read-char)))
@@ -2054,8 +2055,8 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
 *** Dired subtree
 https://github.com/Fuco1/dired-hacks
 #+begin_src elisp
-  (load-file "dired-hacks-utils.el")
-  (load-file "dired-subtree.el")
+  (load-file (concat user-emacs-directory "dired-hacks-utils.el"))
+  (load-file (concat user-emacs-directory "dired-subtree.el"))
   (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
   (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
 #+end_src

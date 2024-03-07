@@ -180,8 +180,9 @@
 
 ;; Lower threshold back to 8 MiB (default is 800kB)
 (add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (expt 2 23))))
+          (lambda () (setq gc-cons-threshold (* 1024 1024 16)))) ;; 16MB
+
+(run-with-idle-timer 2 t #'garbage-collect)
 
 (setq inhibit-startup-screen t)
 (menu-bar-mode 0)
@@ -1010,6 +1011,7 @@ Meant for eshell in mind."
 (use-package window-stool :defer 2
   :config
   (setq window-stool-use-overlays t)
+  (add-hook 'org-mode-hook #'window-stool-mode)
   (add-hook 'prog-mode-hook #'window-stool-mode))
 
 (use-package magit :ensure t :pin nongnu :defer 3
@@ -1042,8 +1044,7 @@ Meant for eshell in mind."
 
   (add-to-list 'display-buffer-alist
                '("magit:.*"
-                 (display-buffer-same-window)))
-  )
+                 (display-buffer-same-window))))
 
 (rassq-delete-all 'git-rebase-mode auto-mode-alist)
 

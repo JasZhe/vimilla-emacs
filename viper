@@ -1,3 +1,5 @@
+(setq viper-case-fold-search t)
+
 (setq my/global-viper-state 'vi)
 (defun set-global-viper-state ()
   (cond ((eq my/global-viper-state 'vi) (viper-change-state-to-vi))
@@ -679,11 +681,7 @@ position of the outside of the paren.  Otherwise return nil."
 
 ;; local alist that can be used as part of a major mode hook to
 ;; add pseudo keybinds to brac and ket
-(setq-local brac-char-cmd-alist '((?i . (lambda () (interactive) (message "hello")))))
-(setq-default brac-char-cmd-alist '())
-
-(cdr (cl-find-if (lambda (e) (= (car e) ?i)) brac-char-cmd-alist))
-
+(setq brac-char-cmd-alist '())
 ;; [ - backwards
 (defun viper-brac-advice (orig-fun &rest args)
   (let ((char (read-char)))
@@ -702,8 +700,7 @@ position of the outside of the paren.  Otherwise return nil."
                  (apply orig-fun args))))))))
 (advice-add 'viper-brac-function :around #'viper-brac-advice)
 
-(setq-local ket-char-cmd-alist '((?i . (lambda () (interactive) (message "goodbye")))))
-(setq-default ket-char-cmd-alist '())
+(setq ket-char-cmd-alist '())
 ;; ] - forwards
 (defun viper-ket-advice (orig-fun &rest args)
   (let ((char (read-char)))
@@ -809,8 +806,8 @@ position of the outside of the paren.  Otherwise return nil."
   (define-key my/dired-vi-state-modify-map "K" #'dired-kill-subdir)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
 
-(load-file "dired-hacks-utils.el")
-(load-file "dired-subtree.el")
+(load-file (concat user-emacs-directory "dired-hacks-utils.el"))
+(load-file (concat user-emacs-directory "dired-subtree.el"))
 (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
 (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
 
