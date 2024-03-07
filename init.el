@@ -1027,6 +1027,7 @@ Meant for eshell in mind."
                 my/viper-vi-motion-g-keymap
                 my/viper-vi-motion-leader-keymap)
           magit-mode-map)))
+  (define-key my/magit-vi-state-modify-map (kbd "C-w") my-window-map)
   (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
   (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
   (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
@@ -1041,6 +1042,7 @@ Meant for eshell in mind."
                 (interactive) (call-interactively (lookup-key magit-mode-map "\t"))))
 
   (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
+  (define-key magit-diff-mode-map (kbd "C-w") my-window-map)
 
   (add-to-list 'display-buffer-alist
                '("magit:.*"
