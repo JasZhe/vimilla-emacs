@@ -2130,12 +2130,14 @@ The classic minibuffer trifecta, should we not want to use the built in faciliti
 #+begin_src elisp
   (use-package vertico :ensure t :pin gnu
     :config
+    (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     (setq vertico-cycle t)
     (setq vertico-count 12)
     (setq vertico-resize nil)
     (fido-vertical-mode -1)
     (icomplete-mode -1)
     (define-key vertico-map (kbd "RET") #'vertico-exit)
+    (define-key my/leader-prefix-map "'" #'vertico-repeat)
     (vertico-mode))
 #+end_src
 
