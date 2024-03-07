@@ -363,6 +363,16 @@ With a prefix-arg run normally and specfiy a directory"
 
 (setq tab-always-indent 'complete)
 
+(use-package speedbar :defer t
+  :config
+  (setq speedbar-show-unknown-files t)
+  (setq speedbar-frame-parameters (delete '(minibuffer) speedbar-frame-parameters))
+  (setq speedbar-update-flag nil)
+  (setq my/speedbar-vi-state-modify-map (make-sparse-keymap))
+  (define-key my/speedbar-vi-state-modify-map (kbd "<tab>") #'speedbar-toggle-line-expansion)
+  (define-key my/speedbar-vi-state-modify-map (kbd "C-i") #'speedbar-toggle-line-expansion)
+  (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
+
 (defun copy-env-vars-from-shell-1 (cmd)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))

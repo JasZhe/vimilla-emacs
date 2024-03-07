@@ -806,7 +806,13 @@ position of the outside of the paren.  Otherwise return nil."
           dired-mode-map)))
   (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
   (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
+  (define-key my/dired-vi-state-modify-map "K" #'dired-kill-subdir)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
+
+(load-file "dired-hacks-utils.el")
+(load-file "dired-subtree.el")
+(define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
+(define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
 
 (use-package ibuffer :defer t
   :config

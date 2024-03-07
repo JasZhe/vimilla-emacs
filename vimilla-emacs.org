@@ -473,6 +473,22 @@ no idea how necessary that is
   (setq tab-always-indent 'complete)
 #+end_src
 
+* speedbar
+use as a dummy file viewer
+#+begin_src elisp
+  (use-package speedbar :defer t
+    :config
+    (setq speedbar-show-unknown-files t)
+    (setq speedbar-frame-parameters (delete '(minibuffer) speedbar-frame-parameters))
+    (setq speedbar-update-flag nil)
+    (setq my/speedbar-vi-state-modify-map (make-sparse-keymap))
+    (define-key my/speedbar-vi-state-modify-map (kbd "<tab>") #'speedbar-toggle-line-expansion)
+    (define-key my/speedbar-vi-state-modify-map (kbd "C-i") #'speedbar-toggle-line-expansion)
+    (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
+#+end_src
+
+
+
 * development
 ** set environment vars at path
 this might be nice if we need to set env vars without direnv
@@ -915,7 +931,6 @@ basically minimal projectile and persp
   (setq tab-bar-show nil)
   (tab-bar-mode)
 #+end_src
-
 
 * eww
 lookup with eww first, then use =eww-browse-with-external-browser= if we need to browse in a normal browser
@@ -2015,7 +2030,17 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
             dired-mode-map)))
     (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
     (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
+    (define-key my/dired-vi-state-modify-map "K" #'dired-kill-subdir)
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
+#+end_src
+
+*** Dired subtree
+https://github.com/Fuco1/dired-hacks
+#+begin_src elisp
+  (load-file "dired-hacks-utils.el")
+  (load-file "dired-subtree.el")
+  (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
+  (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
 #+end_src
 
 ** ibuffer
