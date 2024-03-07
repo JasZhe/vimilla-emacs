@@ -371,6 +371,7 @@ With a prefix-arg run normally and specfiy a directory"
   (setq my/speedbar-vi-state-modify-map (make-sparse-keymap))
   (define-key my/speedbar-vi-state-modify-map (kbd "<tab>") #'speedbar-toggle-line-expansion)
   (define-key my/speedbar-vi-state-modify-map (kbd "C-i") #'speedbar-toggle-line-expansion)
+  (define-key my/speedbar-vi-state-modify-map (kbd "-") #'speedbar-up-directory)
   (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
 
 (defun copy-env-vars-from-shell-1 (cmd)

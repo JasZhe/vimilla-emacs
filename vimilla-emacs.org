@@ -484,6 +484,7 @@ use as a dummy file viewer
     (setq my/speedbar-vi-state-modify-map (make-sparse-keymap))
     (define-key my/speedbar-vi-state-modify-map (kbd "<tab>") #'speedbar-toggle-line-expansion)
     (define-key my/speedbar-vi-state-modify-map (kbd "C-i") #'speedbar-toggle-line-expansion)
+    (define-key my/speedbar-vi-state-modify-map (kbd "-") #'speedbar-up-directory)
     (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
 #+end_src
 
