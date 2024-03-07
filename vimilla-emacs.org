@@ -2416,12 +2416,33 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
 
     (add-to-list 'display-buffer-alist
                  '("magit:.*"
-                   (display-buffer-same-window)))
-    )
+                   (display-buffer-same-window))))
 #+end_src
 
 #+begin_src elisp
   (rassq-delete-all 'git-rebase-mode auto-mode-alist)
+#+end_src
+
+** diff-hl
+#+begin_src elisp
+  (use-package diff-hl :ensure t :pin gnu :after viper
+    :config
+    (global-diff-hl-mode)
+    (unless (display-graphic-p) (diff-hl-margin-mode))
+
+    (add-to-list 'display-buffer-alist
+                 '("\\*diff-hl\\*" (display-buffer-in-side-window)))
+
+    (define-key my/leader-prefix-map "gr" #'diff-hl-revert-hunk)
+    (define-key my/leader-prefix-map "gs" #'diff-hl-show-hunk)
+    (add-to-list 'brac-char-cmd-alist '(?d . (lambda () (interactive) (diff-hl-previous-hunk))))
+    (add-to-list 'brac-char-cmd-alist '(?D . (lambda () (interactive) (diff-hl-show-hunk-previous))))
+
+    (add-to-list 'ket-char-cmd-alist '(?d . (lambda () (interactive) (diff-hl-next-hunk))))
+    (add-to-list 'ket-char-cmd-alist '(?D . (lambda () (interactive) (diff-hl-show-hunk-next))))
+    (use-package magit :config
+      (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+      (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)))
 #+end_src
 
 ** denote

@@ -1048,6 +1048,25 @@ Meant for eshell in mind."
 
 (rassq-delete-all 'git-rebase-mode auto-mode-alist)
 
+(use-package diff-hl :ensure t :pin gnu :after viper
+  :config
+  (global-diff-hl-mode)
+  (unless (display-graphic-p) (diff-hl-margin-mode))
+
+  (add-to-list 'display-buffer-alist
+               '("\\*diff-hl\\*" (display-buffer-in-side-window)))
+
+  (define-key my/leader-prefix-map "gr" #'diff-hl-revert-hunk)
+  (define-key my/leader-prefix-map "gs" #'diff-hl-show-hunk)
+  (add-to-list 'brac-char-cmd-alist '(?d . (lambda () (interactive) (diff-hl-previous-hunk))))
+  (add-to-list 'brac-char-cmd-alist '(?D . (lambda () (interactive) (diff-hl-show-hunk-previous))))
+
+  (add-to-list 'ket-char-cmd-alist '(?d . (lambda () (interactive) (diff-hl-next-hunk))))
+  (add-to-list 'ket-char-cmd-alist '(?D . (lambda () (interactive) (diff-hl-show-hunk-next))))
+  (use-package magit :config
+    (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+    (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)))
+
 (use-package denote :ensure t :pin gnu :defer 2
   :config
   (setq denote-directory "~/orgmode/notes")
