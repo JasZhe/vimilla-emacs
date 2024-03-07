@@ -2270,6 +2270,7 @@ The default custom partial-completion stuff we have works well enough that we mi
                completion-cycle-threshold completion-cycling)
            (consult-completion-in-region beg end table pred)))))
 
+    (define-key corfu-map (kbd "M-m") #'corfu-move-to-minibuffer)
     (define-key corfu-map (kbd "C-M-i") #'corfu-move-to-minibuffer)
     (define-key corfu-map (kbd "M-<tab>") #'corfu-move-to-minibuffer)
     (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))

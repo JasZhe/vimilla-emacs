@@ -951,6 +951,7 @@ Meant for eshell in mind."
              completion-cycle-threshold completion-cycling)
          (consult-completion-in-region beg end table pred)))))
 
+  (define-key corfu-map (kbd "M-m") #'corfu-move-to-minibuffer)
   (define-key corfu-map (kbd "C-M-i") #'corfu-move-to-minibuffer)
   (define-key corfu-map (kbd "M-<tab>") #'corfu-move-to-minibuffer)
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
@@ -1056,10 +1057,9 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(hurl-mode window-stool))
+ '(package-selected-packages '(window-stool))
  '(package-vc-selected-packages
-   '((hurl-mode :vc-backend Git :url "https://github.com/JasZhe/hurl-mode")
-     (window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
+   '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
    '((eval add-hook 'after-save-hook
            (lambda nil
