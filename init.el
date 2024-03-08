@@ -971,6 +971,9 @@ Meant for eshell in mind."
   :init (global-corfu-mode)
   :config
   (setq corfu-auto t)
+  (setq corfu-cycle t)
+  (setq corfu-quit-no-match t)
+  (setq corfu-quit-at-boundary t)
   (defun corfu-move-to-minibuffer ()
     (interactive)
     (pcase completion-in-region--data
