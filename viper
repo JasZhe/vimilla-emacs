@@ -773,6 +773,7 @@ position of the outside of the paren.  Otherwise return nil."
   (define-key my/diff-mode-vi-state-map [C-i] #'outline-cycle)
   (define-key my/diff-mode-vi-state-map (kbd "<tab>") #'outline-cycle)
   (define-key my/diff-mode-vi-state-map (kbd "S-<tab>") #'outline-cycle-buffer)
+  (define-key my/diff-mode-vi-state-map (kbd "<backtab>") #'outline-cycle-buffer)
   (define-key my/diff-mode-vi-state-map (kbd "C-j") #'diff-hunk-next)
   (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
   (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
