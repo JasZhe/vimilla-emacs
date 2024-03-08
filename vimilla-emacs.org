@@ -2336,7 +2336,7 @@ https://github.com/abo-abo/avy
 
 Otherwise we just use isearch and standard vi f/F motions
 #+begin_src elisp
-  (use-package avy :ensure nil :pin gnu :defer 2
+  (use-package avy :ensure t :pin gnu :defer 2
     :config
     (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
     (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))

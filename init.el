@@ -981,7 +981,6 @@ Meant for eshell in mind."
        (let ((completion-extra-properties extras)
              completion-cycle-threshold completion-cycling)
          (consult-completion-in-region beg end table pred)))))
-
   (define-key corfu-map (kbd "M-m") #'corfu-move-to-minibuffer)
   (define-key corfu-map (kbd "C-M-i") #'corfu-move-to-minibuffer)
   (define-key corfu-map (kbd "M-<tab>") #'corfu-move-to-minibuffer)
@@ -991,7 +990,7 @@ Meant for eshell in mind."
   :config
   (unless (display-graphic-p) (corfu-terminal-mode)))
 
-(use-package avy :ensure nil :pin gnu :defer 2
+(use-package avy :ensure t :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
   (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
