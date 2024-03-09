@@ -1108,6 +1108,16 @@ better ESC key handling to exit visual mode and close mini buffer
                                                   (hi-lock-unface-buffer hist))))
 #+end_src
 
+Delete side windows if any
+#+begin_src elisp
+  (defun delete-bottom-side-window ()
+    (interactive)
+    (when (eq viper-current-state 'vi-state) 
+      (when-let ((side-window (window-with-parameter 'window-side 'bottom)))
+        (delete-window side-window))))
+  (advice-add 'viper-intercept-ESC-key :before #'delete-bottom-side-window)
+#+end_src
+
 ** pop mark navigation
 #+begin_src elisp
   (setq my/mark-ring '())

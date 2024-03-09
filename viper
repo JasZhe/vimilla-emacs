@@ -68,6 +68,13 @@
                                               (dolist (hist viper-search-history)
                                                 (hi-lock-unface-buffer hist))))
 
+(defun delete-bottom-side-window ()
+  (interactive)
+  (when (eq viper-current-state 'vi-state) 
+    (when-let ((side-window (window-with-parameter 'window-side 'bottom)))
+      (delete-window side-window))))
+(advice-add 'viper-intercept-ESC-key :before #'delete-bottom-side-window)
+
 (setq my/mark-ring '())
 (setq my/mark-ring-max-size 16)
 (setq my/mark-ring-current-pos 0)
