@@ -967,9 +967,14 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "ss" #'consult-line)
   (define-key my/leader-prefix-map "si" #'consult-imenu))
 
+(use-package cape :ensure t :pin gnu)
+
 (use-package corfu :ensure t
   :init (global-corfu-mode)
   :config
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+
   (setq corfu-auto t)
   (setq corfu-cycle t)
   (setq corfu-quit-no-match t)

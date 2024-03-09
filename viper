@@ -824,6 +824,7 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package ibuffer :defer t
   :config
+  ;; (ibuffer-filter-by-filename (file-relative-name (car (cl-first project--list)) "~/"))
   (setq my/ibuffer-vi-state-modify-map
         (make-composed-keymap
          nil
