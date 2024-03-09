@@ -967,6 +967,16 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "ss" #'consult-line)
   (define-key my/leader-prefix-map "si" #'consult-imenu))
 
+(use-package company :ensure t :pin gnu
+  :config
+  ;; window-stool overlays + company are broken
+  (add-hook 'company-mode-hook (lambda () (when window-stool-use-overlays (setq window-stool-use-overlays nil) (revert-buffer))))
+
+  (setq company-require-match nil
+        company-dabbrev-other-buffers nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-downcase nil))
+
 (use-package cape :ensure t :pin gnu)
 
 (use-package corfu :ensure t

@@ -2314,6 +2314,19 @@ The default custom partial-completion stuff we have works well enough that we mi
     (define-key my/leader-prefix-map "si" #'consult-imenu))
 #+end_src
 
+** comany completion
+#+begin_src elisp
+  (use-package company :ensure t :pin gnu
+    :config
+    ;; window-stool overlays + company are broken
+    (add-hook 'company-mode-hook (lambda () (when window-stool-use-overlays (setq window-stool-use-overlays nil) (revert-buffer))))
+
+    (setq company-require-match nil
+          company-dabbrev-other-buffers nil
+          company-dabbrev-ignore-case nil
+          company-dabbrev-downcase nil))
+#+end_src
+
 ** corfu completion
 #+begin_src elisp
   (use-package cape :ensure t :pin gnu)
