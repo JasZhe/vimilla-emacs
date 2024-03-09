@@ -753,7 +753,6 @@ Meant for eshell in mind."
 
 (advice-add 'tab-bar-new-tab :after #'get-tab-names)
 (advice-add 'tab-bar-close-tab :after #'get-tab-names)
-(advice-add 'tab-bar-rename-tab :after #'get-tab-names)
 (advice-add 'tab-bar-select-tab :after #'get-tab-names)
 
 (setq tab-bar-show nil)
