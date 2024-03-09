@@ -995,6 +995,16 @@ Meant for eshell in mind."
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
   (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 
+(use-package vundo :ensure t :pin gnu
+  :config
+  (setq vundo-vi-modify-map vundo-mode-map)
+  (define-key vundo-vi-modify-map "h" #'vundo-backward)
+  (define-key vundo-vi-modify-map "l" #'vundo-forward)
+  (define-key vundo-vi-modify-map "k" #'vundo-previous)
+  (define-key vundo-vi-modify-map "j" #'vundo-next)
+  (define-key vundo-vi-modify-map "d" #'vundo-diff)
+  (viper-modify-major-mode 'vundo-mode 'vi-state vundo-vi-modify-map))
+
 (use-package which-key :ensure t :pin gnu :defer 2
   :config
   (which-key-mode))

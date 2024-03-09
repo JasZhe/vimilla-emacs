@@ -2343,6 +2343,20 @@ Otherwise we just use isearch and standard vi f/F motions
     (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
 #+end_src
 
+** vundo
+
+#+begin_src elisp
+  (use-package vundo :ensure t :pin gnu
+    :config
+    (setq vundo-vi-modify-map vundo-mode-map)
+    (define-key vundo-vi-modify-map "h" #'vundo-backward)
+    (define-key vundo-vi-modify-map "l" #'vundo-forward)
+    (define-key vundo-vi-modify-map "k" #'vundo-previous)
+    (define-key vundo-vi-modify-map "j" #'vundo-next)
+    (define-key vundo-vi-modify-map "d" #'vundo-diff)
+    (viper-modify-major-mode 'vundo-mode 'vi-state vundo-vi-modify-map))
+#+end_src
+
 ** which key
 amazing package when I forget my own keybindings
 https://github.com/justbur/emacs-which-key
