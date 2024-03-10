@@ -764,15 +764,16 @@ Meant for eshell in mind."
 
 (defun get-tab-names (&rest _)
   (interactive "P")
-  (message "%s |"
+  (message "%s"
            (mapconcat
             (lambda (tab)
               (let* ((current-tab-p (eq (car tab) 'current-tab))
-                     (tab-name1 (cdr (cl-second tab)))
-                     (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit isearch)) tab-name1)))
+                     (idx (number-to-string (1+ (tab-bar--tab-index tab))))
+                     (tab-name1 (concat "[" idx "] " (cdr (cl-second tab))))
+                     (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit font-lock-builtin-face :underline t)) tab-name1)))
                 tab-name))
             (tab-bar-tabs)
-            " | ")))
+            " ")))
 
 (advice-add 'tab-bar-new-tab :after #'get-tab-names)
 (advice-add 'tab-bar-close-tab :after #'get-tab-names)
