@@ -656,25 +656,22 @@ Meant for eshell in mind."
   (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
 (setq current-font-height 130)
-(when (member "IosevkaCustom Nerd Font Propo" (font-family-list))
-  (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
-(when (member "Iosevka Etoile" (font-family-list))
-  (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+
+;; just set until one of them works
+(ignore-errors (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
+(ignore-errors (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+(ignore-errors (set-fontset-font t '(#x27F0 . #x1FAFF) "Noto Color Emoji" nil 'append))
+(ignore-errors (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))
 
 (defun my/set-font-size ()
   (interactive)
-  (let ((new-size (string-to-numberr
+  (let ((new-size (string-to-number
                    (minibuffer-with-setup-hook
                        (lambda () (insert (number-to-string current-font-height)))
                      (read-string "Edit font size: ")))))
     (setq current-font-height new-size)
     (set-face-attribute 'default nil :height new-size)
     (set-face-attribute 'variable-pitch nil :height new-size)))
-
-(cond ((member "Apple Color Emoji" (font-family-list))
-       (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))
-      ((member "Noto Color Emoji" (font-family-list))
-       (set-fontset-font t '(#x27F0 . #x1FAFF) "Noto Color Emoji" nil 'append)))
 
 (use-package modus-themes :ensure t :pin gnu)
 
@@ -693,6 +690,17 @@ Meant for eshell in mind."
 ;;   :config
 ;;   ;; for some reason modus gets rid of diff-header
 ;;   (set-face-attribute 'diff-header nil :background "gray80"))
+
+(when (not (require 'ligature nil 'noerror))
+  (package-vc-install "https://github.com/mickeynp/ligature.el"))
+(use-package ligature
+  :config
+
+  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+                                       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
+                                       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
+                                       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
+  (global-ligature-mode))
 
 (midnight-mode)
 
@@ -1170,9 +1178,3 @@ Meant for eshell in mind."
            (lambda nil
              (org-babel-tangle))
            nil t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
