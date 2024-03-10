@@ -95,6 +95,10 @@
 (define-key global-map (kbd "C-_") #'comment-line)
 (define-key input-decode-map "\e[1;P9" (kbd "s-/"))
 
+;; mac ligatures
+(when (fboundp 'mac-auto-operator-composition-mode)
+    (mac-auto-operator-composition-mode))
+
 (defun macos-term-select-text-to-clipboard (text)
   (unless (eq system-type 'gnu/linux)
     (shell-command (concat "echo \"" text "\" | pbcopy" ))))
@@ -669,8 +673,8 @@ Meant for eshell in mind."
 
 (cond ((member "Apple Color Emoji" (font-family-list))
        (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))
-      ((member "Apple Color Emoji" (font-family-list))
-       (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append)))
+      ((member "Noto Color Emoji" (font-family-list))
+       (set-fontset-font t '(#x27F0 . #x1FAFF) "Noto Color Emoji" nil 'append)))
 
 (use-package modus-themes :ensure t :pin gnu)
 
@@ -1151,7 +1155,7 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(cape window-stool))
+ '(package-selected-packages '(window-stool))
  '(package-vc-selected-packages
    '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values

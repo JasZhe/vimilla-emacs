@@ -140,6 +140,10 @@ The P9 can go to like P56. [1;P9 maps to like CTRL CMD OPTION A, which we probab
   (define-key global-map (kbd "C-/") #'comment-line)
   (define-key global-map (kbd "C-_") #'comment-line)
   (define-key input-decode-map "\e[1;P9" (kbd "s-/"))
+
+  ;; mac ligatures
+  (when (fboundp 'mac-auto-operator-composition-mode)
+      (mac-auto-operator-composition-mode))
 #+end_src
 
 * terminal settings
@@ -849,8 +853,8 @@ current system uses iosevka custom nerd font
 
   (cond ((member "Apple Color Emoji" (font-family-list))
          (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))
-        ((member "Apple Color Emoji" (font-family-list))
-         (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append)))
+        ((member "Noto Color Emoji" (font-family-list))
+         (set-fontset-font t '(#x27F0 . #x1FAFF) "Noto Color Emoji" nil 'append)))
 #+end_src
 
 There is a weird thing where vc-diff won't highlight some stuff since the modus org src block fontification takes over
