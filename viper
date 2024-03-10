@@ -824,7 +824,23 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package ibuffer :defer t
   :config
-  ;; (ibuffer-filter-by-filename (file-relative-name (car (cl-first project--list)) "~/"))
+  ;; add project level grouping
+  (setq ibuffer-saved-filter-groups
+        (list (let ((l (cl-mapcar
+                        (lambda (p)
+                          (let* ((project (project--find-in-directory (car p)))
+                                 (pname (project-name project))
+                                 (pbufs (project-buffers project)))
+                            `(
+                              ,pname
+                              (filename . ,pname)
+                              )))
+                        (seq-filter
+                         (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                         project--list))
+                       ))
+                (add-to-list 'l "default"))))
+
   (setq my/ibuffer-vi-state-modify-map
         (make-composed-keymap
          nil
