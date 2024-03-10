@@ -781,6 +781,12 @@ Meant for eshell in mind."
 (setq tab-bar-show nil)
 (tab-bar-mode)
 
+(defun rename-tab-to-current-project (dir)
+  (message (project-name (project-current)))
+  (tab-bar-rename-tab (project-name (project-current))))
+
+(advice-add 'project-switch-project :after #'rename-tab-to-current-project)
+
 (setq browse-url-browser-function 'eww-browse-url)
 (add-hook 'eww-after-render-hook 'eww-readable)
 

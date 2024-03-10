@@ -976,6 +976,15 @@ basically minimal projectile and persp
   (tab-bar-mode)
 #+end_src
 
+** set tab bar name on project switch
+#+begin_src elisp
+  (defun rename-tab-to-current-project (dir)
+    (message (project-name (project-current)))
+    (tab-bar-rename-tab (project-name (project-current))))
+
+  (advice-add 'project-switch-project :after #'rename-tab-to-current-project)
+#+end_src
+
 * eww
 lookup with eww first, then use =eww-browse-with-external-browser= if we need to browse in a normal browser
 #+begin_src elisp
