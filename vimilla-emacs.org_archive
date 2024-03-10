@@ -108,28 +108,7 @@ then with prefix arg we basically do the normal project-find-regexp but we can s
           (project-find-regexp (read-regexp my/iproject-find-prompt-string))))))
 #+end_src
 
-** command to use ripgrep instead
-#+begin_src elisp
-  (defun ripgrep ()
-    (interactive)
-    (call-interactively 'grep))
 
-  (defun rripgrep ()
-    (interactive)
-    (call-interactively 'rgrep))
-
-  (advice-add
-   #'grep-compute-defaults
-   :before (lambda ()
-             (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
-                 (progn
-                   (grep-apply-setting 'grep-command "rg -nS --no-heading ")
-                   (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
-               (progn
-                 (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
-                 (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
-
-  #+end_src
 
 
 * incremental xref-find-apropos

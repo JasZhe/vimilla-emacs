@@ -313,6 +313,25 @@ With a prefix-arg run normally and specfiy a directory"
 (advice-add 'xref-find-apropos :around #'search-advice)
 (advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
 
+(defun ripgrep ()
+  (interactive)
+  (call-interactively 'grep))
+
+(defun rripgrep ()
+  (interactive)
+  (call-interactively 'rgrep))
+
+(advice-add
+ #'grep-compute-defaults
+ :before (lambda ()
+           (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
+               (progn
+                 (grep-apply-setting 'grep-command "rg -nS --no-heading ")
+                 (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
+             (progn
+               (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
+               (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
+
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
@@ -1132,7 +1151,7 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(window-stool))
+ '(package-selected-packages '(cape window-stool))
  '(package-vc-selected-packages
    '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
