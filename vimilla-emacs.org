@@ -2434,6 +2434,21 @@ The default custom partial-completion stuff we have works well enough that we mi
     (unless (display-graphic-p) (corfu-terminal-mode)))
 #+end_src
 
+** bash completion
+#+begin_src elisp
+  (use-package bash-completion :ensure t
+    :config
+    (bash-completion-setup)
+    
+    (defun eshell-bash-capf ()
+      (bash-completion-dynamic-complete-nocomint
+       eshell-last-output-end))
+
+    (add-hook 'eshell-mode-hook
+              (lambda ()
+                (add-hook 'completion-at-point-functions 'eshell-bash-capf nil t))))
+#+end_src
+
 ** avy
 avy jumping is so nice
 https://github.com/abo-abo/avy

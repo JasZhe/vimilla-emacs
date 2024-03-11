@@ -1050,6 +1050,18 @@ Meant for eshell in mind."
   :config
   (unless (display-graphic-p) (corfu-terminal-mode)))
 
+(use-package bash-completion :ensure t
+  :config
+  (bash-completion-setup)
+
+  (defun eshell-bash-capf ()
+    (bash-completion-dynamic-complete-nocomint
+     eshell-last-output-end))
+
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (add-hook 'completion-at-point-functions 'eshell-bash-capf nil t))))
+
 (use-package avy :ensure t :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
