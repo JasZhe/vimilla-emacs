@@ -982,7 +982,7 @@ basically minimal projectile and persp
                        (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit font-lock-builtin-face :underline t)) tab-name1)))
                   tab-name))
               (tab-bar-tabs)
-              " ")))
+              "  ")))
 
   (advice-add 'tab-bar-new-tab :after #'get-tab-names)
   (advice-add 'tab-bar-close-tab :after #'get-tab-names)
@@ -2131,21 +2131,24 @@ https://github.com/Fuco1/dired-hacks
   (use-package ibuffer :defer t
     :config
     ;; add project level grouping
-    (setq ibuffer-saved-filter-groups
-          (list (let ((l (cl-mapcar
-                          (lambda (p)
-                            (let* ((project (project--find-in-directory (car p)))
-                                   (pname (project-name project))
-                                   (pbufs (project-buffers project)))
-                              `(
-                                ,pname
-                                (filename . ,pname)
-                                )))
-                          (seq-filter
-                           (lambda (p) (project-buffers (project--find-in-directory (car p))))
-                           project--list))
-                         ))
-                  (add-to-list 'l "default"))))
+    (add-hook 'ibuffer-mode-hook
+              (lambda ()
+                (setq ibuffer-saved-filter-groups
+                      (list (let ((l (cl-mapcar
+                                      (lambda (p)
+                                        (let* ((project (project--find-in-directory (car p)))
+                                               (pname (project-name project))
+                                               (pbufs (project-buffers project)))
+                                          `(
+                                            ,pname
+                                            (filename . ,pname)
+                                            )))
+                                      (seq-filter
+                                       (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                                       project--list))
+                                     ))
+                              (add-to-list 'l "projects"))))
+                (ibuffer-switch-to-saved-filter-groups "projects")))
 
     (setq my/ibuffer-vi-state-modify-map
           (make-composed-keymap
@@ -2190,6 +2193,7 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
   (setq org-indent-indentation-per-level 4)
   (setq org-startup-folded nil) ;; to respect VISIBILITY property just can't be 'showeverything, see: org-cycle-set-startup-visibility
 
+  (setq org-agenda-files (list "~/orgmode/notes/20240118T135401--work-tracking__agenda.org"))
   ;; steal doom's todo keywords
   (setq org-todo-keywords
         '((sequence
@@ -2243,6 +2247,9 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
                       (apply orig-fun args))))
       (add-to-list 'display-buffer-alist
                    '("\\*Agenda Commands\\*"
+                     (display-buffer-in-side-window)))
+      (add-to-list 'display-buffer-alist
+                   '("\\*Calendar\\*"
                      (display-buffer-in-side-window)))
 
       (setq my/org-vi-state-modify-map (make-sparse-keymap))

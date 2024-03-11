@@ -785,7 +785,7 @@ Meant for eshell in mind."
                      (tab-name (if current-tab-p (propertize tab-name1 'face '(:inherit font-lock-builtin-face :underline t)) tab-name1)))
                 tab-name))
             (tab-bar-tabs)
-            " ")))
+            "  ")))
 
 (advice-add 'tab-bar-new-tab :after #'get-tab-names)
 (advice-add 'tab-bar-close-tab :after #'get-tab-names)
@@ -845,6 +845,7 @@ Meant for eshell in mind."
 (setq org-indent-indentation-per-level 4)
 (setq org-startup-folded nil) ;; to respect VISIBILITY property just can't be 'showeverything, see: org-cycle-set-startup-visibility
 
+(setq org-agenda-files (list "~/orgmode/notes/20240118T135401--work-tracking__agenda.org"))
 ;; steal doom's todo keywords
 (setq org-todo-keywords
       '((sequence
@@ -898,6 +899,9 @@ Meant for eshell in mind."
                     (apply orig-fun args))))
     (add-to-list 'display-buffer-alist
                  '("\\*Agenda Commands\\*"
+                   (display-buffer-in-side-window)))
+    (add-to-list 'display-buffer-alist
+                 '("\\*Calendar\\*"
                    (display-buffer-in-side-window)))
 
     (setq my/org-vi-state-modify-map (make-sparse-keymap))

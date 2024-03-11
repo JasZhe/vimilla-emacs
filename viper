@@ -825,21 +825,24 @@ position of the outside of the paren.  Otherwise return nil."
 (use-package ibuffer :defer t
   :config
   ;; add project level grouping
-  (setq ibuffer-saved-filter-groups
-        (list (let ((l (cl-mapcar
-                        (lambda (p)
-                          (let* ((project (project--find-in-directory (car p)))
-                                 (pname (project-name project))
-                                 (pbufs (project-buffers project)))
-                            `(
-                              ,pname
-                              (filename . ,pname)
-                              )))
-                        (seq-filter
-                         (lambda (p) (project-buffers (project--find-in-directory (car p))))
-                         project--list))
-                       ))
-                (add-to-list 'l "default"))))
+  (add-hook 'ibuffer-mode-hook
+            (lambda ()
+              (setq ibuffer-saved-filter-groups
+                    (list (let ((l (cl-mapcar
+                                    (lambda (p)
+                                      (let* ((project (project--find-in-directory (car p)))
+                                             (pname (project-name project))
+                                             (pbufs (project-buffers project)))
+                                        `(
+                                          ,pname
+                                          (filename . ,pname)
+                                          )))
+                                    (seq-filter
+                                     (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                                     project--list))
+                                   ))
+                            (add-to-list 'l "projects"))))
+              (ibuffer-switch-to-saved-filter-groups "projects")))
 
   (setq my/ibuffer-vi-state-modify-map
         (make-composed-keymap
