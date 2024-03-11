@@ -656,14 +656,16 @@ Meant for eshell in mind."
   (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
 (setq current-font-height 130)
-(add-hook 'after-make-frame-functions
-          (lambda (_)
-            (message "setting fonts")
-            ;; just set until one of them works
-            (ignore-errors (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
-            (ignore-errors (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
-            (ignore-errors (set-fontset-font t '(#x27F0 . #x1FAFF) "Noto Color Emoji" nil 'append))
-            (ignore-errors (set-fontset-font t '(#x27F0 . #x1FAFF) "Apple Color Emoji" nil 'append))))
+(defun set-fonts ()
+  (message "setting fonts")
+  (ignore-errors (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
+  (ignore-errors (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+  (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
+  (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
+  (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
+
+(add-hook 'after-make-frame-functions #'set-fonts)
+(set-fonts)
 
 (defun my/set-font-size ()
   (interactive)
