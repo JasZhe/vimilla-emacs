@@ -536,24 +536,22 @@ use as a dummy file viewer
   (use-package ibuffer :defer t
     :config
     ;; add project level grouping
-    (add-hook 'ibuffer-mode-hook
-              (lambda ()
-                (setq ibuffer-saved-filter-groups
-                      (list (let ((l (cl-mapcar
-                                      (lambda (p)
-                                        (let* ((project (project--find-in-directory (car p)))
-                                               (pname (project-name project))
-                                               (pbufs (project-buffers project)))
-                                          `(
-                                            ,pname
-                                            (filename . ,pname)
-                                            )))
-                                      (seq-filter
-                                       (lambda (p) (project-buffers (project--find-in-directory (car p))))
-                                       project--list))
-                                     ))
-                              (add-to-list 'l "projects"))))
-                (ibuffer-switch-to-saved-filter-groups "projects"))))
+    (defun set-ibuffer-project-groups ()
+      (setq ibuffer-saved-filter-groups
+            (list (let ((l (seq-filter #'identity
+                                       (cl-mapcar
+                                        (lambda (p)
+                                          (let* ((project (project--find-in-directory (car p)))
+                                                 (pname (project-name project))
+                                                 (pbufs (cl-find-if (lambda (b) (buffer-file-name b)) (project-buffers project))))
+                                            (when pbufs
+                                              `( ,pname (filename . ,pname)))))
+                                        (seq-filter
+                                         (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                                         project--list)))))
+                    (add-to-list 'l "projects"))))
+      (ibuffer-switch-to-saved-filter-groups "projects"))
+    (add-hook 'ibuffer-hook #'set-ibuffer-project-groups))
 #+end_src
 
 * simple project bookmarks
