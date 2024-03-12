@@ -977,8 +977,7 @@ instead
 
 ** ligatures                                                    :external:
 #+begin_src elisp
-  (when (not (require 'ligature nil 'noerror))
-    (package-vc-install "https://github.com/mickeynp/ligature.el"))
+  (unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
   (use-package ligature
     :config
   
@@ -2170,15 +2169,6 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
     (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
 #+end_src
 
-*** Dired subtree
-https://github.com/Fuco1/dired-hacks
-#+begin_src elisp
-  (load-file (concat user-emacs-directory "dired-hacks-utils.el"))
-  (load-file (concat user-emacs-directory "dired-subtree.el"))
-  (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
-  (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
-#+end_src
-
 ** ibuffer
 #+begin_src elisp
   (use-package ibuffer :defer t
@@ -2525,8 +2515,7 @@ no good replacement for this outside of just describe function to find the keybi
 ** my own hurl mode :)
 well this oen is self explanatory
 #+begin_src elisp
-  (when (not (require 'hurl-mode nil 'noerrror))
-    (package-vc-install "https://github.com/JasZhe/hurl-mode"))
+  (unless (require 'hurl-mode nil 'noerrror) (package-vc-install "https://github.com/JasZhe/hurl-mode"))
   (use-package hurl-mode :mode "\\.hurl\\'"
     :config
     (add-to-list 'display-buffer-alist
@@ -2537,8 +2526,7 @@ well this oen is self explanatory
 
 ** my own window stool mode :)
 #+begin_src elisp
-  (when (not (require 'window-stool nil 'noerrror))
-    (package-vc-install "https://github.com/JasZhe/window-stool"))
+  (unless (require 'window-stool nil 'noerrror) (package-vc-install "https://github.com/JasZhe/window-stool"))
   (use-package window-stool :defer 2
     :config
     (setq window-stool-use-overlays t)
@@ -2551,8 +2539,7 @@ alternative gist here
 https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
 
 #+begin_src elisp :tangle no
-  (when (not (require 'eglot-booster nil 'noerrror))
-    (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
+  (unless (require 'eglot-booster nil 'noerrror) (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
   (use-package eglot-booster :after eglot
     :config
     (eglot-booster-mode))
@@ -2633,11 +2620,21 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (define-key my/leader-prefix-map "dn" #'denote))
 #+end_src
 
+
+** Dired subtree
+https://github.com/Fuco1/dired-hacks
+#+begin_src elisp
+  (unless (require 'dired-subtree)
+    (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
+  (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
+  (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
+#+end_src
+
 * external language packages
 ** web mode
 no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 #+begin_src elisp
-    (when (not (require 'web-mode nil 'noerrror))
+    (unless (require 'web-mode nil 'noerrror)
       (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                      :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
     (use-package web-mode :ensure nil :pin gnu
@@ -2654,7 +2651,7 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 
 ** kotlin
 #+begin_src elisp :tangle no
-  (when (not (require 'kotlin-mode nil 'noerror))
+  (unless (require 'kotlin-mode nil 'noerror)
     (package-vc-install '(kotlin-ts-mode :url "https://gitlab.com/bricka/emacs-kotlin-ts-mode"
                                          :rev "c884b3442806a21cbcf28ac24853f05da8ac6658")))
   (use-package kotlin-ts-mode :ensure nil :mode "\\.kt\\'"

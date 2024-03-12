@@ -781,11 +781,6 @@ position of the outside of the paren.  Otherwise return nil."
   (define-key my/dired-vi-state-modify-map "K" #'dired-kill-subdir)
   (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
 
-(load-file (concat user-emacs-directory "dired-hacks-utils.el"))
-(load-file (concat user-emacs-directory "dired-subtree.el"))
-(define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
-(define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
-
 (use-package ibuffer :defer t
   :config
   (setq my/ibuffer-vi-state-modify-map

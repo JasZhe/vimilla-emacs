@@ -769,8 +769,7 @@ Meant for eshell in mind."
 ;;   ;; for some reason modus gets rid of diff-header
 ;;   (set-face-attribute 'diff-header nil :background "gray80"))
 
-(when (not (require 'ligature nil 'noerror))
-  (package-vc-install "https://github.com/mickeynp/ligature.el"))
+(unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
 (use-package ligature
   :config
 
@@ -1159,8 +1158,7 @@ Meant for eshell in mind."
   :config
   (which-key-mode))
 
-(when (not (require 'hurl-mode nil 'noerrror))
-  (package-vc-install "https://github.com/JasZhe/hurl-mode"))
+(unless (require 'hurl-mode nil 'noerrror) (package-vc-install "https://github.com/JasZhe/hurl-mode"))
 (use-package hurl-mode :mode "\\.hurl\\'"
   :config
   (add-to-list 'display-buffer-alist
@@ -1168,8 +1166,7 @@ Meant for eshell in mind."
                  (display-buffer-in-side-window)
                  (window-height . 0.4))))
 
-(when (not (require 'window-stool nil 'noerrror))
-  (package-vc-install "https://github.com/JasZhe/window-stool"))
+(unless (require 'window-stool nil 'noerrror) (package-vc-install "https://github.com/JasZhe/window-stool"))
 (use-package window-stool :defer 2
   :config
   (setq window-stool-use-overlays t)
@@ -1239,7 +1236,12 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "dt" #'denote-type)
   (define-key my/leader-prefix-map "dn" #'denote))
 
-(when (not (require 'web-mode nil 'noerrror))
+(unless (require 'dired-subtree)
+  (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
+(define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
+(define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
+
+(unless (require 'web-mode nil 'noerrror)
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                  :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
 (use-package web-mode :ensure nil :pin gnu
