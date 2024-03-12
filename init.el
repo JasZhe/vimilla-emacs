@@ -227,6 +227,10 @@
 
 (fido-vertical-mode)
 
+(use-package savehist
+  :init
+  (savehist-mode))
+
 (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
 (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
 (keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
