@@ -1240,7 +1240,7 @@ Meant for eshell in mind."
 (unless (require 'dired-subtree nil 'noerror)
   (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
 (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
-(define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
+(define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle)
 
 (unless (require 'web-mode nil 'noerrror)
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
