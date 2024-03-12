@@ -1237,7 +1237,7 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "dt" #'denote-type)
   (define-key my/leader-prefix-map "dn" #'denote))
 
-(unless (require 'dired-subtree)
+(unless (require 'dired-subtree nil 'noerror)
   (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
 (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
 (define-key my/dired-vi-state-modify-map (kbd "C-i") #'dired-subtree-toggle)
