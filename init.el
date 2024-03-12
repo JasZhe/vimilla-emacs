@@ -222,6 +222,9 @@
         (".*" ,(concat (file-name-directory user-init-file) ".local/autosave/\\1") t)))
 (setq back-directory-alist `((".*" ,(concat (file-name-directory user-init-file) ".local/backups/"))))
 
+(setq auto-save-visited-interval 3)
+(auto-save-visited-mode)
+
 (fido-vertical-mode)
 
 (keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
@@ -381,11 +384,16 @@ With a prefix-arg run normally and specfiy a directory"
                                  (let ((completion
                                         (completing-read "Completion: " collection predicate nil initial)))
                                    (throw 'done completion)))))))))
-  (cond (completion (completion--replace start end completion) t)
-        (t (message "No completion") nil))))
+    (cond (completion (completion--replace start end completion) t)
+          (t (message "No completion") nil))))
 (setq completion-in-region-function #'completing-read-in-region)
 
-(setq tab-always-indent 'complete)
+;; (advice-add 'indent-for-tab-command
+;;             :after (lambda (&optional arg)
+;;                      (when (memq (get-char-code-property (char-before) 'general-category)
+;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
+;;                        (complete-symbol arg))))
+(setq tab-always-indent 'complete-symbol)
 
 (use-package speedbar :defer t
   :config
@@ -729,6 +737,8 @@ Meant for eshell in mind."
   (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
 
 (add-hook 'after-make-frame-functions #'set-fonts)
+;; for some reason this is kinda busted in emacs daemon
+(add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
 (set-fonts)
 
 (defun my/set-font-size ()
@@ -967,6 +977,10 @@ Meant for eshell in mind."
     (add-to-list 'display-buffer-alist
                  '("\\*Calendar\\*"
                    (display-buffer-in-side-window)))
+    (add-to-list 'display-buffer-alist
+                 '("\\*Org Src.*\\*"
+                   (display-buffer-in-side-window)
+                   (window-height . 0.4)))
 
     (setq my/org-vi-state-modify-map (make-sparse-keymap))
 

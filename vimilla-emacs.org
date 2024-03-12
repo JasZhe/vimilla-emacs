@@ -290,6 +290,12 @@ stole the completing read stuff from:
 
 #+end_src
 
+* auto save buffers
+#+begin_src elisp
+  (setq auto-save-visited-interval 3)
+  (auto-save-visited-mode)
+#+end_src
+
 * minibuffer setup
 
 Use partial-completion by default, most similar to orderless
@@ -494,11 +500,16 @@ no idea how necessary that is
                                    (let ((completion
                                           (completing-read "Completion: " collection predicate nil initial)))
                                      (throw 'done completion)))))))))
-    (cond (completion (completion--replace start end completion) t)
-          (t (message "No completion") nil))))
+      (cond (completion (completion--replace start end completion) t)
+            (t (message "No completion") nil))))
   (setq completion-in-region-function #'completing-read-in-region)
 
-  (setq tab-always-indent 'complete)
+  ;; (advice-add 'indent-for-tab-command
+  ;;             :after (lambda (&optional arg)
+  ;;                      (when (memq (get-char-code-property (char-before) 'general-category)
+  ;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
+  ;;                        (complete-symbol arg))))
+  (setq tab-always-indent 'complete-symbol)
 #+end_src
 
 * speedbar
@@ -912,6 +923,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 
 * Font and theme
 current system uses iosevka custom nerd font
+Note: on linux (popos) need to make sure not to launch Emacs (client) app
 #+begin_src elisp
   (setq current-font-height 130)
   (defun set-fonts ()
@@ -923,6 +935,8 @@ current system uses iosevka custom nerd font
     (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
 
   (add-hook 'after-make-frame-functions #'set-fonts)
+  ;; for some reason this is kinda busted in emacs daemon
+  (add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
   (set-fonts)
 
   (defun my/set-font-size ()
@@ -2269,6 +2283,10 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
       (add-to-list 'display-buffer-alist
                    '("\\*Calendar\\*"
                      (display-buffer-in-side-window)))
+      (add-to-list 'display-buffer-alist
+                   '("\\*Org Src.*\\*"
+                     (display-buffer-in-side-window)
+                     (window-height . 0.4)))
 
       (setq my/org-vi-state-modify-map (make-sparse-keymap))
 
