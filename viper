@@ -491,16 +491,6 @@ respects rectangle mode in a similar way to vim/doom"
                   (lambda () (previous-history-element 1))
                 (call-interactively 'project-find-regexp))))
 
-(defun my/flymake-diagnostics-at-point ()
-  (interactive)
-  (let ((diags (flymake-diagnostics (point))))
-    (if (not (seq-empty-p diags))
-        (message "%s"
-                 (cl-reduce (lambda (acc d) (concat acc (flymake--diag-text d)))
-                            (flymake-diagnostics (point))
-                            :initial-value ""))
-      (message "No diagnostics at point."))))
-
 (define-key my/leader-prefix-map "cx" #'my/flymake-diagnostics-at-point)
 (define-key my/leader-prefix-map "cX" #'flymake-show-buffer-diagnostics)
 
@@ -542,31 +532,6 @@ respects rectangle mode in a similar way to vim/doom"
             (lambda () (interactive)
               (imenu--menubar-select imenu--rescan-item)
               (call-interactively 'imenu)))
-
-(setq bookmark-use-annotations t)
-
-; note the call-interactively does pass the prefix args
-(defun my/set-project-bookmark ()
-  (interactive)
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (let ((prefix (concat (project-name (project-current)) ": ")))
-          (when (project-name (project-current))
-            (insert prefix))))
-        (call-interactively 'bookmark-set)))
-
-(defun my/jump-to-project-bookmark ()
-  (interactive)
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (let ((prefix (concat (project-name (project-current)) ": ")))
-          (when (project-name (project-current))
-            (insert prefix))))
-        (call-interactively 'bookmark-jump)))
-
-(setq bookmark-save-flag 1)
-(setq bookmark-use-annotations t)
-(setq bookmark-automatically-show-annotations nil)
 
 (define-key my/leader-prefix-map "nrf" #'my/jump-to-project-bookmark)
 (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
@@ -679,7 +644,6 @@ position of the outside of the paren.  Otherwise return nil."
 
 (advice-add 'viper-goto-line :around #'my/advise-viper-goto-line)
 
-(add-hook 'prog-mode-hook #'hs-minor-mode)
 (define-key viper-vi-basic-map "zC" #'hs-hide-all)
 (define-key viper-vi-basic-map "zO" #'hs-show-all)
 (define-key viper-vi-basic-map "zo" #'hs-show-block)
@@ -824,26 +788,6 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package ibuffer :defer t
   :config
-  ;; add project level grouping
-  (add-hook 'ibuffer-mode-hook
-            (lambda ()
-              (setq ibuffer-saved-filter-groups
-                    (list (let ((l (cl-mapcar
-                                    (lambda (p)
-                                      (let* ((project (project--find-in-directory (car p)))
-                                             (pname (project-name project))
-                                             (pbufs (project-buffers project)))
-                                        `(
-                                          ,pname
-                                          (filename . ,pname)
-                                          )))
-                                    (seq-filter
-                                     (lambda (p) (project-buffers (project--find-in-directory (car p))))
-                                     project--list))
-                                   ))
-                            (add-to-list 'l "projects"))))
-              (ibuffer-switch-to-saved-filter-groups "projects")))
-
   (setq my/ibuffer-vi-state-modify-map
         (make-composed-keymap
          nil
@@ -862,5 +806,4 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package comint :defer t
   :config
-  (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up)
-  )
+  (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up))

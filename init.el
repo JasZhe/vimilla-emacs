@@ -398,6 +398,51 @@ With a prefix-arg run normally and specfiy a directory"
   (define-key my/speedbar-vi-state-modify-map (kbd "-") #'speedbar-up-directory)
   (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
 
+(use-package ibuffer :defer t
+  :config
+  ;; add project level grouping
+  (add-hook 'ibuffer-mode-hook
+            (lambda ()
+              (setq ibuffer-saved-filter-groups
+                    (list (let ((l (cl-mapcar
+                                    (lambda (p)
+                                      (let* ((project (project--find-in-directory (car p)))
+                                             (pname (project-name project))
+                                             (pbufs (project-buffers project)))
+                                        `(
+                                          ,pname
+                                          (filename . ,pname)
+                                          )))
+                                    (seq-filter
+                                     (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                                     project--list))
+                                   ))
+                            (add-to-list 'l "projects"))))
+              (ibuffer-switch-to-saved-filter-groups "projects"))))
+
+(setq bookmark-use-annotations t)
+(setq bookmark-save-flag 1)
+(setq bookmark-automatically-show-annotations nil)
+
+                                        ; note the call-interactively does pass the prefix args
+(defun my/set-project-bookmark ()
+  (interactive)
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (let ((prefix (concat (project-name (project-current)) ": ")))
+          (when (project-name (project-current))
+            (insert prefix))))
+    (call-interactively 'bookmark-set)))
+
+(defun my/jump-to-project-bookmark ()
+  (interactive)
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (let ((prefix (concat (project-name (project-current)) ": ")))
+          (when (project-name (project-current))
+            (insert prefix))))
+    (call-interactively 'bookmark-jump)))
+
 (defun copy-env-vars-from-shell-1 (cmd)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))
@@ -446,18 +491,37 @@ Meant for eshell in mind."
           (lambda ()
             (unless (eq major-mode 'web-mode)
               (electric-pair-local-mode))))
+(add-hook 'prog-mode-hook #'hs-minor-mode)
+
+(defun my/flymake-diagnostics-at-point ()
+  (interactive)
+  (let ((diags (flymake-diagnostics (point))))
+    (if (not (seq-empty-p diags))
+        (message "%s"
+                 (cl-reduce (lambda (acc d) (concat acc (flymake--diag-text d)))
+                            (flymake-diagnostics (point))
+                            :initial-value ""))
+      (message "No diagnostics at point."))))
+
+(add-to-list 'display-buffer-alist '((major-mode . compilation-mode)
+                                     (display-buffer-in-side-window)))
+
+(add-to-list 'display-buffer-alist
+             '((or (major-mode . flymake-project-diagnostics-mode)
+                   (major-mode . flymake-diagnostics-buffer-mode))
+               (display-buffer-in-side-window)))
 
 (add-to-list 'display-buffer-alist
              '("\\*eldoc.*\\*"
                (display-buffer-in-side-window)))
 
 (add-to-list 'display-buffer-alist
-             '("\\*help\\*"
+             '((major-mode . help-mode)
                (display-buffer-in-side-window)
                (window-height . 0.35)))
 
 (add-to-list 'display-buffer-alist
-             '("\\*Messages\\*"
+             '((major-mode . messages-buffer-mode)
                (display-buffer-in-side-window)
                (window-height . 0.15)))
 

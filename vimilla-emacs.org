@@ -516,6 +516,56 @@ use as a dummy file viewer
     (viper-modify-major-mode 'speedbar-mode 'vi-state my/speedbar-vi-state-modify-map))
 #+end_src
 
+* ibuffer
+#+begin_src elisp
+  (use-package ibuffer :defer t
+    :config
+    ;; add project level grouping
+    (add-hook 'ibuffer-mode-hook
+              (lambda ()
+                (setq ibuffer-saved-filter-groups
+                      (list (let ((l (cl-mapcar
+                                      (lambda (p)
+                                        (let* ((project (project--find-in-directory (car p)))
+                                               (pname (project-name project))
+                                               (pbufs (project-buffers project)))
+                                          `(
+                                            ,pname
+                                            (filename . ,pname)
+                                            )))
+                                      (seq-filter
+                                       (lambda (p) (project-buffers (project--find-in-directory (car p))))
+                                       project--list))
+                                     ))
+                              (add-to-list 'l "projects"))))
+                (ibuffer-switch-to-saved-filter-groups "projects"))))
+#+end_src
+
+* simple project bookmarks
+#+begin_src elisp
+  (setq bookmark-use-annotations t)
+  (setq bookmark-save-flag 1)
+  (setq bookmark-automatically-show-annotations nil)
+
+                                          ; note the call-interactively does pass the prefix args
+  (defun my/set-project-bookmark ()
+    (interactive)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (let ((prefix (concat (project-name (project-current)) ": ")))
+            (when (project-name (project-current))
+              (insert prefix))))
+      (call-interactively 'bookmark-set)))
+
+  (defun my/jump-to-project-bookmark ()
+    (interactive)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (let ((prefix (concat (project-name (project-current)) ": ")))
+            (when (project-name (project-current))
+              (insert prefix))))
+      (call-interactively 'bookmark-jump)))
+#+end_src
 
 
 * development
@@ -579,6 +629,34 @@ and source some.envrc, then using that same shell, just copy all the environment
             (lambda ()
               (unless (eq major-mode 'web-mode)
                 (electric-pair-local-mode))))
+  (add-hook 'prog-mode-hook #'hs-minor-mode)
+#+end_src
+
+*** flymake diagnostic at point function
+#+begin_src elisp
+  (defun my/flymake-diagnostics-at-point ()
+    (interactive)
+    (let ((diags (flymake-diagnostics (point))))
+      (if (not (seq-empty-p diags))
+          (message "%s"
+                   (cl-reduce (lambda (acc d) (concat acc (flymake--diag-text d)))
+                              (flymake-diagnostics (point))
+                              :initial-value ""))
+        (message "No diagnostics at point."))))
+#+end_src
+
+*** compilaton mode in side window
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist '((major-mode . compilation-mode)
+                                       (display-buffer-in-side-window)))
+#+end_src
+
+*** flymake project diagnostics in side window
+#+begin_src elisp
+  (add-to-list 'display-buffer-alist
+               '((or (major-mode . flymake-project-diagnostics-mode)
+                     (major-mode . flymake-diagnostics-buffer-mode))
+                 (display-buffer-in-side-window)))
 #+end_src
 
 *** eldoc display buffer in bottom side window
@@ -591,7 +669,7 @@ and source some.envrc, then using that same shell, just copy all the environment
 *** help display buffer in bottom side window
 #+begin_src elisp
   (add-to-list 'display-buffer-alist
-               '("\\*help\\*"
+               '((major-mode . help-mode)
                  (display-buffer-in-side-window)
                  (window-height . 0.35)))
 #+end_src
@@ -599,7 +677,7 @@ and source some.envrc, then using that same shell, just copy all the environment
 *** messages display buffer in bottom side window
 #+begin_src elisp
   (add-to-list 'display-buffer-alist
-               '("\\*Messages\\*"
+               '((major-mode . messages-buffer-mode)
                  (display-buffer-in-side-window)
                  (window-height . 0.15)))
 #+end_src
@@ -1693,16 +1771,6 @@ need to remap isearch-backward since i wanna use C-r for redo
 
 *** "code" prefix
 #+begin_src elisp
-  (defun my/flymake-diagnostics-at-point ()
-    (interactive)
-    (let ((diags (flymake-diagnostics (point))))
-      (if (not (seq-empty-p diags))
-          (message "%s"
-                   (cl-reduce (lambda (acc d) (concat acc (flymake--diag-text d)))
-                              (flymake-diagnostics (point))
-                              :initial-value ""))
-        (message "No diagnostics at point."))))
-
   (define-key my/leader-prefix-map "cx" #'my/flymake-diagnostics-at-point)
   (define-key my/leader-prefix-map "cX" #'flymake-show-buffer-diagnostics)
 #+end_src
@@ -1761,35 +1829,7 @@ need to remap isearch-backward since i wanna use C-r for redo
 *** "notes" prefix (bookmarks)
 in lieu of org-roam, use bookmarks
 pretty handy tbh
-**** simple project bookmarks
 #+begin_src elisp
-(setq bookmark-use-annotations t)
-
-; note the call-interactively does pass the prefix args
-(defun my/set-project-bookmark ()
-  (interactive)
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (let ((prefix (concat (project-name (project-current)) ": ")))
-          (when (project-name (project-current))
-            (insert prefix))))
-        (call-interactively 'bookmark-set)))
-
-(defun my/jump-to-project-bookmark ()
-  (interactive)
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (let ((prefix (concat (project-name (project-current)) ": ")))
-          (when (project-name (project-current))
-            (insert prefix))))
-        (call-interactively 'bookmark-jump)))
-#+end_src
-
-#+begin_src elisp
-  (setq bookmark-save-flag 1)
-  (setq bookmark-use-annotations t)
-  (setq bookmark-automatically-show-annotations nil)
-
   (define-key my/leader-prefix-map "nrf" #'my/jump-to-project-bookmark)
   (define-key my/leader-prefix-map "nrl" #'list-bookmarks)
   (define-key my/leader-prefix-map "nri" #'bookmark-set)
@@ -1798,10 +1838,12 @@ pretty handy tbh
   (define-key my/leader-prefix-map "bmm" #'my/set-project-bookmark)
   (define-key my/leader-prefix-map "bmj" #'my/jump-to-project-bookmark)
 #+end_src
+
 *** news prefix
 #+begin_src elisp
   (define-key my/leader-prefix-map "Nt" #'newsticker-treeview)
 #+end_src
+
 *** pseudo "files" "f" prefix
 #+begin_src elisp
     (define-key my/leader-prefix-map "ff" #'find-file)
@@ -1947,11 +1989,8 @@ leader commands
   (advice-add 'viper-goto-line :around #'my/advise-viper-goto-line)
 #+end_src
 
-
-
 ** code folding
 #+begin_src elisp
-  (add-hook 'prog-mode-hook #'hs-minor-mode)
   (define-key viper-vi-basic-map "zC" #'hs-hide-all)
   (define-key viper-vi-basic-map "zO" #'hs-show-all)
   (define-key viper-vi-basic-map "zo" #'hs-show-block)
@@ -2130,26 +2169,6 @@ https://github.com/Fuco1/dired-hacks
 #+begin_src elisp
   (use-package ibuffer :defer t
     :config
-    ;; add project level grouping
-    (add-hook 'ibuffer-mode-hook
-              (lambda ()
-                (setq ibuffer-saved-filter-groups
-                      (list (let ((l (cl-mapcar
-                                      (lambda (p)
-                                        (let* ((project (project--find-in-directory (car p)))
-                                               (pname (project-name project))
-                                               (pbufs (project-buffers project)))
-                                          `(
-                                            ,pname
-                                            (filename . ,pname)
-                                            )))
-                                      (seq-filter
-                                       (lambda (p) (project-buffers (project--find-in-directory (car p))))
-                                       project--list))
-                                     ))
-                              (add-to-list 'l "projects"))))
-                (ibuffer-switch-to-saved-filter-groups "projects")))
-
     (setq my/ibuffer-vi-state-modify-map
           (make-composed-keymap
            nil
@@ -2174,8 +2193,7 @@ https://github.com/Fuco1/dired-hacks
 #+begin_src elisp
   (use-package comint :defer t
     :config
-    (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up)
-    )
+    (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up))
 #+end_src
 * Org
 
