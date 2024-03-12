@@ -1169,7 +1169,8 @@ Meant for eshell in mind."
 (unless (require 'window-stool nil 'noerrror) (package-vc-install "https://github.com/JasZhe/window-stool"))
 (use-package window-stool :defer 2
   :config
-  (setq window-stool-use-overlays t)
+  ;; only overlays in gui otherwises messes up with corfu overlay completions in terminal
+  (setq window-stool-use-overlays (display-graphic-p))
   (add-hook 'org-mode-hook #'window-stool-mode)
   (add-hook 'prog-mode-hook #'window-stool-mode))
 
