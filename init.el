@@ -665,6 +665,11 @@ Meant for eshell in mind."
 
   (font-lock-add-keywords 'emacs-lisp-mode `((+emacs-lisp-highlight-vars-and-faces . +emacs-lisp--face)) 'append))
 
+(defun my/eshell-in-bottom-side-window (arg)
+  (interactive "P")
+  (let ((eshell-buffer (save-window-excursion (eshell))))
+    (display-buffer-in-side-window eshell-buffer '())))
+
 (defun my/eshell-send-cmd-async ()
   (interactive)
   (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
@@ -705,6 +710,11 @@ Meant for eshell in mind."
 
 (use-package eshell :after consult :config
   (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'consult-history))
+
+(defun my/shell-in-bottom-side-window (arg)
+  (interactive "P")
+  (let ((shell-buffer (save-window-excursion (shell))))
+    (display-buffer-in-side-window shell-buffer '())))
 
 (use-package shell :defer t
   :config

@@ -855,6 +855,13 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
            
 ** eshell
 #+begin_src elisp
+  (defun my/eshell-in-bottom-side-window (arg)
+    (interactive "P")
+    (let ((eshell-buffer (save-window-excursion (eshell))))
+      (display-buffer-in-side-window eshell-buffer '())))
+#+end_src
+
+#+begin_src elisp
   (defun my/eshell-send-cmd-async ()
     (interactive)
     (let ((cmd (string-trim (buffer-substring-no-properties eshell-last-output-end (progn (end-of-line) (point))))))
@@ -892,12 +899,19 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
                       (insert selected)))))
     (viper-modify-major-mode 'eshell-mode 'vi-state my/eshell-vi-state-modify-map)
     (viper-modify-major-mode 'eshell-mode 'insert-state my/eshell-insert-state-modify-map))
-  
+
   (use-package eshell :after consult :config
     (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'consult-history))
 #+end_src
 
 ** shell mode
+#+begin_src elisp
+  (defun my/shell-in-bottom-side-window (arg)
+    (interactive "P")
+    (let ((shell-buffer (save-window-excursion (shell))))
+      (display-buffer-in-side-window shell-buffer '())))
+#+end_src
+
 #+begin_src elisp
   (use-package shell :defer t
     :config
@@ -918,7 +932,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
                       (comint-kill-input)
                       (insert selected)))))
     (viper-modify-major-mode 'shell-mode 'insert-state my/shell-insert-state-modify-map))
-  
+
   (use-package shell :after consult :config
     (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 #+end_src
@@ -1257,8 +1271,10 @@ Delete side windows if any
   (defun delete-bottom-side-window ()
     (interactive)
     (when (eq viper-current-state 'vi-state) 
-      (when-let ((side-window (window-with-parameter 'window-side 'bottom)))
-        (delete-window side-window))))
+      (when-let ((side-window (window-with-parameter 'window-side 'bottom))
+                 (buffer-major-mode (with-current-buffer (window-buffer side-window) major-mode)))
+        (unless (or (eq 'eshell-mode buffer-major-mode) (eq 'shell-mode buffer-major-mode))
+          (delete-window side-window)))))
   (advice-add 'viper-intercept-ESC-key :before #'delete-bottom-side-window)
 #+end_src
 
@@ -1762,8 +1778,11 @@ need to remap isearch-backward since i wanna use C-r for redo
 
 *** "open" prefix
 #+begin_src elisp
-  (define-key my/leader-prefix-map "oe" #'eshell)
-  (define-key my/leader-prefix-map "os" #'shell)
+  (define-key my/leader-prefix-map "oe" #'my/eshell-in-bottom-side-window)
+  (define-key my/leader-prefix-map "oE" #'eshell)
+  
+  (define-key my/leader-prefix-map "os" #'my/shell-in-bottom-side-window)
+  (define-key my/leader-prefix-map "oS" #'shell)
 #+end_src
 
 *** "project" prefix
@@ -2689,6 +2708,8 @@ just browse pdfs with external tools
       (viper-modify-major-mode 'pdf-view-mode 'vi-state my/pdf-vi-state-modify-map)
     )
 #+end_src
+
+* attempt at evil mode setup
 
 * custom
 #+begin_src elisp

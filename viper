@@ -71,8 +71,10 @@
 (defun delete-bottom-side-window ()
   (interactive)
   (when (eq viper-current-state 'vi-state) 
-    (when-let ((side-window (window-with-parameter 'window-side 'bottom)))
-      (delete-window side-window))))
+    (when-let ((side-window (window-with-parameter 'window-side 'bottom))
+               (buffer-major-mode (with-current-buffer (window-buffer side-window) major-mode)))
+      (unless (or (eq 'eshell-mode buffer-major-mode) (eq 'shell-mode buffer-major-mode))
+        (delete-window side-window)))))
 (advice-add 'viper-intercept-ESC-key :before #'delete-bottom-side-window)
 
 (setq my/mark-ring '())
@@ -476,8 +478,11 @@ respects rectangle mode in a similar way to vim/doom"
               (windmove-down)
               (scratch-buffer)))
 
-(define-key my/leader-prefix-map "oe" #'eshell)
-(define-key my/leader-prefix-map "os" #'shell)
+(define-key my/leader-prefix-map "oe" #'my/eshell-in-bottom-side-window)
+(define-key my/leader-prefix-map "oE" #'eshell)
+
+(define-key my/leader-prefix-map "os" #'my/shell-in-bottom-side-window)
+(define-key my/leader-prefix-map "oS" #'shell)
 
 (define-key my/leader-prefix-map "pp" #'project-switch-project)
 (define-key my/leader-prefix-map "pe" #'project-eshell)
