@@ -2652,6 +2652,22 @@ https://github.com/Fuco1/dired-hacks
   (define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle)
 #+end_src
 
+** coterm
+#+begin_src elisp
+  (use-package coterm :ensure t
+    :config 
+    (coterm-mode))
+#+end_src
+
+** eat
+#+begin_src elisp
+  (use-package eat :ensure t
+    :config
+    (setq eat-enable-auto-line-mode t)
+    (eat-eshell-mode)
+    (define-key my/leader-prefix-map "ot" #'eat))
+#+end_src
+
 * external language packages
 ** web mode
 no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode

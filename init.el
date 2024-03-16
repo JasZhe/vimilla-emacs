@@ -1254,6 +1254,16 @@ Meant for eshell in mind."
 (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
 (define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle)
 
+(use-package coterm :ensure t
+  :config 
+  (coterm-mode))
+
+(use-package eat :ensure t
+  :config
+  (setq eat-enable-auto-line-mode t)
+  (eat-eshell-mode)
+  (define-key my/leader-prefix-map "ot" #'eat))
+
 (unless (require 'web-mode nil 'noerrror)
   (package-vc-install '(web-mode :url "https://github.com/fxbois/web-mode"
                                  :rev "82847071ce93293bdb7945db08d970f13fd883cf")))
@@ -1283,7 +1293,7 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(window-stool))
+ '(package-selected-packages '(coterm eat window-stool))
  '(package-vc-selected-packages
    '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
@@ -1291,3 +1301,9 @@ Meant for eshell in mind."
            (lambda nil
              (org-babel-tangle))
            nil t))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
