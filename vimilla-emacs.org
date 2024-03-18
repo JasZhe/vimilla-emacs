@@ -276,7 +276,7 @@ stole the completing read stuff from:
   (setq eval-expression-print-length nil)
 #+end_src
 
-** steam doom's auto save transform
+** steal doom's auto save transform
 #+begin_src elisp
   (ignore-errors
     (make-directory (concat (file-name-directory user-init-file) ".local/"))
@@ -288,6 +288,11 @@ stole the completing read stuff from:
           (".*" ,(concat (file-name-directory user-init-file) ".local/autosave/\\1") t)))
   (setq back-directory-alist `((".*" ,(concat (file-name-directory user-init-file) ".local/backups/"))))
 
+#+end_src
+
+** yank from kill ring keybind
+#+begin_src elisp
+  (define-key global-map (kbd "C-S-p") #'yank-from-kill-ring)
 #+end_src
 
 * auto save buffers

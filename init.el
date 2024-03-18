@@ -222,6 +222,8 @@
         (".*" ,(concat (file-name-directory user-init-file) ".local/autosave/\\1") t)))
 (setq back-directory-alist `((".*" ,(concat (file-name-directory user-init-file) ".local/backups/"))))
 
+(define-key global-map (kbd "C-S-p") #'yank-from-kill-ring)
+
 (setq auto-save-visited-interval 3)
 (auto-save-visited-mode)
 
@@ -1293,7 +1295,7 @@ Meant for eshell in mind."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(coterm eat window-stool))
+ '(package-selected-packages '(window-stool))
  '(package-vc-selected-packages
    '((window-stool :vc-backend Git :url "https://github.com/JasZhe/window-stool")))
  '(safe-local-variable-values
@@ -1301,9 +1303,3 @@ Meant for eshell in mind."
            (lambda nil
              (org-babel-tangle))
            nil t))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
