@@ -521,6 +521,13 @@ no idea how necessary that is
   (setq tab-always-indent 'complete-symbol)
 #+end_src
 
+* vc settings
+No need for the other backends
+#+begin_src elisp
+  (use-package vc :config
+    (setq-default vc-handled-backends '(SVN Git Hg)))
+#+end_src
+
 * speedbar
 use as a dummy file viewer
 #+begin_src elisp
@@ -2087,6 +2094,32 @@ otherwise this works lol
   (advice-add 'viper-ket-function :around #'viper-ket-advice)
 #+end_src
 
+** redefine viper-maybe-checkout to use ediff-file-checked-in-p
+This is why when we save a file it asks us to check it out cause ex-write uses its own viper-file-checked-in-p
+instead of ediff's version
+Need to just redefine the maybe checkout function
+
+See these:
+[[file:/opt/homebrew/Cellar/emacs-plus@29/29.2/share/emacs/29.2/lisp/emulation/viper-ex.el::viper-maybe-checkout (current-buffer)]]
+[[file:/opt/homebrew/Cellar/emacs-plus@29/29.2/share/emacs/29.2/lisp/emulation/viper-util.el::defun viper-maybe-checkout (buf]]
+[[file:/opt/homebrew/Cellar/emacs-plus@29/29.2/share/emacs/29.2/lisp/vc/ediff-util.el::defun ediff-file-checked-in-p (file]]
+
+#+begin_src elisp
+  (use-package ediff :autoload (ediff-file-checked-in-p))
+
+  (defun viper-maybe-checkout (buf)
+    (let ((file (expand-file-name (buffer-file-name buf)))
+          (checkout-function (key-binding "\C-x\C-q")))
+      (if (and (ediff-file-checked-in-p file)
+               (or (beep 1) t)
+               (y-or-n-p
+                (format
+                 "File %s is checked in.  Check it out? "
+                 (abbreviate-file-name file))))
+          (with-current-buffer buf
+            (command-execute checkout-function)))))
+#+end_src
+
 ** extra VC keybindings
 note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggles the current commit to be an amend commit
 
@@ -2453,6 +2486,7 @@ The default custom partial-completion stuff we have works well enough that we mi
 
   (use-package embark-consult
     :ensure t ; only need to install it, embark loads it after consult if found
+    :after embark
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
@@ -2689,6 +2723,8 @@ https://github.com/Fuco1/dired-hacks
 ** eat
 #+begin_src elisp
   (use-package eat :ensure t
+    :hook
+    (eat-exec . (lambda (&rest _) (eat-line-mode)))
     :config
     (setq eat-enable-auto-line-mode t)
     (define-key my/leader-prefix-map "ot" #'eat))

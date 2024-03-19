@@ -401,6 +401,9 @@ With a prefix-arg run normally and specfiy a directory"
 ;;                        (complete-symbol arg))))
 (setq tab-always-indent 'complete-symbol)
 
+(use-package vc :config
+  (setq-default vc-handled-backends '(SVN Git Hg)))
+
 (use-package speedbar :defer t
   :config
   (setq speedbar-show-unknown-files t)
@@ -1114,6 +1117,7 @@ Meant for eshell in mind."
 
 (use-package embark-consult
   :ensure t ; only need to install it, embark loads it after consult if found
+  :after embark
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -1277,6 +1281,8 @@ Meant for eshell in mind."
   (coterm-mode))
 
 (use-package eat :ensure t
+  :hook
+  (eat-exec . (lambda (&rest _) (eat-line-mode)))
   :config
   (setq eat-enable-auto-line-mode t)
   (define-key my/leader-prefix-map "ot" #'eat))

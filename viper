@@ -695,6 +695,20 @@ position of the outside of the paren.  Otherwise return nil."
                  (apply orig-fun args))))))))
 (advice-add 'viper-ket-function :around #'viper-ket-advice)
 
+(use-package ediff :autoload (ediff-file-checked-in-p))
+
+(defun viper-maybe-checkout (buf)
+  (let ((file (expand-file-name (buffer-file-name buf)))
+        (checkout-function (key-binding "\C-x\C-q")))
+    (if (and (ediff-file-checked-in-p file)
+             (or (beep 1) t)
+             (y-or-n-p
+              (format
+               "File %s is checked in.  Check it out? "
+               (abbreviate-file-name file))))
+        (with-current-buffer buf
+          (command-execute checkout-function)))))
+
 (define-key global-map "\C-xvf" #'vc-pull)
 (define-key global-map "\C-xvF" #'my/vc-git-fetch)
 
