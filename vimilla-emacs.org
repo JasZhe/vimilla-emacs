@@ -2440,6 +2440,28 @@ The default custom partial-completion stuff we have works well enough that we mi
     (define-key my/leader-prefix-map "si" #'consult-imenu))
 #+end_src
 
+*** embark
+#+begin_src elisp
+  (use-package embark :ensure t :pin gnu
+    :bind
+    (("C-." . embark-act)
+     ("C-;" . embark-dwim)
+     ("C-c C-;" . embark-export)
+     ("C-h B" . embark-bindings))
+    :init
+    (setq prefix-help-command #'embark-prefix-help-command))
+
+  (use-package embark-consult
+    :ensure t ; only need to install it, embark loads it after consult if found
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+*** wgrep
+#+begin_src elisp
+  (use-package wgrep :ensure t)
+#+end_src
+
 ** comany completion
 #+begin_src elisp
   (use-package company :ensure t :pin gnu
@@ -2669,7 +2691,6 @@ https://github.com/Fuco1/dired-hacks
   (use-package eat :ensure t
     :config
     (setq eat-enable-auto-line-mode t)
-    (eat-eshell-mode)
     (define-key my/leader-prefix-map "ot" #'eat))
 #+end_src
 
@@ -2731,6 +2752,21 @@ just browse pdfs with external tools
 #+end_src
 
 * attempt at evil mode setup
+:PROPERTIES:
+:HEADER-ARGS: :tangle no
+:END:
+
+#+begin_src elisp
+  (use-package evil :ensure t
+    :config
+    (setq evil-want-C-u-scroll t))
+
+  (unless (require 'evil-collection nil 'noerror)
+    (package-vc-install '(evil-collection :url "https://github.com/emacs-evil/evil-collection")))
+  (use-package evil-collection :after evil
+    :config
+    (evil-collection-init))
+#+end_src
 
 * custom
 #+begin_src elisp

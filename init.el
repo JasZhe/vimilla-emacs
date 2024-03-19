@@ -1103,6 +1103,22 @@ Meant for eshell in mind."
   (define-key my/leader-prefix-map "ss" #'consult-line)
   (define-key my/leader-prefix-map "si" #'consult-imenu))
 
+(use-package embark :ensure t :pin gnu
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-c C-;" . embark-export)
+   ("C-h B" . embark-bindings))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command))
+
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package wgrep :ensure t)
+
 (use-package company :ensure t :pin gnu
   :config
   ;; window-stool overlays + company are broken
@@ -1263,7 +1279,6 @@ Meant for eshell in mind."
 (use-package eat :ensure t
   :config
   (setq eat-enable-auto-line-mode t)
-  (eat-eshell-mode)
   (define-key my/leader-prefix-map "ot" #'eat))
 
 (unless (require 'web-mode nil 'noerrror)
