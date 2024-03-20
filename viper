@@ -519,14 +519,16 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
 (define-key my/tab-prefix-map "." #'tab-bar-switch-to-tab)
 
-(define-key my/tab-prefix-map "[" (lambda (arg)
+(define-key my/tab-prefix-map "{" (lambda (arg)
                                     (interactive "P")
                                     (tab-bar-move-tab (if arg (- arg) -1))
                                     (get-tab-names)))
-(define-key my/tab-prefix-map "]" (lambda (arg)
+(define-key my/tab-prefix-map "}" (lambda (arg)
                                     (interactive "P")
                                     (tab-bar-move-tab (if arg arg 1))
                                     (get-tab-names)))
+(define-key my/tab-prefix-map "]" #'tab-bar-switch-to-next-tab)
+(define-key my/tab-prefix-map "[" #'tab-bar-switch-to-prev-tab)
 
 (define-key my/tab-prefix-map "\t" #'get-tab-names)
 (define-key my/tab-prefix-map [C-i] #'get-tab-names)

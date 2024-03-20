@@ -870,7 +870,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
   (defun my/eshell-in-bottom-side-window (arg)
     (interactive "P")
     (let ((eshell-buffer (save-window-excursion (eshell))))
-      (display-buffer-in-side-window eshell-buffer '())))
+      (select-window (display-buffer-in-side-window eshell-buffer '()))))
 #+end_src
 
 #+begin_src elisp
@@ -921,7 +921,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
   (defun my/shell-in-bottom-side-window (arg)
     (interactive "P")
     (let ((shell-buffer (save-window-excursion (shell))))
-      (display-buffer-in-side-window shell-buffer '())))
+      (select-window (display-buffer-in-side-window shell-buffer '()))))
 #+end_src
 
 #+begin_src elisp
@@ -1849,14 +1849,16 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
   (define-key my/tab-prefix-map "." #'tab-bar-switch-to-tab)
 
-  (define-key my/tab-prefix-map "[" (lambda (arg)
+  (define-key my/tab-prefix-map "{" (lambda (arg)
                                       (interactive "P")
                                       (tab-bar-move-tab (if arg (- arg) -1))
                                       (get-tab-names)))
-  (define-key my/tab-prefix-map "]" (lambda (arg)
+  (define-key my/tab-prefix-map "}" (lambda (arg)
                                       (interactive "P")
                                       (tab-bar-move-tab (if arg arg 1))
                                       (get-tab-names)))
+  (define-key my/tab-prefix-map "]" #'tab-bar-switch-to-next-tab)
+  (define-key my/tab-prefix-map "[" #'tab-bar-switch-to-prev-tab)
 
   (define-key my/tab-prefix-map "\t" #'get-tab-names)
   (define-key my/tab-prefix-map [C-i] #'get-tab-names)

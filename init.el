@@ -673,7 +673,7 @@ Meant for eshell in mind."
 (defun my/eshell-in-bottom-side-window (arg)
   (interactive "P")
   (let ((eshell-buffer (save-window-excursion (eshell))))
-    (display-buffer-in-side-window eshell-buffer '())))
+    (select-window (display-buffer-in-side-window eshell-buffer '()))))
 
 (defun my/eshell-send-cmd-async ()
   (interactive)
@@ -719,7 +719,7 @@ Meant for eshell in mind."
 (defun my/shell-in-bottom-side-window (arg)
   (interactive "P")
   (let ((shell-buffer (save-window-excursion (shell))))
-    (display-buffer-in-side-window shell-buffer '())))
+    (select-window (display-buffer-in-side-window shell-buffer '()))))
 
 (use-package shell :defer t
   :config
