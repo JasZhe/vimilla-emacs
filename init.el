@@ -926,6 +926,9 @@ Meant for eshell in mind."
           ("Emacs" "Sacha Chau Emacs" "Karthinks")))
   (newsticker--treeview-tree-update))
 
+(add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
+
 (setq org-directory "~/orgmode/")
 (setq org-attach-id-dir (concat (file-name-as-directory org-directory) (file-name-as-directory ".attach")))
 (setq org-todo-keywords '((sequence "TODO(t)" "WIP(w)" "|" "DONE" "CANCELLED")))

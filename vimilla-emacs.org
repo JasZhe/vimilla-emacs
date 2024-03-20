@@ -2260,6 +2260,13 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
     :config
     (define-key viper-comint-mode-modifier-map (kbd "C-d") #'viper-scroll-up))
 #+end_src
+
+* yaml
+#+begin_src elisp
+  (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
+#+end_src
+
 * Org
 
 grabbed the src block fontification from here
