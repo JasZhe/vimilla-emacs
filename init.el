@@ -82,6 +82,22 @@
   (setq ediff-window-setup-function #'ediff-setup-windows-plain)
   (setq ediff-split-window-function #'split-window-horizontally))
 
+(defun vc-ediff-file-at-point ()
+  (interactive)
+  (when (eq major-mode 'diff-mode)
+    (setq my-ediff-prior-window-configuration (current-window-configuration))
+    (let ((old-revision (first diff-vc-revisions))
+          (new-revision (second diff-vc-revisions))
+          (file-to-diff (save-window-excursion
+                          (diff-goto-source)
+                          (buffer-file-name))))
+      (vc-version-ediff `(,file-to-diff) old-revision new-revision))))
+
+(add-hook 'ediff-quit-hook
+          (lambda () (when (window-configuration-p my-ediff-prior-window-configuration)
+                       (set-window-configuration my-ediff-prior-window-configuration)))
+          100)
+
 (when (eq system-type 'gnu/linux)
   (setq x-super-keysym 'meta)
   (setq x-meta-keysym 'super))
