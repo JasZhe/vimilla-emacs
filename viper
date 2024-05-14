@@ -761,7 +761,13 @@ position of the outside of the paren.  Otherwise return nil."
                 my/viper-vi-motion-g-keymap
                 my/viper-vi-motion-leader-keymap)
           diff-mode-map)))
-  (add-hook 'diff-mode-hook #'outline-minor-mode) 
+  (add-hook 'diff-mode-hook #'outline-minor-mode)
+  (set-face-foreground 'diff-refine-added "green1")
+  (set-face-background 'diff-refine-added "green4")
+
+  (set-face-foreground 'diff-refine-removed "red1")
+  (set-face-background 'diff-refine-removed "red4")
+
   (define-key my/diff-mode-vi-state-map [C-i] #'outline-cycle)
   (define-key my/diff-mode-vi-state-map (kbd "<tab>") #'outline-cycle)
   (define-key my/diff-mode-vi-state-map (kbd "S-<tab>") #'outline-cycle-buffer)
