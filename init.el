@@ -556,6 +556,20 @@ Meant for eshell in mind."
                (display-buffer-in-side-window)
                (window-height . 0.15)))
 
+(define-derived-mode arduino-mode c-mode "arduino"
+  "My own mode which is a wrapper for c-mode for editing arduino files.")
+(use-package eglot :defer t
+  :config
+  (add-to-list 'eglot-server-programs '(arduino-mode . ("~/go/1.22.2/bin/arduino-language-server"
+                                                        "-clangd" "/usr/bin/clangd"
+                                                        "-cli" "/opt/homebrew/bin/arduino-cli"
+                                                        "-cli-config" "/Users/jasonzhen/Library/Arduino15/arduino-cli.yaml"
+                                                        "-fqbn" "arduino:avr:uno"))))
+
+(add-hook 'arduino-mode-hook #'eglot-ensure)
+
+(add-to-list 'auto-mode-alist '("\\.ino\\'" . arduino-mode))
+
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode-hook #'eglot-ensure)
 
@@ -1223,7 +1237,7 @@ Meant for eshell in mind."
 (use-package window-stool :defer 2
   :config
   ;; only overlays in gui otherwises messes up with corfu overlay completions in terminal
-  (setq window-stool-use-overlays (display-graphic-p))
+  (setq window-stool-use-overlays nil)
   (add-hook 'org-mode-hook #'window-stool-mode)
   (add-hook 'prog-mode-hook #'window-stool-mode))
 

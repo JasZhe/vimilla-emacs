@@ -725,6 +725,23 @@ and source some.envrc, then using that same shell, just copy all the environment
                  (window-height . 0.15)))
 #+end_src
 
+** arduino
+#+begin_src elisp
+  (define-derived-mode arduino-mode c-mode "arduino"
+    "My own mode which is a wrapper for c-mode for editing arduino files.")
+  (use-package eglot :defer t
+    :config
+    (add-to-list 'eglot-server-programs '(arduino-mode . ("~/go/1.22.2/bin/arduino-language-server"
+                                                          "-clangd" "/usr/bin/clangd"
+                                                          "-cli" "/opt/homebrew/bin/arduino-cli"
+                                                          "-cli-config" "/Users/jasonzhen/Library/Arduino15/arduino-cli.yaml"
+                                                          "-fqbn" "arduino:avr:uno"))))
+
+  (add-hook 'arduino-mode-hook #'eglot-ensure)
+
+  (add-to-list 'auto-mode-alist '("\\.ino\\'" . arduino-mode))
+#+end_src
+
 ** golang
 
 #+begin_src elisp
@@ -2639,7 +2656,7 @@ well this oen is self explanatory
   (use-package window-stool :defer 2
     :config
     ;; only overlays in gui otherwises messes up with corfu overlay completions in terminal
-    (setq window-stool-use-overlays (display-graphic-p))
+    (setq window-stool-use-overlays nil)
     (add-hook 'org-mode-hook #'window-stool-mode)
     (add-hook 'prog-mode-hook #'window-stool-mode))
 #+end_src
