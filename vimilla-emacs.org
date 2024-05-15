@@ -988,11 +988,21 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 current system uses iosevka custom nerd font
 Note: on linux (popos) need to make sure not to launch Emacs (client) app
 #+begin_src elisp
-  (setq current-font-height 130)
+  (setq current-font-height 160)
   (defun set-fonts ()
     (message "setting fonts")
-    (ignore-errors (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
-    (ignore-errors (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+    (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
+           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+          ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
+           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+          (t (message "None of my preferred mono fonts found, will use defaults")))
+
+    (cond ((member "Comic Neue" (font-family-list))
+           (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
+          ((member "Iosevka Etoile" (font-family-list))
+           (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+          (t (message "None of my preferred variable pitch fonts found, will use defaults")))
+    
     (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
     (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
     (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
@@ -2616,7 +2626,8 @@ Otherwise we just use isearch and standard vi f/F motions
   (use-package avy :ensure t :pin gnu :defer 2
     :config
     (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
-    (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
+    (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+    (define-key viper-vi-basic-map "gs " #'avy-goto-char-timer))
 #+end_src
 
 ** vundo

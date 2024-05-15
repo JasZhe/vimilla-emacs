@@ -774,11 +774,21 @@ Meant for eshell in mind."
 (use-package shell :after consult :config
   (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
-(setq current-font-height 130)
+(setq current-font-height 160)
 (defun set-fonts ()
   (message "setting fonts")
-  (ignore-errors (set-face-attribute 'default nil :font "IosevkaCustom Nerd Font Propo" :height current-font-height))
-  (ignore-errors (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+  (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
+         (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+        ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
+         (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+        (t (message "None of my preferred mono fonts found, will use defaults")))
+
+  (cond ((member "Comic Neue" (font-family-list))
+         (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
+        ((member "Iosevka Etoile" (font-family-list))
+         (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+        (t (message "None of my preferred variable pitch fonts found, will use defaults")))
+
   (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
   (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
   (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
@@ -1209,7 +1219,8 @@ Meant for eshell in mind."
 (use-package avy :ensure t :pin gnu :defer 2
   :config
   (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
-  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer))
+  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+  (define-key viper-vi-basic-map "gs " #'avy-goto-char-timer))
 
 (use-package vundo :ensure t :pin gnu
   :config
