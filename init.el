@@ -350,16 +350,35 @@ With a prefix-arg run normally and specfiy a directory"
   (interactive)
   (call-interactively 'rgrep))
 
-(advice-add
- #'grep-compute-defaults
- :before (lambda ()
-           (if (or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
-               (progn
-                 (grep-apply-setting 'grep-command "rg -nS --no-heading ")
-                 (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +"))
-             (progn
-               (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
-               (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e")))))
+(defun rripgrep-multiline ()
+  (interactive)
+  (call-interactively 'rgrep))
+
+(defun rgrep-multiline ()
+  (interactive)
+  (grep-apply-setting 'grep-command "grep -Pazo --color=auto -nH --null -e ")
+  (call-interactively 'rgrep))
+
+(defun grep-options-advice ()
+  "A convenient way for us to put different options depending on the grep command being run.
+See notes:emacs-notes-and-tips for more details."
+  (cond ((or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
+         (progn
+           (grep-apply-setting 'grep-command "rg -nS --no-heading ") ;; for normal single file grep
+           (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nS --no-heading -H  <R> /dev/null {} +"))) ;; for rgrep; uses grep-find-template
+        ((eq this-command 'rripgrep-multiline)
+         (progn
+           (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nSU --no-heading -H  <R> /dev/null {} +")))
+        ((eq this-command 'rgrep-multiline)
+         (progn
+           (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep -zo <C> -nH --null -e <R> \\{\\} +")))
+        (t (progn ;; defaults in case I want to change them later to do something different, otherwise don't really need this last case
+             (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
+             (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e ")))
+        )
+  )
+
+(advice-add #'grep-compute-defaults :before #'grep-options-advice)
 
 (require 'dabbrev)
 ;; #'dabbrev-completion resets the global variables first so we do the same
@@ -512,7 +531,8 @@ Meant for eshell in mind."
 
 (use-package tramp :defer t
   :config
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (setq enable-remote-dir-locals t))
 
 (with-eval-after-load 'tramp
 (add-to-list 'tramp-methods
