@@ -439,7 +439,61 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-insert-basic-map (kbd "s-v") #'viper-paste-into-region)
 (define-key global-map (kbd "s-v") #'viper-paste-into-region)
 
+(defun dumb-change-surrounding ()
+  "Basic surrounding change function.
+      The first char read, is the surrounding to find.
+      The second char read, is the new surrounding character.
+      Some DWIM here regarding parentheses and brackets."
+  (interactive)
+  (let* ((delim (char-to-string (read-char "find")))
+         (replace-start-1 (char-to-string (read-char "replace")))
+         (replace-start (cond ((string= replace-start-1 "]") "[") ;; replacing closing with opening
+                              ((string= replace-start-1 ")") "(")
+                              (t replace-start-1)))
 
+         (replace-end (cond ((string= replace-start "[") "]") ;; replacing opening with closing
+                            ((string= replace-start "(") ")")
+                            (t replace-start))))
+
+    (cond ((or (string= delim "(") (string= delim "["))
+           (search-backward delim (save-excursion (backward-paragraph) (point)))
+           (save-excursion (forward-sexp) (delete-char -1)
+                           (insert replace-end))
+           (delete-char 1)
+           (insert replace-start))
+          (t
+           (save-excursion
+             (search-backward delim (save-excursion (backward-paragraph) (point)))
+             (delete-char 1)
+             (insert replace-start)
+             (search-forward delim (save-excursion (forward-paragraph) (point)))
+             (delete-char -1)
+             (insert replace-end)
+             )
+           )
+          )))
+
+(defun viper-command-advice (orig-fun &rest args)
+  "Frontload one of the read-char calls so we can attach our own functions.
+  Subsequent calls to read-char use the original implementation.
+See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-function-in-a-cl-letf-overridden-function"
+  (let ((char (read-char))
+        (num-read-char-calls 0))
+    (cond ((and (eq last-command-event ?c) (viper= ?s char)) (dumb-change-surrounding))
+          (t
+           (cl-letf ((old-read-char (symbol-function 'read-char))
+                     ((symbol-function 'read-char)
+                      (lambda (&rest _)
+                        (if (gt num-read-char-calls 0)
+                            (progn 
+                              (funcall old-read-char))
+                          (progn
+                            (setq num-read-char-calls (1+ num-read-char-calls))
+                            char)))))
+             (apply orig-fun args))
+           ))))
+
+(advice-add 'viper-command-argument :around #'viper-command-advice)
 
 (define-key viper-vi-basic-map "u" #'undo-only)
 (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)
