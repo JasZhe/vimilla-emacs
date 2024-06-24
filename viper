@@ -289,10 +289,10 @@
                     (end-of-line))		   
                    ((= (- (line-number-at-pos) 1) selected-start-line)
                     (progn 
-                    (apply orig-fun args)
-                    (end-of-line)
-                    (set-mark-command nil)
-                    (beginning-of-line)))
+                      (apply orig-fun args)
+                      (end-of-line)
+                      (set-mark-command nil)
+                      (beginning-of-line)))
                    (t
                     (progn
                       (apply orig-fun args)
@@ -341,13 +341,13 @@
 ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
 (defun viper-join-lines-region-advice (orig-fun arg &rest args)
   (interactive "P")
-              (if (use-region-p)
-                  (let* ((start (region-beginning))
-                        (end (region-end))
-                        (numlines (count-lines start end)))
-                    (goto-char start)
-                    (apply orig-fun `(,numlines)))
-                (apply orig-fun `(,arg))))
+  (if (use-region-p)
+      (let* ((start (region-beginning))
+             (end (region-end))
+             (numlines (count-lines start end)))
+        (goto-char start)
+        (apply orig-fun `(,numlines)))
+    (apply orig-fun `(,arg))))
 (advice-add 'viper-join-lines :around #'viper-join-lines-region-advice)
 
 (setq my/line-yank-p nil)
@@ -438,6 +438,8 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map (kbd "s-v") #'viper-paste-into-region)
 (define-key viper-insert-basic-map (kbd "s-v") #'viper-paste-into-region)
 (define-key global-map (kbd "s-v") #'viper-paste-into-region)
+
+
 
 (define-key viper-vi-basic-map "u" #'undo-only)
 (define-key viper-vi-basic-map (kbd "C-r") #'undo-redo)

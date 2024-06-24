@@ -113,7 +113,7 @@
 
 ;; mac ligatures
 (when (fboundp 'mac-auto-operator-composition-mode)
-    (mac-auto-operator-composition-mode))
+  (mac-auto-operator-composition-mode))
 
 (defun macos-term-select-text-to-clipboard (text)
   (unless (eq system-type 'gnu/linux)
@@ -535,21 +535,21 @@ Meant for eshell in mind."
   (setq enable-remote-dir-locals t))
 
 (with-eval-after-load 'tramp
-(add-to-list 'tramp-methods
-             '("sshx11"
-               (tramp-login-program        "ssh")
-               (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-                                            ("-e" "none") ("-X") ("%h")))
-               (tramp-async-args           (("-q")))
-               (tramp-remote-shell         "/bin/sh")
-               (tramp-remote-shell-login   ("-l"))
-               (tramp-remote-shell-args    ("-c"))
-               (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-                                            ("-o" "UserKnownHostsFile=/dev/null")
-                                            ("-o" "StrictHostKeyChecking=yes")
-                                            ("-o" "ForwardX11=yes")))
-               (tramp-default-port         22)))
-(tramp-set-completion-function "sshx11" tramp-completion-function-alist-ssh))
+  (add-to-list 'tramp-methods
+               '("sshx11"
+                 (tramp-login-program        "ssh")
+                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
+                                              ("-e" "none") ("-X") ("%h")))
+                 (tramp-async-args           (("-q")))
+                 (tramp-remote-shell         "/bin/sh")
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
+                                              ("-o" "UserKnownHostsFile=/dev/null")
+                                              ("-o" "StrictHostKeyChecking=yes")
+                                              ("-o" "ForwardX11=yes")))
+                 (tramp-default-port         22)))
+  (tramp-set-completion-function "sshx11" tramp-completion-function-alist-ssh))
 
 (add-hook 'prog-mode-hook #'flymake-mode)
 (setq treesit-font-lock-level 4)

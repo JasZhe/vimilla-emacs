@@ -82,7 +82,7 @@ just a simple wrapper in the case where we can't install magit
   (defun my/vc-add-remote ())
   (defun my/vc-delete-remote ())
   (defun my/vc-set-remote-url ())
-#+end_src
+    #+end_src
 
 * convenient alias
 org really hates the parens matching when < or > is involved
@@ -113,21 +113,21 @@ org really hates the parens matching when < or > is involved
 #+end_src
 
 #+begin_src elisp
-(defun vc-ediff-file-at-point ()
-  (interactive)
-  (when (eq major-mode 'diff-mode)
-    (setq my-ediff-prior-window-configuration (current-window-configuration))
-    (let ((old-revision (first diff-vc-revisions))
-          (new-revision (second diff-vc-revisions))
-          (file-to-diff (save-window-excursion
-                          (diff-goto-source)
-                          (buffer-file-name))))
-      (vc-version-ediff `(,file-to-diff) old-revision new-revision))))
+  (defun vc-ediff-file-at-point ()
+    (interactive)
+    (when (eq major-mode 'diff-mode)
+      (setq my-ediff-prior-window-configuration (current-window-configuration))
+      (let ((old-revision (first diff-vc-revisions))
+            (new-revision (second diff-vc-revisions))
+            (file-to-diff (save-window-excursion
+                            (diff-goto-source)
+                            (buffer-file-name))))
+        (vc-version-ediff `(,file-to-diff) old-revision new-revision))))
 
-(add-hook 'ediff-quit-hook
-          (lambda () (when (window-configuration-p my-ediff-prior-window-configuration)
-                       (set-window-configuration my-ediff-prior-window-configuration)))
-          100)
+  (add-hook 'ediff-quit-hook
+            (lambda () (when (window-configuration-p my-ediff-prior-window-configuration)
+                         (set-window-configuration my-ediff-prior-window-configuration)))
+            100)
 #+end_src
 
 * linux settings
@@ -161,7 +161,7 @@ The P9 can go to like P56. [1;P9 maps to like CTRL CMD OPTION A, which we probab
 
   ;; mac ligatures
   (when (fboundp 'mac-auto-operator-composition-mode)
-      (mac-auto-operator-composition-mode))
+    (mac-auto-operator-composition-mode))
 #+end_src
 
 * terminal settings
@@ -266,7 +266,7 @@ stole the completing read stuff from:
   ;; Lower threshold back to 8 MiB (default is 800kB)
   (add-hook 'emacs-startup-hook
             (lambda () (setq gc-cons-threshold (* 1024 1024 16)))) ;; 16MB
-  
+
   (run-with-idle-timer 2 t #'garbage-collect)
 
   (setq inhibit-startup-screen t)
@@ -439,43 +439,43 @@ nice quality of life similar to how we do partial completion
 
 * ripgrep wrapper
 #+begin_src elisp
-(defun ripgrep ()
-  (interactive)
-  (call-interactively 'grep))
+  (defun ripgrep ()
+    (interactive)
+    (call-interactively 'grep))
 
-(defun rripgrep ()
-  (interactive)
-  (call-interactively 'rgrep))
+  (defun rripgrep ()
+    (interactive)
+    (call-interactively 'rgrep))
 
-(defun rripgrep-multiline ()
-  (interactive)
-  (call-interactively 'rgrep))
+  (defun rripgrep-multiline ()
+    (interactive)
+    (call-interactively 'rgrep))
 
-(defun rgrep-multiline ()
-  (interactive)
-  (grep-apply-setting 'grep-command "grep -Pazo --color=auto -nH --null -e ")
-  (call-interactively 'rgrep))
+  (defun rgrep-multiline ()
+    (interactive)
+    (grep-apply-setting 'grep-command "grep -Pazo --color=auto -nH --null -e ")
+    (call-interactively 'rgrep))
 
-(defun grep-options-advice ()
-  "A convenient way for us to put different options depending on the grep command being run.
-See notes:emacs-notes-and-tips for more details."
-  (cond ((or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
-         (progn
-           (grep-apply-setting 'grep-command "rg -nS --no-heading ") ;; for normal single file grep
-           (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nS --no-heading -H  <R> /dev/null {} +"))) ;; for rgrep; uses grep-find-template
-        ((eq this-command 'rripgrep-multiline)
-         (progn
-           (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nSU --no-heading -H  <R> /dev/null {} +")))
-        ((eq this-command 'rgrep-multiline)
-         (progn
-           (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep -zo <C> -nH --null -e <R> \\{\\} +")))
-        (t (progn ;; defaults in case I want to change them later to do something different, otherwise don't really need this last case
-             (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
-             (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e ")))
-        )
-  )
+  (defun grep-options-advice ()
+    "A convenient way for us to put different options depending on the grep command being run.
+  See notes:emacs-notes-and-tips for more details."
+    (cond ((or (eq this-command 'ripgrep) (eq this-command 'rripgrep))
+           (progn
+             (grep-apply-setting 'grep-command "rg -nS --no-heading ") ;; for normal single file grep
+             (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nS --no-heading -H  <R> /dev/null {} +"))) ;; for rgrep; uses grep-find-template
+          ((eq this-command 'rripgrep-multiline)
+           (progn
+             (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> -nSU --no-heading -H  <R> /dev/null {} +")))
+          ((eq this-command 'rgrep-multiline)
+           (progn
+             (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep -zo <C> -nH --null -e <R> \\{\\} +")))
+          (t (progn ;; defaults in case I want to change them later to do something different, otherwise don't really need this last case
+               (grep-apply-setting 'grep-find-template "find -H <D> <X> -type f <F> -exec grep <C> -nH --null -e <R> \\{\\} +")
+               (grep-apply-setting 'grep-command "grep --color=auto -nH --null -e ")))
+          )
+    )
 
-(advice-add #'grep-compute-defaults :before #'grep-options-advice)
+  (advice-add #'grep-compute-defaults :before #'grep-options-advice)
 #+end_src
 
 * completion
@@ -681,21 +681,21 @@ and source some.envrc, then using that same shell, just copy all the environment
     (setq enable-remote-dir-locals t))
 
   (with-eval-after-load 'tramp
-  (add-to-list 'tramp-methods
-               '("sshx11"
-                 (tramp-login-program        "ssh")
-                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-                                              ("-e" "none") ("-X") ("%h")))
-                 (tramp-async-args           (("-q")))
-                 (tramp-remote-shell         "/bin/sh")
-                 (tramp-remote-shell-login   ("-l"))
-                 (tramp-remote-shell-args    ("-c"))
-                 (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-                                              ("-o" "UserKnownHostsFile=/dev/null")
-                                              ("-o" "StrictHostKeyChecking=yes")
-                                              ("-o" "ForwardX11=yes")))
-                 (tramp-default-port         22)))
-  (tramp-set-completion-function "sshx11" tramp-completion-function-alist-ssh))
+    (add-to-list 'tramp-methods
+                 '("sshx11"
+                   (tramp-login-program        "ssh")
+                   (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
+                                                ("-e" "none") ("-X") ("%h")))
+                   (tramp-async-args           (("-q")))
+                   (tramp-remote-shell         "/bin/sh")
+                   (tramp-remote-shell-login   ("-l"))
+                   (tramp-remote-shell-args    ("-c"))
+                   (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
+                                                ("-o" "UserKnownHostsFile=/dev/null")
+                                                ("-o" "StrictHostKeyChecking=yes")
+                                                ("-o" "ForwardX11=yes")))
+                   (tramp-default-port         22)))
+    (tramp-set-completion-function "sshx11" tramp-completion-function-alist-ssh))
 #+end_src
 
 ** qol
@@ -870,7 +870,7 @@ parser.c lives, we input typescript/src
 some weird issue with typescript treesitter v0.20.4, would avoid that branch until its fixed <2024-02-08 Thu>
 #+begin_src elisp
   (setq-default tab-width 4)
-  
+
   (use-package js :defer t
     :config
     (setq js-indent-level 4)
@@ -1038,7 +1038,7 @@ Note: on linux (popos) need to make sure not to launch Emacs (client) app
           ((member "Iosevka Etoile" (font-family-list))
            (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
           (t (message "None of my preferred variable pitch fonts found, will use defaults")))
-    
+
     (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
     (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
     (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
@@ -1089,7 +1089,7 @@ instead
   (unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
   (use-package ligature
     :config
-  
+
     (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
                                          "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
                                          "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
@@ -1218,33 +1218,33 @@ display eww in side window with a large height
 
 * Rss feed via newsticker
 #+begin_src elisp
-(use-package newst-backend :defer t
-  :config
-  (setq newsticker-url-list
-        '(("CBC Toronto" "https://www.cbc.ca/webfeed/rss/rss-canada-toronto" nil nil nil)
-          ("CBC Canada" "https://www.cbc.ca/webfeed/rss/rss-canada" nil nil nil)
-          ("CBC Politics" "https://www.cbc.ca/webfeed/rss/rss-politics" nil nil nil)
-          ("CBC Business" "https://www.cbc.ca/webfeed/rss/rss-business" nil nil nil)
-          ("CBC Technology" "https://www.cbc.ca/webfeed/rss/rss-technology" nil nil nil)
-          ("Toronto Star" "https://www.thestar.com/search/?f=rss&t=article&c=news/gta*&l=50&s=start_time&sd=desc" nil nil nil)
-          ("Reuters North America" "https://www.reutersagency.com/feed/?best-regions=north-america&post_type=best" nil nil nil)
-          ("Reuters Politics" "https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best" nil nil nil)
-          ("Reuters Tech" "https://www.reutersagency.com/feed/?best-topics=tech&post_type=best" nil nil nil)
-          ("Reuters Business" "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best" nil nil nil)
-          ("Hacker News" "https://news.ycombinator.com/rss")
-          ("Reddit - Emacs" "https://old.reddit.com/r/emacs/.rss")
-          ("Sacha Chau Emacs" "https://sachachua.com/blog/feed/" nil nil nil)
-          ("Karthinks" "https://karthinks.com/index.xml" nil nil nil))))
+  (use-package newst-backend :defer t
+    :config
+    (setq newsticker-url-list
+          '(("CBC Toronto" "https://www.cbc.ca/webfeed/rss/rss-canada-toronto" nil nil nil)
+            ("CBC Canada" "https://www.cbc.ca/webfeed/rss/rss-canada" nil nil nil)
+            ("CBC Politics" "https://www.cbc.ca/webfeed/rss/rss-politics" nil nil nil)
+            ("CBC Business" "https://www.cbc.ca/webfeed/rss/rss-business" nil nil nil)
+            ("CBC Technology" "https://www.cbc.ca/webfeed/rss/rss-technology" nil nil nil)
+            ("Toronto Star" "https://www.thestar.com/search/?f=rss&t=article&c=news/gta*&l=50&s=start_time&sd=desc" nil nil nil)
+            ("Reuters North America" "https://www.reutersagency.com/feed/?best-regions=north-america&post_type=best" nil nil nil)
+            ("Reuters Politics" "https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best" nil nil nil)
+            ("Reuters Tech" "https://www.reutersagency.com/feed/?best-topics=tech&post_type=best" nil nil nil)
+            ("Reuters Business" "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best" nil nil nil)
+            ("Hacker News" "https://news.ycombinator.com/rss")
+            ("Reddit - Emacs" "https://old.reddit.com/r/emacs/.rss")
+            ("Sacha Chau Emacs" "https://sachachua.com/blog/feed/" nil nil nil)
+            ("Karthinks" "https://karthinks.com/index.xml" nil nil nil))))
 
-(use-package newst-treeview :defer t
-  :config
-  (setq newsticker-groups
-        '("Feeds"
-          ("CBC" "CBC Toronto" "CBC Canada" "CBC Politics" "CBC Business" "CBC Technology")
-          "Toronto Star"
-          ("Reuters" "Reuters North America" "Reuters Politics" "Reuters Tech" "Reuters Business")
-          ("Emacs" "Sacha Chau Emacs" "Karthinks")))
-  (newsticker--treeview-tree-update))
+  (use-package newst-treeview :defer t
+    :config
+    (setq newsticker-groups
+          '("Feeds"
+            ("CBC" "CBC Toronto" "CBC Canada" "CBC Politics" "CBC Business" "CBC Technology")
+            "Toronto Star"
+            ("Reuters" "Reuters North America" "Reuters Politics" "Reuters Tech" "Reuters Business")
+            ("Emacs" "Sacha Chau Emacs" "Karthinks")))
+    (newsticker--treeview-tree-update))
 #+end_src
 
 * Viper
@@ -1621,10 +1621,10 @@ a lot of the problem is just around making sure that starting line is always mar
                       (end-of-line))		   
                      ((= (- (line-number-at-pos) 1) selected-start-line)
                       (progn 
-                      (apply orig-fun args)
-                      (end-of-line)
-                      (set-mark-command nil)
-                      (beginning-of-line)))
+                        (apply orig-fun args)
+                        (end-of-line)
+                        (set-mark-command nil)
+                        (beginning-of-line)))
                      (t
                       (progn
                         (apply orig-fun args)
@@ -1688,29 +1688,29 @@ if the region exists then we jump to the beginning of the region and merge the n
   ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-join-lines fun)) 'viper-join-lines)
   (defun viper-join-lines-region-advice (orig-fun arg &rest args)
     (interactive "P")
-                (if (use-region-p)
-                    (let* ((start (region-beginning))
-                          (end (region-end))
-                          (numlines (count-lines start end)))
-                      (goto-char start)
-                      (apply orig-fun `(,numlines)))
-                  (apply orig-fun `(,arg))))
+    (if (use-region-p)
+        (let* ((start (region-beginning))
+               (end (region-end))
+               (numlines (count-lines start end)))
+          (goto-char start)
+          (apply orig-fun `(,numlines)))
+      (apply orig-fun `(,arg))))
   (advice-add 'viper-join-lines :around #'viper-join-lines-region-advice)
 #+end_src
 
 I hate how joining lines adds spaces between the lines joined
 still kinda WIP need to think about this one
 #+begin_src elisp :tangle no
-    (defun viper-join-lines-advice (orig-fun &rest args)
-      (interactive "*P")
-      (cl-letf (((symbol-function 'looking-at)
-                 (lambda (regexp &optional _)
-                   (looking-at (rx-to-string
-                                `(: (or "[" "]" "(" ")" "," "{" "}")))))))
-                (apply orig-fun args)))
-  
-    (advice-remove 'viper-join-lines #'viper-join-lines-advice)
-    (advice-add 'viper-join-lines :around #'viper-join-lines-advice)
+  (defun viper-join-lines-advice (orig-fun &rest args)
+    (interactive "*P")
+    (cl-letf (((symbol-function 'looking-at)
+               (lambda (regexp &optional _)
+                 (looking-at (rx-to-string
+                              `(: (or "[" "]" "(" ")" "," "{" "}")))))))
+      (apply orig-fun args)))
+
+  (advice-remove 'viper-join-lines #'viper-join-lines-advice)
+  (advice-add 'viper-join-lines :around #'viper-join-lines-advice)
 #+end_src
 
 
@@ -1806,6 +1806,10 @@ still kinda WIP need to think about this one
   (define-key global-map (kbd "s-v") #'viper-paste-into-region)
 #+end_src
 
+** dumb evil surround
+#+begin_src elisp
+#+end_src
+
 ** undo redo isearch backwards
 thank god for undo-only but emacs > 28 only
 need to remap isearch-backward since i wanna use C-r for redo
@@ -1873,7 +1877,7 @@ need to remap isearch-backward since i wanna use C-r for redo
 #+begin_src elisp
   (define-key my/leader-prefix-map "oe" #'my/eshell-in-bottom-side-window)
   (define-key my/leader-prefix-map "oE" #'eshell)
-  
+
   (define-key my/leader-prefix-map "os" #'my/shell-in-bottom-side-window)
   (define-key my/leader-prefix-map "oS" #'shell)
 #+end_src
@@ -1975,7 +1979,7 @@ pretty handy tbh
 
 *** pseudo "files" "f" prefix
 #+begin_src elisp
-    (define-key my/leader-prefix-map "ff" #'find-file)
+  (define-key my/leader-prefix-map "ff" #'find-file)
 #+end_src
 
 ** viper motion keymap
@@ -2019,7 +2023,7 @@ I might be able to live without these ones so they can be overriden
   (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
   (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
   (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
- 
+
 #+end_src
 
 "g" commands like beginning of buffer and change tab
