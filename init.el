@@ -265,9 +265,9 @@
   :init
   (savehist-mode))
 
-(keymap-set minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
+(define-key minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
 (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
-(keymap-set global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
+(define-key global-map "C-z" #'viper-mode) ;; C-z to suspend frame is annoying with viper
 
 (setq completion-styles '(partial-completion basic) completion-category-overrides nil completion-category-defaults nil)
 ;; need this hook otherwise i think fido setup or something overrides the completion which is annoying
