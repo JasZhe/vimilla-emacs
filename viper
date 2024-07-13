@@ -233,19 +233,39 @@
         (forward-to-indentation (1- val))
         (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 
-(defun viper-call-underlying-keymap-cmd ()
-  "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'."
+(defun viper-call-underlying-keymap-cmd (&optional alt-cmd)
+  "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'.
+   If the underlying command is like an \"insert-command\" then we either do nothing or execute ALT-CMD."
   (interactive)
   (viper-change-state-to-emacs)
   (when-let ((local-cmd (key-binding (this-command-keys))))
-    (unless (string-match-p ".*insert-command" (symbol-name local-cmd))
+    (if (string-match-p ".*insert-command" (symbol-name local-cmd))
+        (when alt-cmd (call-interactively alt-cmd))
       (call-interactively local-cmd))
     )
   (viper-change-state-to-vi)
   )
 
-(define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmd)
-(define-key viper-vi-basic-map "q" #'viper-call-underlying-keymap-cmd)
+(define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmds)
+
+(defun my/macro ()
+  "Don't like the default `viper-register-macro'.
+Prefer it to behave more like vim/evil mode's version."
+  (interactive)
+  (if defining-kbd-macro
+      (progn 
+        (end-kbd-macro)
+        (viper-set-register-macro my/macro-register))
+    (setq my/macro-register (downcase (read-char)))
+    (call-interactively #'start-kbd-macro)
+    )
+  )
+
+(define-key viper-vi-basic-map "q"
+            (lambda ()
+              (interactive)
+              (viper-call-underlying-keymap-cmd #'my/macro)
+              ))
 
 (setq selected-start-line -1)
 (add-hook 'activate-mark-hook (lambda () (setq selected-start-line (line-number-at-pos))))
