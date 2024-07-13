@@ -975,6 +975,55 @@ Meant for eshell in mind."
                (display-buffer-in-side-window)
                (window-height . 0.5)))
 
+(defun save-narrowing-info (pos1 pos2)
+  (setq narrowed-pos1 (line-number-at-pos pos1))
+  (setq narrowed-pos2 (line-number-at-pos pos2)))
+
+(defun modeline-setup () 
+  (advice-add 'narrow-to-region :before #'save-narrowing-info)
+
+  (set-face-attribute 'mode-line-buffer-id nil :inherit 'modus-themes-fg-magenta :weight 'bold)
+
+  (setq-default mode-line-buffer-identification
+                `(:eval
+                  (let ((s (format-mode-line
+                            (propertized-buffer-identification (buffer-name)))))
+                    (when (and (boundp 'uniquify-managed) uniquify-managed)
+                      (unless (string= (buffer-name) (uniquify-buffer-base-name))
+                        (let ((base-len (length (uniquify-buffer-base-name)))
+                              (full-len (length (buffer-name)))
+                              (pre (eq uniquify-buffer-name-style 'post-forward-angle-brackets)))
+                          (let ((start (if pre 0 base-len))
+                                (end (if pre (- full-len base-len) full-len)))
+                            (set-text-properties base-len full-len '(face (:inherit modus-themes-fg-cyan-cooler :weight bold)) s)))))
+                    s)))
+
+  (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
+
+  (setq-default mode-line-format '("%e" mode-line-front-space
+                                   (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
+                                   ;; kbd macro info
+                                   (:eval (when defining-kbd-macro (concat mode-line-defining-kbd-macro
+                                                                           (propertize (format "@%s" (char-to-string evil-this-macro)) 'face 'success))))
+                                   mode-line-modified mode-line-remote " " mode-line-buffer-identification " "
+                                   mode-line-position "<" (:eval (format "%d" (line-number-at-pos (point-max))))
+                                   (:eval (when (buffer-narrowed-p) (format " >%d:%d<" narrowed-pos1 narrowed-pos2))) " "
+                                   ;; selection position info
+                                   (:eval (when (region-active-p)
+                                            (propertize (concat
+                                                         (number-to-string (1+ (abs (- (line-number-at-pos (point)) (line-number-at-pos (mark)))))) "L"
+                                                         (number-to-string (1+ (abs (- (current-column) (save-excursion (goto-char (mark)) (current-column)))))) "C")
+                                                        'face 'warning)))
+                                   " " (:propertize mode-name face (:weight bold :inherit modus-themes-fg-magenta-cooler)) " " mode-line-misc-info mode-line-end-spaces))
+
+  (column-number-mode)
+  (line-number-mode)
+  (size-indication-mode)
+  )
+
+(add-hook 'after-make-frame-functions #'modeline-setup)
+(add-hook 'emacs-startup-hook #'modeline-setup)
+
 (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
 

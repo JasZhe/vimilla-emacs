@@ -1,3 +1,8 @@
+(setq-default global-mode-string (delq 'viper-mode-string global-mode-string))
+(setq-default viper-vi-state-id (propertize viper-vi-state-id 'face '(:inherit modus-themes-fg-green-warmer :weight bold)))
+(setq-default viper-emacs-state-id (propertize viper-emacs-state-id 'face 'warning))
+(setq-default viper-replace-state-id (propertize viper-replace-state-id 'face '(:inherit modus-themes-fg-red-warmer :weight bold)))
+
 (setq viper-case-fold-search t)
 
 (setq my/global-viper-state 'vi)
