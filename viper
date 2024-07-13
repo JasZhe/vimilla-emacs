@@ -228,10 +228,6 @@
         (forward-to-indentation (1- val))
         (if com (viper-execute-com 'viper-bol-and-skip-white val com))))))
 
-(define-key viper-vi-basic-map (kbd "RET")
-            `(menu-item "" browse-url-at-point
-                        :filter ,(lambda (cmd) (if (thing-at-point-url-at-point) cmd))))
-
 (defun viper-call-underlying-keymap-cmd ()
   "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'."
   (interactive)
@@ -243,6 +239,7 @@
   (viper-change-state-to-vi)
   )
 
+(define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmd)
 (define-key viper-vi-basic-map "q" #'viper-call-underlying-keymap-cmd)
 
 (setq selected-start-line -1)
