@@ -6,6 +6,26 @@
 ;;; -*- lexical-binding: t; -*-
 #+end_src
 
+* check if use-package exists
+Otherwise we do some hacky thing to make the rest of the config somewhat work
+
+#+begin_src elisp
+  (unless (fboundp 'use-package)
+    (defmacro use-package (&rest body)
+      "Very hacky macro to wrap each statement in a"
+      `(progn 
+      ,@(cl-map 'list
+              (lambda (stmt)
+                (message "%s" stmt)
+                `(ignore-errors ,stmt)
+                )
+              body
+        )
+      )
+    )
+    )
+#+end_src
+
 * CANCELLED separate document for keybindings?
 I do enjoy having everything in the one file though and a lot of this stuff is not /just/ setting keybinds,
 its also doing a lot of elisp stuff that work /with/ the keybinds
@@ -315,7 +335,7 @@ stole the completing read stuff from:
 
 * auto save buffers
 #+begin_src elisp
-  (setq auto-save-visited-interval 3)
+  (setq auto-save-visited-interval 7)
   (auto-save-visited-mode)
 #+end_src
 
@@ -882,6 +902,7 @@ some weird issue with typescript treesitter v0.20.4, would avoid that branch unt
     (add-hook 'typescript-ts-mode-hook #'eglot-ensure))
 
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
 #+end_src
 
 ** elisp highlighting

@@ -1,5 +1,20 @@
 ;;; -*- lexical-binding: t; -*-
 
+(unless (fboundp 'use-package)
+  (defmacro use-package (&rest body)
+    "Very hacky macro to wrap each statement in a"
+    `(progn 
+    ,@(cl-map 'list
+            (lambda (stmt)
+              (message "%s" stmt)
+              `(ignore-errors ,stmt)
+              )
+            body
+      )
+    )
+  )
+  )
+
 (defun my/vc-git-editor-command (command)
   "command is a git subcommand that requires an editor.
  example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
@@ -240,7 +255,7 @@
 
 (define-key global-map (kbd "C-S-p") #'yank-from-kill-ring)
 
-(setq auto-save-visited-interval 3)
+(setq auto-save-visited-interval 7)
 (auto-save-visited-mode)
 
 (fido-vertical-mode)
@@ -694,6 +709,7 @@ Meant for eshell in mind."
   (add-hook 'typescript-ts-mode-hook #'eglot-ensure))
 
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
 
 (use-package elisp-mode :defer t
   :config
