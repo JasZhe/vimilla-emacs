@@ -2612,6 +2612,9 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 #+end_src
 
 * (blasphemy) external packages                                    :external:
+:PROPERTIES:
+:HEADER-ARGS: :tangle no
+:END:
 #+begin_src elisp
   (unless (boundp 'package-archives)
     (package-initialize))
@@ -2965,6 +2968,9 @@ https://github.com/Fuco1/dired-hacks
 #+end_src
 
 * external language packages
+:PROPERTIES:
+:HEADER-ARGS: :tangle no
+:END:
 ** web mode
 no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
 #+begin_src elisp
