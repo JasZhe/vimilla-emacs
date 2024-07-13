@@ -231,7 +231,19 @@
 (define-key viper-vi-basic-map (kbd "RET")
             `(menu-item "" browse-url-at-point
                         :filter ,(lambda (cmd) (if (thing-at-point-url-at-point) cmd))))
-(define-key viper-vi-basic-map "q" nil)
+
+(defun viper-call-underlying-keymap-cmd ()
+  "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'."
+  (interactive)
+  (viper-change-state-to-emacs)
+  (when-let ((local-cmd (key-binding (this-command-keys))))
+    (unless (string-match-p ".*insert-command" (symbol-name local-cmd))
+      (call-interactively local-cmd))
+    )
+  (viper-change-state-to-vi)
+  )
+
+(define-key viper-vi-basic-map "q" #'viper-call-underlying-keymap-cmd)
 
 (setq selected-start-line -1)
 (add-hook 'activate-mark-hook (lambda () (setq selected-start-line (line-number-at-pos))))
