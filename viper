@@ -78,18 +78,14 @@
 (setq viper-want-ctl-h-help 't)
 (setq viper-fast-keyseq-timeout 100)
 
-better ESC key handling to exit visual mode and close mini buffer
-#+begin_src elisp
-  ;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-intercept-ESC-key fun)) 'viper-intercept-ESC-key)
-
-
-  (advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
-  (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
-  (advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (cua-clear-rectangle-mark))))
-  (advice-add 'viper-intercept-ESC-key :after (lambda () (lazy-highlight-cleanup t)))
-  (advice-add 'viper-intercept-ESC-key :after (lambda ()
-                                                (dolist (hist viper-search-history)
-                                                  (hi-lock-unface-buffer hist))))
+;; (advice-mapc `(lambda (fun props) (advice-remove 'viper-intercept-ESC-key fun)) 'viper-intercept-ESC-key)
+(advice-add 'viper-intercept-ESC-key :after #'deactivate-mark)
+(advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (abort-minibuffers))))
+(advice-add 'viper-intercept-ESC-key :after (lambda () (ignore-errors (cua-clear-rectangle-mark))))
+(advice-add 'viper-intercept-ESC-key :after (lambda () (lazy-highlight-cleanup t)))
+(advice-add 'viper-intercept-ESC-key :after (lambda ()
+                                              (dolist (hist viper-search-history)
+                                                (hi-lock-unface-buffer hist))))
 
 (defun delete-bottom-side-window ()
   (interactive)
