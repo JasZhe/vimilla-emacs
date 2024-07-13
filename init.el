@@ -880,16 +880,6 @@ Meant for eshell in mind."
 ;;   ;; for some reason modus gets rid of diff-header
 ;;   (set-face-attribute 'diff-header nil :background "gray80"))
 
-(unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
-(use-package ligature
-  :config
-
-  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
-                                       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
-                                       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
-                                       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-  (global-ligature-mode))
-
 (midnight-mode)
 
 (defun load-light-theme ()

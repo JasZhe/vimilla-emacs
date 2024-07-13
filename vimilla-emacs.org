@@ -1106,19 +1106,6 @@ instead
   ;;   (set-face-attribute 'diff-header nil :background "gray80"))
 #+end_src
 
-** ligatures                                                    :external:
-#+begin_src elisp
-  (unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
-  (use-package ligature
-    :config
-
-    (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
-                                         "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
-                                         "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
-                                         ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-    (global-ligature-mode))
-#+end_src
-
 ** simple auto dark/light mode with midnight mode
 #+begin_src elisp
   (midnight-mode)
@@ -2835,35 +2822,26 @@ no good replacement for this outside of just describe function to find the keybi
 ** my own hurl mode :)
 well this oen is self explanatory
 #+begin_src elisp
-  (unless (require 'hurl-mode nil 'noerrror) (package-vc-install "https://github.com/JasZhe/hurl-mode"))
-  (use-package hurl-mode :mode "\\.hurl\\'"
-    :config
-    (add-to-list 'display-buffer-alist
-                 '("\\*hurl-response*\\*"
-                   (display-buffer-in-side-window)
-                   (window-height . 0.4))))
+  (when (fboundp 'package-vc-install)
+    (unless (require 'hurl-mode nil 'noerrror) (package-vc-install "https://github.com/JasZhe/hurl-mode"))
+    (use-package hurl-mode :mode "\\.hurl\\'"
+      :config
+      (add-to-list 'display-buffer-alist
+                   '("\\*hurl-response*\\*"
+                     (display-buffer-in-side-window)
+                     (window-height . 0.4)))))
 #+end_src
 
 ** my own window stool mode :)
 #+begin_src elisp
-  (unless (require 'window-stool nil 'noerrror) (package-vc-install "https://github.com/JasZhe/window-stool"))
-  (use-package window-stool :defer 2
-    :config
-    ;; only overlays in gui otherwises messes up with corfu overlay completions in terminal
-    (setq window-stool-use-overlays nil)
-    (add-hook 'org-mode-hook #'window-stool-mode)
-    (add-hook 'prog-mode-hook #'window-stool-mode))
-#+end_src
-
-** eglot booster
-alternative gist here
-https://gist.github.com/jdtsmith/d936801a4d7fd981bedf2e59dacd675e
-
-#+begin_src elisp :tangle no
-  (unless (require 'eglot-booster nil 'noerrror) (package-vc-install "https://github.com/jdtsmith/eglot-booster.git"))
-  (use-package eglot-booster :after eglot
-    :config
-    (eglot-booster-mode))
+  (when (fboundp 'package-vc-install)
+    (unless (require 'window-stool nil 'noerrror) (package-vc-install "https://github.com/JasZhe/window-stool"))
+    (use-package window-stool :defer 2
+      :config
+      ;; only overlays in gui otherwises messes up with corfu overlay completions in terminal
+      (setq window-stool-use-overlays nil)
+      (add-hook 'org-mode-hook #'window-stool-mode)
+      (add-hook 'prog-mode-hook #'window-stool-mode)))
 #+end_src
 
 ** magit
@@ -2945,10 +2923,11 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
 ** Dired subtree
 https://github.com/Fuco1/dired-hacks
 #+begin_src elisp
-  (unless (require 'dired-subtree nil 'noerror)
-    (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
-  (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
-  (define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle)
+  (when (fboundp 'package-vc-install)
+    (unless (require 'dired-subtree nil 'noerror)
+      (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
+    (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
+    (define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle))
 #+end_src
 
 ** coterm
@@ -2967,6 +2946,22 @@ https://github.com/Fuco1/dired-hacks
     (setq eat-enable-auto-line-mode t)
     (define-key my/leader-prefix-map "ot" #'eat))
 #+end_src
+
+** ligatures                                                    :external:
+#+begin_src elisp
+  (when (fboundp 'package-vc-install)
+    (unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
+    (use-package ligature
+      :config
+
+      (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+                                           "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
+                                           "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
+                                           ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
+      (global-ligature-mode)))
+#+end_src
+
+
 
 * external language packages
 :PROPERTIES:
