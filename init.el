@@ -975,34 +975,6 @@ Meant for eshell in mind."
                (display-buffer-in-side-window)
                (window-height . 0.5)))
 
-(use-package newst-backend :defer t
-  :config
-  (setq newsticker-url-list
-        '(("CBC Toronto" "https://www.cbc.ca/webfeed/rss/rss-canada-toronto" nil nil nil)
-          ("CBC Canada" "https://www.cbc.ca/webfeed/rss/rss-canada" nil nil nil)
-          ("CBC Politics" "https://www.cbc.ca/webfeed/rss/rss-politics" nil nil nil)
-          ("CBC Business" "https://www.cbc.ca/webfeed/rss/rss-business" nil nil nil)
-          ("CBC Technology" "https://www.cbc.ca/webfeed/rss/rss-technology" nil nil nil)
-          ("Toronto Star" "https://www.thestar.com/search/?f=rss&t=article&c=news/gta*&l=50&s=start_time&sd=desc" nil nil nil)
-          ("Reuters North America" "https://www.reutersagency.com/feed/?best-regions=north-america&post_type=best" nil nil nil)
-          ("Reuters Politics" "https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best" nil nil nil)
-          ("Reuters Tech" "https://www.reutersagency.com/feed/?best-topics=tech&post_type=best" nil nil nil)
-          ("Reuters Business" "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best" nil nil nil)
-          ("Hacker News" "https://news.ycombinator.com/rss")
-          ("Reddit - Emacs" "https://old.reddit.com/r/emacs/.rss")
-          ("Sacha Chau Emacs" "https://sachachua.com/blog/feed/" nil nil nil)
-          ("Karthinks" "https://karthinks.com/index.xml" nil nil nil))))
-
-(use-package newst-treeview :defer t
-  :config
-  (setq newsticker-groups
-        '("Feeds"
-          ("CBC" "CBC Toronto" "CBC Canada" "CBC Politics" "CBC Business" "CBC Technology")
-          "Toronto Star"
-          ("Reuters" "Reuters North America" "Reuters Politics" "Reuters Tech" "Reuters Business")
-          ("Emacs" "Sacha Chau Emacs" "Karthinks")))
-  (newsticker--treeview-tree-update))
-
 (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
 

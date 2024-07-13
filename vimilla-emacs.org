@@ -1216,37 +1216,6 @@ display eww in side window with a large height
                  (window-height . 0.5)))
 #+end_src
 
-* Rss feed via newsticker
-#+begin_src elisp
-  (use-package newst-backend :defer t
-    :config
-    (setq newsticker-url-list
-          '(("CBC Toronto" "https://www.cbc.ca/webfeed/rss/rss-canada-toronto" nil nil nil)
-            ("CBC Canada" "https://www.cbc.ca/webfeed/rss/rss-canada" nil nil nil)
-            ("CBC Politics" "https://www.cbc.ca/webfeed/rss/rss-politics" nil nil nil)
-            ("CBC Business" "https://www.cbc.ca/webfeed/rss/rss-business" nil nil nil)
-            ("CBC Technology" "https://www.cbc.ca/webfeed/rss/rss-technology" nil nil nil)
-            ("Toronto Star" "https://www.thestar.com/search/?f=rss&t=article&c=news/gta*&l=50&s=start_time&sd=desc" nil nil nil)
-            ("Reuters North America" "https://www.reutersagency.com/feed/?best-regions=north-america&post_type=best" nil nil nil)
-            ("Reuters Politics" "https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best" nil nil nil)
-            ("Reuters Tech" "https://www.reutersagency.com/feed/?best-topics=tech&post_type=best" nil nil nil)
-            ("Reuters Business" "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best" nil nil nil)
-            ("Hacker News" "https://news.ycombinator.com/rss")
-            ("Reddit - Emacs" "https://old.reddit.com/r/emacs/.rss")
-            ("Sacha Chau Emacs" "https://sachachua.com/blog/feed/" nil nil nil)
-            ("Karthinks" "https://karthinks.com/index.xml" nil nil nil))))
-
-  (use-package newst-treeview :defer t
-    :config
-    (setq newsticker-groups
-          '("Feeds"
-            ("CBC" "CBC Toronto" "CBC Canada" "CBC Politics" "CBC Business" "CBC Technology")
-            "Toronto Star"
-            ("Reuters" "Reuters North America" "Reuters Politics" "Reuters Tech" "Reuters Business")
-            ("Emacs" "Sacha Chau Emacs" "Karthinks")))
-    (newsticker--treeview-tree-update))
-#+end_src
-
 * Viper
 :PROPERTIES:
 :header-args: :tangle viper :results silent
@@ -2906,25 +2875,6 @@ no good replacement, just have to turn on js-mode or js-jsx-mode and html-mode
       :mode "\\.gohtml\\'"
       :config
       (setq web-mode-engines-alist '(("go" . "\\.gohtml\\'") ("svelte" . "\\.svelte\\'"))))
-#+end_src
-
-** clojure
-#+begin_src elisp :tangle no
-  (use-package clojure-mode :ensure t :pin gnu :defer 5)
-  (use-package cider :ensure t :pin nongnu :defer 5)
-#+end_src
-
-** kotlin
-#+begin_src elisp :tangle no
-  (unless (require 'kotlin-mode nil 'noerror)
-    (package-vc-install '(kotlin-ts-mode :url "https://gitlab.com/bricka/emacs-kotlin-ts-mode"
-                                         :rev "c884b3442806a21cbcf28ac24853f05da8ac6658")))
-  (use-package kotlin-ts-mode :ensure nil :mode "\\.kt\\'"
-    :config
-    (with-eval-after-load 'eglot
-      (add-to-list 'eglot-server-programs '(kotlin-ts-mode . ("kotlin-language-server")))))
-
-  (add-hook 'kotlin-ts-mode #'eglot-ensure)
 #+end_src
 
 ** markdown
