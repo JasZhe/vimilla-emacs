@@ -8,6 +8,10 @@
 
 * check if use-package exists
 Otherwise we do some hacky thing to make the rest of the config somewhat work
+#+begin_src elisp
+  (unless (boundp 'package-archives)
+    (package-initialize))
+#+end_src
 
 #+begin_src elisp
   (require 'cl-lib)
@@ -2655,11 +2659,6 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 :PROPERTIES:
 :HEADER-ARGS: :tangle no
 :END:
-#+begin_src elisp
-  (unless (boundp 'package-archives)
-    (package-initialize))
-#+end_src
-
 Need to install these seperately, but some configuration here
 These packages are all good enough to be built in to be honest
 

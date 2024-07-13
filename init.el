@@ -1,5 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
 
+(unless (boundp 'package-archives)
+  (package-initialize))
+
 (require 'cl-lib)
 (unless (fboundp 'use-package)
   (defmacro use-package (&rest body)
