@@ -1,5 +1,6 @@
 ;;; -*- lexical-binding: t; -*-
 
+(require 'cl-lib)
 (unless (fboundp 'use-package)
   (defmacro use-package (&rest body)
     "Very hacky macro to wrap each statement in a"

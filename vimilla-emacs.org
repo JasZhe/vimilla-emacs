@@ -10,6 +10,7 @@
 Otherwise we do some hacky thing to make the rest of the config somewhat work
 
 #+begin_src elisp
+  (require 'cl-lib)
   (unless (fboundp 'use-package)
     (defmacro use-package (&rest body)
       "Very hacky macro to wrap each statement in a"
@@ -1507,7 +1508,7 @@ Delete side windows if any
 
   (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
   (define-key viper-vi-basic-map "\t" nil)
-  (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+  (define-key viper-vi-basic-map [C-o] #'my/mark-ring-forward)
 #+end_src
 
 ** respect visual lines cursor movement
@@ -1605,13 +1606,13 @@ https://endlessparentheses.com/define-context-aware-keys-in-emacs.html
     (viper-change-state-to-emacs)
     (when-let ((local-cmd (key-binding (this-command-keys))))
       (if (string-match-p ".*insert-command" (symbol-name local-cmd))
-          (when alt-cmd (call-interactively alt-cmd))
+          (when (commandp alt-cmd) (call-interactively alt-cmd))
         (call-interactively local-cmd))
       )
     (viper-change-state-to-vi)
     )
 
-  (define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmds)
+  (define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmd)
 
   (defun my/macro ()
     "Don't like the default `viper-register-macro'.
@@ -1747,7 +1748,7 @@ deactivate mark on esc
   (define-key viper-vi-basic-map "v" #'my/set-mark-command)
   (define-key viper-vi-basic-map "V" nil)
   (define-key viper-vi-basic-map "V" #'my/select-lines)
-  (define-key viper-vi-basic-map "\C-v" #'my/visual-block)
+  (define-key viper-vi-basic-map [C-v] #'my/visual-block)
 #+end_src
 
 *** viper-ex to automatically use region if active

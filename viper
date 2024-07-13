@@ -167,7 +167,7 @@
 
 (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
 (define-key viper-vi-basic-map "\t" nil)
-(define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+(define-key viper-vi-basic-map [C-o] #'my/mark-ring-forward)
 
 (defun viper-previous-line (arg)
   "Go to previous line."
@@ -240,13 +240,13 @@
   (viper-change-state-to-emacs)
   (when-let ((local-cmd (key-binding (this-command-keys))))
     (if (string-match-p ".*insert-command" (symbol-name local-cmd))
-        (when alt-cmd (call-interactively alt-cmd))
+        (when (commandp alt-cmd) (call-interactively alt-cmd))
       (call-interactively local-cmd))
     )
   (viper-change-state-to-vi)
   )
 
-(define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmds)
+(define-key viper-vi-basic-map (kbd "RET") #'viper-call-underlying-keymap-cmd)
 
 (defun my/macro ()
   "Don't like the default `viper-register-macro'.
@@ -363,7 +363,7 @@ Prefer it to behave more like vim/evil mode's version."
 (define-key viper-vi-basic-map "v" #'my/set-mark-command)
 (define-key viper-vi-basic-map "V" nil)
 (define-key viper-vi-basic-map "V" #'my/select-lines)
-(define-key viper-vi-basic-map "\C-v" #'my/visual-block)
+(define-key viper-vi-basic-map [C-v] #'my/visual-block)
 
 ;;(advice-mapc `(lambda (fun props) (advice-remove 'viper-ex fun)) 'viper-ex)
 (advice-add 'viper-ex :around
