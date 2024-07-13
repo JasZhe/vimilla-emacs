@@ -1,7 +1,21 @@
+(defface mode-line-green
+  (if (facep 'modus-themes-fg-green-warmer)
+      '((t :inherit modus-themes-fg-green-warmer))
+    '((t :foreground "green")))
+  "face used for modeline"
+  :group 'basic-faces)
+
+(defface mode-line-red
+  (if (facep 'modus-themes-fg-red-warmer)
+      '((t :inherit modus-themes-fg-red-warmer))
+    '((t :foreground "red")))
+  "face used for modeline"
+  :group 'basic-faces)
+
 (setq-default global-mode-string (delq 'viper-mode-string global-mode-string))
-(setq-default viper-vi-state-id (propertize viper-vi-state-id 'face '(:inherit modus-themes-fg-green-warmer :weight bold)))
+(setq-default viper-vi-state-id (propertize viper-vi-state-id 'face '(:inherit mode-line-green :weight bold)))
 (setq-default viper-emacs-state-id (propertize viper-emacs-state-id 'face 'warning))
-(setq-default viper-replace-state-id (propertize viper-replace-state-id 'face '(:inherit modus-themes-fg-red-warmer :weight bold)))
+(setq-default viper-replace-state-id (propertize viper-replace-state-id 'face '(:inherit mode-line-red :weight bold)))
 
 (setq viper-case-fold-search t)
 

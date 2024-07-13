@@ -221,13 +221,15 @@
 (run-with-idle-timer 2 t #'garbage-collect)
 
 (setq inhibit-startup-screen t)
-(menu-bar-mode 0)
-(tool-bar-mode 0)
+
+(use-package menu-bar :defer t)
+(use-package tool-bar :defer t)
+
 (setq viper-mode t)
 (require 'viper)
 (require 'rect)
 
-(scroll-bar-mode -1)
+(use-package scroll-bar :defer t)
 (viper-mode)
 (global-hl-line-mode)
 (global-auto-revert-mode)
@@ -265,6 +267,8 @@
   :init
   (savehist-mode))
 
+(setq completions-sort nil) ;; faster
+
 (define-key minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
 (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
 (define-key global-map (kbd "C-z") #'viper-mode) ;; C-z to suspend frame is annoying with viper
@@ -276,7 +280,7 @@
 
 (defvar my-icomplete-prev-command nil)
 (defun my-icomplete-save ()
-  "save the previous icomplete session"
+  "save the prvious icomplete session"
   (setq my-icomplete-prev-command this-command)
   (add-hook 'post-command-hook #'my-icomplete-exit-save-input nil 'local))
 
@@ -298,8 +302,10 @@
 
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
+;; also not command category, cause it slows it down
 (defun icomplete-partial-completion-setup ()
-  (unless (or (eq (icomplete--category) 'file))
+  (unless (or (eq (icomplete--category) 'file)
+              (eq (icomplete--category) 'command))
     (insert "*")))
 (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
@@ -312,6 +318,8 @@
 (define-key icomplete-minibuffer-map " " #'icomplete-partial-completion-insert-wildcard)
 ;; this allows us to still insert spaces
 (define-key icomplete-minibuffer-map (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+
+(add-hook 'minibuffer-setup-hook (lambda () (setq-local icomplete-show-matches-on-no-input nil)) 100)
 
 (advice-add #'viper-search :after
             (lambda (string &rest args)
@@ -450,10 +458,12 @@ See notes:emacs-notes-and-tips for more details."
 ;;                      (when (memq (get-char-code-property (char-before) 'general-category)
 ;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
 ;;                        (complete-symbol arg))))
-(setq tab-always-indent 'complete-symbol)
+(setq tab-always-indent 'complete)
 
 (use-package vc :config
-  (setq-default vc-handled-backends '(SVN Git Hg)))
+  (setq-default vc-handled-backends '(SVN Git Hg))
+  (setq vc-git-diff-switches '("--histogram" "--diff-algorithm=histogram"))
+  )
 
 (use-package speedbar :defer t
   :config
@@ -530,7 +540,7 @@ See notes:emacs-notes-and-tips for more details."
 
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
-Meant for eshell in mind."
+    Meant for eshell in mind."
   (interactive)
   (mapc (lambda (env-var-string)
           (let* ((split (split-string env-var-string "="))
@@ -548,7 +558,20 @@ Meant for eshell in mind."
 (use-package tramp :defer t
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  (setq enable-remote-dir-locals t))
+  (setq enable-remote-dir-locals t)
+
+  (defun dired-do-delete-advice-remote (orig-fun &rest args)
+    ;; this way we use the default value as opposed to the alternative of
+    ;; setting delete-by-moving-to-trash to the value of (file-remote-p default-directory)
+    (if (file-remote-p default-directory)
+        (let ((delete-by-moving-to-trash nil))
+          (apply orig-fun args)
+          )
+      (apply orig-fun args)
+      )
+    )
+  (advice-add 'dired-internal-do-deletions :around #'dired-do-delete-advice-remote)
+  )
 
 (with-eval-after-load 'tramp
   (add-to-list 'tramp-methods
@@ -828,41 +851,40 @@ Meant for eshell in mind."
 (use-package shell :after consult :config
   (define-key my/shell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
-(setq current-font-height 160)
-(defun set-fonts ()
-  (message "setting fonts")
-  (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
-         (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
-        ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
-         (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
-        (t (message "None of my preferred mono fonts found, will use defaults")))
+(when (display-graphic-p) ;; only matter for gui emacs
+  (setq current-font-height 160)
+  (defun set-fonts ()
+    (message "setting fonts")
+    (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
+           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+          ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
+           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+          (t (message "None of my preferred mono fonts found, will use defaults")))
 
-  (cond ((member "Comic Neue" (font-family-list))
-         (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
-        ((member "Iosevka Etoile" (font-family-list))
-         (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
-        (t (message "None of my preferred variable pitch fonts found, will use defaults")))
+    (cond ((member "Comic Neue" (font-family-list))
+           (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
+          ((member "Iosevka Etoile" (font-family-list))
+           (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+          (t (message "None of my preferred variable pitch fonts found, will use defaults")))
 
-  (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
-  (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
-  (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
+    (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
+    (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
+    (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
 
-(add-hook 'after-make-frame-functions #'set-fonts)
-;; for some reason this is kinda busted in emacs daemon
-(add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
-(set-fonts)
+  (add-hook 'after-make-frame-functions #'set-fonts)
+  ;; for some reason this is kinda busted in emacs daemon
+  (add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
+  (set-fonts)
 
-(defun my/set-font-size ()
-  (interactive)
-  (let ((new-size (string-to-number
-                   (minibuffer-with-setup-hook
-                       (lambda () (insert (number-to-string current-font-height)))
-                     (read-string "Edit font size: ")))))
-    (setq current-font-height new-size)
-    (set-face-attribute 'default nil :height new-size)
-    (set-face-attribute 'variable-pitch nil :height new-size)))
-
-(use-package modus-themes :ensure t :pin gnu)
+  (defun my/set-font-size ()
+    (interactive)
+    (let ((new-size (string-to-number
+                     (minibuffer-with-setup-hook
+                         (lambda () (insert (number-to-string current-font-height)))
+                       (read-string "Edit font size: ")))))
+      (setq current-font-height new-size)
+      (set-face-attribute 'default nil :height new-size)
+      (set-face-attribute 'variable-pitch nil :height new-size))))
 
 (setq modus-themes-headings
       '((1 . (rainbow overline background variable-pitch 1.25))
@@ -879,39 +901,6 @@ Meant for eshell in mind."
 ;;   :config
 ;;   ;; for some reason modus gets rid of diff-header
 ;;   (set-face-attribute 'diff-header nil :background "gray80"))
-
-(midnight-mode)
-
-(defun load-light-theme ()
-  (condition-case nil
-      (progn 
-        (load-theme 'modus-operandi-tinted t)
-        (set-cursor-color "#a60000"))
-    (error (progn
-             (load-theme 'modus-operandi t)
-             (set-cursor-color "black")))))
-
-(defun load-dark-theme ()
-  (condition-case nil
-      (progn
-        (load-theme 'modus-vivendi-tinted t)
-        (set-cursor-color "#f78fe7"))
-    (error
-     (progn
-       (load-theme 'modus-vivendi t)
-       (set-cursor-color "white")))))
-
-(defun load-dark-theme1 ()
-  (load-dark-theme))
-
-(defun auto-light-dark-midnight-setup ()
-  (run-at-time "0:00" t #'load-dark-theme)
-  (run-at-time "10:00" t #'load-light-theme)
-  (run-at-time "16:00" t #'load-dark-theme1))
-
-(add-hook 'midnight-hook #'auto-light-dark-midnight-setup)
-
-(auto-light-dark-midnight-setup)
 
 (defun find-git-dir (dir)
   "Search up the directory tree looking for a .git folder."
@@ -1007,6 +996,13 @@ Meant for eshell in mind."
 
   (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
+  (defface mode-line-pink
+    (if (facep 'modus-themes-fg-magenta-cooler)
+        '((t :inherit modus-themes-fg-magenta-cooler))
+    '((t :foreground "magenta")))
+    "face used for modeline"
+    :group 'basic-faces)
+
   (setq-default mode-line-format '("%e" mode-line-front-space
                                    (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
                                    ;; kbd macro info
@@ -1021,7 +1017,7 @@ Meant for eshell in mind."
                                                          (number-to-string (1+ (abs (- (line-number-at-pos (point)) (line-number-at-pos (mark)))))) "L"
                                                          (number-to-string (1+ (abs (- (current-column) (save-excursion (goto-char (mark)) (current-column)))))) "C")
                                                         'face 'warning)))
-                                   " " (:propertize mode-name face (:weight bold :inherit modus-themes-fg-magenta-cooler)) " " mode-line-misc-info mode-line-end-spaces))
+                                   " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " " mode-line-misc-info mode-line-end-spaces))
 
   (column-number-mode)
   (line-number-mode)

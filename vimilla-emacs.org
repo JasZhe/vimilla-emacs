@@ -291,13 +291,15 @@ stole the completing read stuff from:
   (run-with-idle-timer 2 t #'garbage-collect)
 
   (setq inhibit-startup-screen t)
-  (menu-bar-mode 0)
-  (tool-bar-mode 0)
+
+  (use-package menu-bar :defer t)
+  (use-package tool-bar :defer t)
+
   (setq viper-mode t)
   (require 'viper)
   (require 'rect)
 
-  (scroll-bar-mode -1)
+  (use-package scroll-bar :defer t)
   (viper-mode)
   (global-hl-line-mode)
   (global-auto-revert-mode)
@@ -351,7 +353,9 @@ M-j to exit minibuffer with whatever is in the input
   (use-package savehist
     :init
     (savehist-mode))
-
+  
+  (setq completions-sort nil) ;; faster
+  
   (define-key minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
   (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
   (define-key global-map (kbd "C-z") #'viper-mode) ;; C-z to suspend frame is annoying with viper
@@ -363,7 +367,7 @@ M-j to exit minibuffer with whatever is in the input
 
   (defvar my-icomplete-prev-command nil)
   (defun my-icomplete-save ()
-    "save the previous icomplete session"
+    "save the prvious icomplete session"
     (setq my-icomplete-prev-command this-command)
     (add-hook 'post-command-hook #'my-icomplete-exit-save-input nil 'local))
 
@@ -385,8 +389,10 @@ M-j to exit minibuffer with whatever is in the input
 
   ;; insert * at the beginning so we don't have to match exactly at the beginning
   ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
+  ;; also not command category, cause it slows it down
   (defun icomplete-partial-completion-setup ()
-    (unless (or (eq (icomplete--category) 'file))
+    (unless (or (eq (icomplete--category) 'file)
+                (eq (icomplete--category) 'command))
       (insert "*")))
   (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
@@ -399,6 +405,8 @@ M-j to exit minibuffer with whatever is in the input
   (define-key icomplete-minibuffer-map " " #'icomplete-partial-completion-insert-wildcard)
   ;; this allows us to still insert spaces
   (define-key icomplete-minibuffer-map (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+
+  (add-hook 'minibuffer-setup-hook (lambda () (setq-local icomplete-show-matches-on-no-input nil)) 100)
 #+end_src
 
 * in-buffer searching
@@ -575,14 +583,16 @@ no idea how necessary that is
   ;;                      (when (memq (get-char-code-property (char-before) 'general-category)
   ;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
   ;;                        (complete-symbol arg))))
-  (setq tab-always-indent 'complete-symbol)
+  (setq tab-always-indent 'complete)
 #+end_src
 
 * vc settings
 No need for the other backends
 #+begin_src elisp
   (use-package vc :config
-    (setq-default vc-handled-backends '(SVN Git Hg)))
+    (setq-default vc-handled-backends '(SVN Git Hg))
+    (setq vc-git-diff-switches '("--histogram" "--diff-algorithm=histogram"))
+    )
 #+end_src
 
 * speedbar
@@ -681,7 +691,7 @@ and source some.envrc, then using that same shell, just copy all the environment
 #+begin_src elisp
   (defun get-docker-env-vars ()
     "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
-  Meant for eshell in mind."
+      Meant for eshell in mind."
     (interactive)
     (mapc (lambda (env-var-string)
             (let* ((split (split-string env-var-string "="))
@@ -699,7 +709,20 @@ and source some.envrc, then using that same shell, just copy all the environment
   (use-package tramp :defer t
     :config
     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (setq enable-remote-dir-locals t))
+    (setq enable-remote-dir-locals t)
+
+    (defun dired-do-delete-advice-remote (orig-fun &rest args)
+      ;; this way we use the default value as opposed to the alternative of
+      ;; setting delete-by-moving-to-trash to the value of (file-remote-p default-directory)
+      (if (file-remote-p default-directory)
+          (let ((delete-by-moving-to-trash nil))
+            (apply orig-fun args)
+            )
+        (apply orig-fun args)
+        )
+      )
+    (advice-add 'dired-internal-do-deletions :around #'dired-do-delete-advice-remote)
+    )
 
   (with-eval-after-load 'tramp
     (add-to-list 'tramp-methods
@@ -1043,50 +1066,51 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 #+end_src
 
 * Font and theme
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
 current system uses iosevka custom nerd font
 Note: on linux (popos) need to make sure not to launch Emacs (client) app
 #+begin_src elisp
-  (setq current-font-height 160)
-  (defun set-fonts ()
-    (message "setting fonts")
-    (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
-           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
-          ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
-           (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
-          (t (message "None of my preferred mono fonts found, will use defaults")))
+  (when (display-graphic-p) ;; only matter for gui emacs
+    (setq current-font-height 160)
+    (defun set-fonts ()
+      (message "setting fonts")
+      (cond ((member "FantasqueSansM Nerd Font Propo" (font-family-list))
+             (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+            ((member "IosevkaCustom Nerd Font Propo" (font-family-list))
+             (ignore-errors (set-face-attribute 'default nil :font "FantasqueSansM Nerd Font Propo" :height current-font-height)))
+            (t (message "None of my preferred mono fonts found, will use defaults")))
 
-    (cond ((member "Comic Neue" (font-family-list))
-           (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
-          ((member "Iosevka Etoile" (font-family-list))
-           (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
-          (t (message "None of my preferred variable pitch fonts found, will use defaults")))
+      (cond ((member "Comic Neue" (font-family-list))
+             (set-face-attribute 'variable-pitch nil :font "Comic Neue" :height current-font-height))
+            ((member "Iosevka Etoile" (font-family-list))
+             (set-face-attribute 'variable-pitch nil :font "Iosevka Etoile" :height current-font-height))
+            (t (message "None of my preferred variable pitch fonts found, will use defaults")))
 
-    (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
-    (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
-    (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
+      (ignore-errors (set-fontset-font t 'emoji "Noto Color Emoji" nil 'append))
+      (ignore-errors (set-fontset-font t 'emoji "Apple Color Emoji" nil 'append))
+      (ignore-errors (set-fontset-font t 'unicode "Iosevkacustom Nerd Font Propo" nil 'append)))
 
-  (add-hook 'after-make-frame-functions #'set-fonts)
-  ;; for some reason this is kinda busted in emacs daemon
-  (add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
-  (set-fonts)
+    (add-hook 'after-make-frame-functions #'set-fonts)
+    ;; for some reason this is kinda busted in emacs daemon
+    (add-hook 'emacs-startup-hook (lambda () (remove-hook 'after-make-frame-functions #'set-fonts)))
+    (set-fonts)
 
-  (defun my/set-font-size ()
-    (interactive)
-    (let ((new-size (string-to-number
-                     (minibuffer-with-setup-hook
-                         (lambda () (insert (number-to-string current-font-height)))
-                       (read-string "Edit font size: ")))))
-      (setq current-font-height new-size)
-      (set-face-attribute 'default nil :height new-size)
-      (set-face-attribute 'variable-pitch nil :height new-size)))
+    (defun my/set-font-size ()
+      (interactive)
+      (let ((new-size (string-to-number
+                       (minibuffer-with-setup-hook
+                           (lambda () (insert (number-to-string current-font-height)))
+                         (read-string "Edit font size: ")))))
+        (setq current-font-height new-size)
+        (set-face-attribute 'default nil :height new-size)
+        (set-face-attribute 'variable-pitch nil :height new-size))))
 #+end_src
 
 There is a weird thing where vc-diff won't highlight some stuff since the modus org src block fontification takes over
 instead
-** modus                                                        :external:
-#+begin_src elisp
-  (use-package modus-themes :ensure t :pin gnu)
-#+end_src
 
 #+begin_src elisp
   (setq modus-themes-headings
@@ -1106,8 +1130,12 @@ instead
   ;;   (set-face-attribute 'diff-header nil :background "gray80"))
 #+end_src
 
-** simple auto dark/light mode with midnight mode
-#+begin_src elisp
+** simple auto dark/light mode with midnight mode               :disabled:
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
+#+begin_src elisp :tangle no
   (midnight-mode)
 
   (defun load-light-theme ()
@@ -1252,6 +1280,13 @@ display eww in side window with a large height
 
     (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
+    (defface mode-line-pink
+      (if (facep 'modus-themes-fg-magenta-cooler)
+          '((t :inherit modus-themes-fg-magenta-cooler))
+      '((t :foreground "magenta")))
+      "face used for modeline"
+      :group 'basic-faces)
+
     (setq-default mode-line-format '("%e" mode-line-front-space
                                      (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
                                      ;; kbd macro info
@@ -1266,7 +1301,7 @@ display eww in side window with a large height
                                                            (number-to-string (1+ (abs (- (line-number-at-pos (point)) (line-number-at-pos (mark)))))) "L"
                                                            (number-to-string (1+ (abs (- (current-column) (save-excursion (goto-char (mark)) (current-column)))))) "C")
                                                           'face 'warning)))
-                                     " " (:propertize mode-name face (:weight bold :inherit modus-themes-fg-magenta-cooler)) " " mode-line-misc-info mode-line-end-spaces))
+                                     " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " " mode-line-misc-info mode-line-end-spaces))
 
     (column-number-mode)
     (line-number-mode)
@@ -1284,10 +1319,27 @@ display eww in side window with a large height
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
 ** mode-line
 #+begin_src elisp
+  (defface mode-line-green
+    (if (facep 'modus-themes-fg-green-warmer)
+        '((t :inherit modus-themes-fg-green-warmer))
+      '((t :foreground "green")))
+    "face used for modeline"
+    :group 'basic-faces)
+
+  (defface mode-line-red
+    (if (facep 'modus-themes-fg-red-warmer)
+        '((t :inherit modus-themes-fg-red-warmer))
+      '((t :foreground "red")))
+    "face used for modeline"
+    :group 'basic-faces)
+
+#+end_src
+
+#+begin_src elisp
   (setq-default global-mode-string (delq 'viper-mode-string global-mode-string))
-  (setq-default viper-vi-state-id (propertize viper-vi-state-id 'face '(:inherit modus-themes-fg-green-warmer :weight bold)))
+  (setq-default viper-vi-state-id (propertize viper-vi-state-id 'face '(:inherit mode-line-green :weight bold)))
   (setq-default viper-emacs-state-id (propertize viper-emacs-state-id 'face 'warning))
-  (setq-default viper-replace-state-id (propertize viper-replace-state-id 'face '(:inherit modus-themes-fg-red-warmer :weight bold)))
+  (setq-default viper-replace-state-id (propertize viper-replace-state-id 'face '(:inherit mode-line-red :weight bold)))
 #+end_src
 
 ** viper search settings
@@ -2616,6 +2668,11 @@ Lets at least stick with gnu/nongnu elpa
 disable native comp warnings buffer from popping up
 #+begin_src elisp
   (setq native-comp-async-report-warnings-errors 'silent)
+#+end_src
+
+** modus
+#+begin_src elisp
+  (use-package modus-themes :ensure t :pin gnu)
 #+end_src
 
 ** minibuffer
