@@ -272,7 +272,7 @@
 
 (setq completions-sort nil) ;; faster
 
-(define-key minibuffer-local-completion-map "TAB" #'icomplete-force-complete)
+(define-key minibuffer-local-completion-map "\t" #'icomplete-force-complete)
 (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
 (define-key global-map (kbd "C-z") #'viper-mode) ;; C-z to suspend frame is annoying with viper
 
