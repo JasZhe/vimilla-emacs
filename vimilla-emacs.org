@@ -1299,10 +1299,23 @@ display eww in side window with a large height
     (setq narrowed-pos1 (line-number-at-pos pos1))
     (setq narrowed-pos2 (line-number-at-pos pos2)))
 
-  (defun modeline-setup () 
-    (advice-add 'narrow-to-region :before #'save-narrowing-info)
+  (defun modeline-setup ()
 
-    (set-face-attribute 'mode-line-buffer-id nil :inherit 'modus-themes-fg-magenta :weight 'bold)
+    (defface mode-line-pink
+      (if (facep 'modus-themes-fg-magenta-cooler)
+          '((t :inherit modus-themes-fg-magenta-cooler))
+      '((t :foreground "magenta")))
+      "face used for modeline"
+      :group 'basic-faces)
+
+    (defface mode-line-cyan
+      (if (facep 'modus-themes-fg-cyan-cooler)
+          '((t :inherit modus-themes-fg-cyan-cooler))
+      '((t :foreground "cyan1")))
+      "face used for modeline"
+      :group 'basic-faces)
+
+    (advice-add 'narrow-to-region :before #'save-narrowing-info)
 
     (setq-default mode-line-buffer-identification
                   `(:eval
@@ -1315,17 +1328,13 @@ display eww in side window with a large height
                                 (pre (eq uniquify-buffer-name-style 'post-forward-angle-brackets)))
                             (let ((start (if pre 0 base-len))
                                   (end (if pre (- full-len base-len) full-len)))
-                              (set-text-properties base-len full-len '(face (:inherit modus-themes-fg-cyan-cooler :weight bold)) s)))))
+                              (set-text-properties base-len full-len '(face (:inherit mode-line-cyan :weight bold)) s)))))
                       s)))
 
     (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
-    (defface mode-line-pink
-      (if (facep 'modus-themes-fg-magenta-cooler)
-          '((t :inherit modus-themes-fg-magenta-cooler))
-      '((t :foreground "magenta")))
-      "face used for modeline"
-      :group 'basic-faces)
+    (set-face-attribute 'mode-line-buffer-id nil :inherit 'mode-line-pink :weight 'bold)
+
 
     (setq-default mode-line-format '("%e" mode-line-front-space
                                      (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
@@ -1594,9 +1603,9 @@ Delete side windows if any
   (add-hook 'activate-mark-hook (lambda () (define-key input-decode-map "\C-i" nil)))
   (add-hook 'deactivate-mark-hook (lambda () (define-key input-decode-map "\C-i" [C-i])))
 
-  (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
+  (define-key viper-vi-basic-map "\C-i" #'my/mark-ring-backward)
   (define-key viper-vi-basic-map "\t" nil)
-  (define-key viper-vi-basic-map [C-o] #'my/mark-ring-forward)
+  (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
 #+end_src
 
 ** respect visual lines cursor movement

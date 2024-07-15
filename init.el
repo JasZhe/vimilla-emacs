@@ -1010,10 +1010,23 @@ See notes:emacs-notes-and-tips for more details."
   (setq narrowed-pos1 (line-number-at-pos pos1))
   (setq narrowed-pos2 (line-number-at-pos pos2)))
 
-(defun modeline-setup () 
-  (advice-add 'narrow-to-region :before #'save-narrowing-info)
+(defun modeline-setup ()
 
-  (set-face-attribute 'mode-line-buffer-id nil :inherit 'modus-themes-fg-magenta :weight 'bold)
+  (defface mode-line-pink
+    (if (facep 'modus-themes-fg-magenta-cooler)
+        '((t :inherit modus-themes-fg-magenta-cooler))
+    '((t :foreground "magenta")))
+    "face used for modeline"
+    :group 'basic-faces)
+
+  (defface mode-line-cyan
+    (if (facep 'modus-themes-fg-cyan-cooler)
+        '((t :inherit modus-themes-fg-cyan-cooler))
+    '((t :foreground "cyan1")))
+    "face used for modeline"
+    :group 'basic-faces)
+
+  (advice-add 'narrow-to-region :before #'save-narrowing-info)
 
   (setq-default mode-line-buffer-identification
                 `(:eval
@@ -1026,17 +1039,13 @@ See notes:emacs-notes-and-tips for more details."
                               (pre (eq uniquify-buffer-name-style 'post-forward-angle-brackets)))
                           (let ((start (if pre 0 base-len))
                                 (end (if pre (- full-len base-len) full-len)))
-                            (set-text-properties base-len full-len '(face (:inherit modus-themes-fg-cyan-cooler :weight bold)) s)))))
+                            (set-text-properties base-len full-len '(face (:inherit mode-line-cyan :weight bold)) s)))))
                     s)))
 
   (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
-  (defface mode-line-pink
-    (if (facep 'modus-themes-fg-magenta-cooler)
-        '((t :inherit modus-themes-fg-magenta-cooler))
-    '((t :foreground "magenta")))
-    "face used for modeline"
-    :group 'basic-faces)
+  (set-face-attribute 'mode-line-buffer-id nil :inherit 'mode-line-pink :weight 'bold)
+
 
   (setq-default mode-line-format '("%e" mode-line-front-space
                                    (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up

@@ -179,9 +179,9 @@
 (add-hook 'activate-mark-hook (lambda () (define-key input-decode-map "\C-i" nil)))
 (add-hook 'deactivate-mark-hook (lambda () (define-key input-decode-map "\C-i" [C-i])))
 
-(define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
+(define-key viper-vi-basic-map "\C-i" #'my/mark-ring-backward)
 (define-key viper-vi-basic-map "\t" nil)
-(define-key viper-vi-basic-map [C-o] #'my/mark-ring-forward)
+(define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
 
 (defun viper-previous-line (arg)
   "Go to previous line."
