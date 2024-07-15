@@ -81,6 +81,38 @@
 (defun my/vc-delete-remote ())
 (defun my/vc-set-remote-url ())
 
+(defun vc-git-common-ancestor-diff (files &optional rev1 rev2 buffer _async)
+  "Get a difference report using Git between two revisions of FILES."
+  (let (process-file-side-effects
+        (command "diff"))
+    (vc-git--asciify-coding-system)
+    (if rev2
+        ;; Diffing against the empty tree.
+        (unless rev1 (setq rev1 "4b825dc642cb6eb9a060e54bf8d69288fbee4904"))
+      (setq command "diff-index")
+      (unless rev1 (setq rev1 "HEAD")))
+    (if vc-git-diff-switches
+        (apply #'vc-git-command (or buffer "*vc-diff*")
+           1 ; bug#21969
+               files
+               command
+               "--exit-code"
+               (append (vc-switches 'git 'diff)
+                       (list "-p" (concat (or rev1 "HEAD") "..." rev2) "--")))
+      (vc-git-command (or buffer "*vc-diff*") 1 files
+                      "difftool" "--exit-code" "--no-prompt" "-x"
+                      (concat "diff "
+                              (mapconcat #'identity
+                                         (vc-switches nil 'diff) " "))
+                      (concat rev1 "..." rev2) "--"))))
+
+(defun vc-git-diff-advice (orig-fun &rest args)
+  (if (and (eq this-command #'vc-root-version-diff) (not current-prefix-arg))
+      (apply #'vc-git-common-ancestor-diff args)
+    (apply orig-fun args))
+  )
+(advice-add #'vc-git-diff :around #'vc-git-diff-advice)
+
 (defalias 'gt #'>)
 (defalias 'gt= #'>=)
 (defalias 'lt #'<)
