@@ -257,8 +257,8 @@
 
 (setq inhibit-startup-screen t)
 
-(use-package menu-bar :defer t)
-(use-package tool-bar :defer t)
+(use-package menu-bar :defer t :config (menu-bar-mode 0))
+(use-package tool-bar :defer t :config (tool-bar-mode 0))
 
 (setq viper-mode t)
 (require 'viper)
