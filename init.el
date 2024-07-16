@@ -595,6 +595,10 @@ See notes:emacs-notes-and-tips for more details."
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (setq enable-remote-dir-locals t)
 
+
+  (setq tramp-ssh-controlmaster-options (concat "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p " "-o ControlMaster=auto -o ControlPersist=yes"))
+  (setq tramp-use-ssh-controlmaster-options t)
+
   (defun dired-do-delete-advice-remote (orig-fun &rest args)
     ;; this way we use the default value as opposed to the alternative of
     ;; setting delete-by-moving-to-trash to the value of (file-remote-p default-directory)
