@@ -345,6 +345,13 @@ stole the completing read stuff from:
   (global-auto-revert-mode)
   (setq auto-revert-verbose nil)
   (global-visual-line-mode)
+  (when (fboundp #'global-visual-wrap-prefix-mode)
+    (global-visual-wrap-prefix-mode)
+    (setq visual-wrap-extra-indent 4))
+
+  (when (fboundp #'kill-ring-deindent-mode)
+    (kill-ring-deindent-mode) )
+
   (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
   (setq revert-without-query '(".*")) ;; allow reverting without confirm
@@ -393,9 +400,12 @@ M-j to exit minibuffer with whatever is in the input
   (use-package savehist
     :init
     (savehist-mode))
-  
-  (setq completions-sort nil) ;; faster
-  
+
+  (if (gt= emacs-major-version 30)
+      (setq completions-sort 'historical)
+    (setq completions-sort nil) ;; no sorting makes completion faster
+    )
+
   (define-key minibuffer-local-completion-map "\t" #'icomplete-force-complete)
   (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
   (define-key global-map (kbd "C-z") #'viper-mode) ;; C-z to suspend frame is annoying with viper
@@ -429,11 +439,11 @@ M-j to exit minibuffer with whatever is in the input
 
   ;; insert * at the beginning so we don't have to match exactly at the beginning
   ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
-  ;; also not command category, cause it slows it down
+  ;; NOTE: command category can slow down M-x
   (defun icomplete-partial-completion-setup ()
-    (unless (or (eq (icomplete--category) 'file)
-                (eq (icomplete--category) 'command))
+    (unless (or (eq (icomplete--category) 'file))
       (insert "*")))
+
   (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
   ;; insert wild card to sorta emulate orderless
@@ -644,6 +654,19 @@ bunch of stuff here to basically call the function version of /collection/ insid
 no idea how necessary that is
 #+begin_src elisp
   (setq enable-recursive-minibuffers t)
+  (setq icomplete-in-buffer t)
+  (setq minibuffer-visible-completions t)
+  (global-completion-preview-mode)
+
+  ;; for default completion behavior in the *completions* buffer, should we decide to use it
+  (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
+  (define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
+  (define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
+  (define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion)
+  (setq completions-format 'one-column)
+  (setq completions-max-height 20)
+  (setq completions-header-format nil)
+
   (defun completing-read-in-region (start end collection &optional predicate)
     "Prompt for completion of region in the minibuffer if non-unique.
         Use as a value for `completion-in-region-function'."
@@ -667,6 +690,7 @@ no idea how necessary that is
       (cond (completion (completion--replace start end completion) t)
             (t (message "No completion") nil))))
   (setq completion-in-region-function #'completing-read-in-region)
+  ;; (setq completion-in-region-function #'completion--in-region)
 
   ;; (advice-add 'indent-for-tab-command
   ;;             :after (lambda (&optional arg)
@@ -842,12 +866,23 @@ and source some.envrc, then using that same shell, just copy all the environment
   (setq treesit-font-lock-level 4)
   (setq-default indent-tabs-mode nil)
   (which-function-mode)
+  (setq which-func-display 'header)
   (add-hook 'prog-mode-hook
             (lambda ()
               (unless (eq major-mode 'web-mode)
                 (electric-pair-local-mode))))
   (add-hook 'prog-mode-hook #'hs-minor-mode)
 #+end_src
+
+*** which-key
+This is built into emacs30 now
+#+begin_src elisp
+  (use-package which-key :pin gnu :defer 2
+    :config
+    (which-key-mode))
+#+end_src
+
+
 
 *** flymake diagnostic at point function
 #+begin_src elisp
@@ -1217,11 +1252,18 @@ instead
   (setq modus-themes-bold-constructs t)
   (setq modus-themes-italic-constructs t)
   (setq modus-themes-org-blocks 'gray-background)
-  ;; (load-theme 'modus-operandi)
-  ;; (use-package vc :defer t
-  ;;   :config
-  ;;   ;; for some reason modus gets rid of diff-header
-  ;;   (set-face-attribute 'diff-header nil :background "gray80"))
+  (condition-case nil
+      (progn 
+        (load-theme 'modus-vivendi-tinted t)
+        (set-cursor-color "#f78fe7"))
+    (error (progn
+             (load-theme 'modus-vivendi t)
+             (set-cursor-color "white")))) 
+
+  (use-package diff :defer t
+    :config
+    ;; for some reason modus gets rid of diff-header
+    (set-face-attribute 'diff-header nil :background "gray80"))
 #+end_src
 
 ** simple auto dark/light mode with midnight mode               :disabled:
@@ -1371,6 +1413,7 @@ display eww in side window with a large height
 
     (advice-add 'narrow-to-region :before #'save-narrowing-info)
 
+    (setq project-mode-line t)
     (setq-default mode-line-buffer-identification
                   `(:eval
                     (let ((s (format-mode-line
@@ -1388,14 +1431,20 @@ display eww in side window with a large height
     (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
     (set-face-attribute 'mode-line-buffer-id nil :inherit 'mode-line-pink :weight 'bold)
-
+    (setq project-mode-line-face 'package-name)
+    (setq project-file-history-behavior 'relativize)
+    (setq project-files-relative-names t)
 
     (setq-default mode-line-format '("%e" mode-line-front-space
                                      (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
                                      ;; kbd macro info
-                                     (:eval (when defining-kbd-macro (concat mode-line-defining-kbd-macro
-                                                                             (propertize (format "@%s" (char-to-string evil-this-macro)) 'face 'success))))
-                                     mode-line-modified mode-line-remote " " mode-line-buffer-identification " "
+                                     (:eval (when defining-kbd-macro
+                                              (concat mode-line-defining-kbd-macro
+                                                      (propertize (format "@%s" (char-to-string evil-this-macro)) 'face 'success))))
+                                     mode-line-window-dedicated
+                                     mode-line-modified mode-line-remote
+                                     (project-mode-line project-mode-line-format) " "
+                                     mode-line-buffer-identification " "
                                      mode-line-position "<" (:eval (format "%d" (line-number-at-pos (point-max))))
                                      (:eval (when (buffer-narrowed-p) (format " >%d:%d<" narrowed-pos1 narrowed-pos2))) " "
                                      ;; selection position info
@@ -1529,6 +1578,8 @@ works on iterm2 at least, 0 for box, 6 for bar cursor
   (define-key my/minibuffer-modify-map (kbd "<DEL>") #'icomplete-fido-backward-updir)
   (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
   (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
+
+  (define-key viper-insert-basic-map (kbd "M-<tab>") #'completion-at-point)
 #+end_src
 
 ** help commands
@@ -1913,7 +1964,7 @@ deactivate mark on esc
   (define-key viper-vi-basic-map "v" #'my/set-mark-command)
   (define-key viper-vi-basic-map "V" nil)
   (define-key viper-vi-basic-map "V" #'my/select-lines)
-  (define-key viper-vi-basic-map [C-v] #'my/visual-block)
+  (define-key viper-vi-basic-map (kbd "C-v") #'my/visual-block)
 #+end_src
 
 *** viper-ex to automatically use region if active
@@ -2986,17 +3037,6 @@ Otherwise we just use isearch and standard vi f/F motions
     (define-key vundo-vi-modify-map "j" #'vundo-next)
     (define-key vundo-vi-modify-map "d" #'vundo-diff)
     (viper-modify-major-mode 'vundo-mode 'vi-state vundo-vi-modify-map))
-#+end_src
-
-** which key
-amazing package when I forget my own keybindings
-https://github.com/justbur/emacs-which-key
-
-no good replacement for this outside of just describe function to find the keybind but we have to know the function first
-#+begin_src elisp
-  (use-package which-key :ensure t :pin gnu :defer 2
-    :config
-    (which-key-mode))
 #+end_src
 
 ** my own hurl mode :)

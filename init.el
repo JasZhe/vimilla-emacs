@@ -270,6 +270,13 @@
 (global-auto-revert-mode)
 (setq auto-revert-verbose nil)
 (global-visual-line-mode)
+(when (fboundp #'global-visual-wrap-prefix-mode)
+  (global-visual-wrap-prefix-mode)
+  (setq visual-wrap-extra-indent 4))
+
+(when (fboundp #'kill-ring-deindent-mode)
+  (kill-ring-deindent-mode) )
+
 (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
 (setq revert-without-query '(".*")) ;; allow reverting without confirm
@@ -302,7 +309,10 @@
   :init
   (savehist-mode))
 
-(setq completions-sort nil) ;; faster
+(if (gt= emacs-major-version 30)
+    (setq completions-sort 'historical)
+  (setq completions-sort nil) ;; no sorting makes completion faster
+  )
 
 (define-key minibuffer-local-completion-map "\t" #'icomplete-force-complete)
 (define-key minibuffer-local-completion-map (kbd "C-<return>") #'viper-exit-minibuffer)
@@ -337,11 +347,11 @@
 
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
-;; also not command category, cause it slows it down
+;; NOTE: command category can slow down M-x
 (defun icomplete-partial-completion-setup ()
-  (unless (or (eq (icomplete--category) 'file)
-              (eq (icomplete--category) 'command))
+  (unless (or (eq (icomplete--category) 'file))
     (insert "*")))
+
 (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
 ;; insert wild card to sorta emulate orderless
@@ -464,6 +474,19 @@ See notes:emacs-notes-and-tips for more details."
   (viper-modify-major-mode 'xref--xref-buffer-mode 'vi-state my/xref-vi-state-modify-map))
 
 (setq enable-recursive-minibuffers t)
+(setq icomplete-in-buffer t)
+(setq minibuffer-visible-completions t)
+(global-completion-preview-mode)
+
+;; for default completion behavior in the *completions* buffer, should we decide to use it
+(define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
+(define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
+(define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
+(define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion)
+(setq completions-format 'one-column)
+(setq completions-max-height 20)
+(setq completions-header-format nil)
+
 (defun completing-read-in-region (start end collection &optional predicate)
   "Prompt for completion of region in the minibuffer if non-unique.
       Use as a value for `completion-in-region-function'."
@@ -487,6 +510,7 @@ See notes:emacs-notes-and-tips for more details."
     (cond (completion (completion--replace start end completion) t)
           (t (message "No completion") nil))))
 (setq completion-in-region-function #'completing-read-in-region)
+;; (setq completion-in-region-function #'completion--in-region)
 
 ;; (advice-add 'indent-for-tab-command
 ;;             :after (lambda (&optional arg)
@@ -573,6 +597,13 @@ See notes:emacs-notes-and-tips for more details."
   (interactive)
   (copy-env-vars-from-shell-1 "bash --login -i -c printenv"))
 
+(defun copy-env-vars-from-shell-virtual-env ()
+  (interactive)
+  (let ((venv-name (read-directory-name "venv folder:" nil nil nil nil)))
+    (copy-env-vars-from-shell-1 (format "bash --login -i -c \". %s && printenv\""
+                                        (concat venv-name "bin/activate")))
+    ))
+
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
     Meant for eshell in mind."
@@ -633,11 +664,16 @@ See notes:emacs-notes-and-tips for more details."
 (setq treesit-font-lock-level 4)
 (setq-default indent-tabs-mode nil)
 (which-function-mode)
+(setq which-func-display 'header)
 (add-hook 'prog-mode-hook
           (lambda ()
             (unless (eq major-mode 'web-mode)
               (electric-pair-local-mode))))
 (add-hook 'prog-mode-hook #'hs-minor-mode)
+
+(use-package which-key :pin gnu :defer 2
+  :config
+  (which-key-mode))
 
 (defun my/flymake-diagnostics-at-point ()
   (interactive)
@@ -935,11 +971,18 @@ See notes:emacs-notes-and-tips for more details."
 (setq modus-themes-bold-constructs t)
 (setq modus-themes-italic-constructs t)
 (setq modus-themes-org-blocks 'gray-background)
-;; (load-theme 'modus-operandi)
-;; (use-package vc :defer t
-;;   :config
-;;   ;; for some reason modus gets rid of diff-header
-;;   (set-face-attribute 'diff-header nil :background "gray80"))
+(condition-case nil
+    (progn 
+      (load-theme 'modus-vivendi-tinted t)
+      (set-cursor-color "#f78fe7"))
+  (error (progn
+           (load-theme 'modus-vivendi t)
+           (set-cursor-color "white")))) 
+
+(use-package diff :defer t
+  :config
+  ;; for some reason modus gets rid of diff-header
+  (set-face-attribute 'diff-header nil :background "gray80"))
 
 (defun find-git-dir (dir)
   "Search up the directory tree looking for a .git folder."
@@ -1032,6 +1075,7 @@ See notes:emacs-notes-and-tips for more details."
 
   (advice-add 'narrow-to-region :before #'save-narrowing-info)
 
+  (setq project-mode-line t)
   (setq-default mode-line-buffer-identification
                 `(:eval
                   (let ((s (format-mode-line
@@ -1049,14 +1093,20 @@ See notes:emacs-notes-and-tips for more details."
   (defvar viper-mode-string "") ;; will be loaded later unless we go away from viper mode
 
   (set-face-attribute 'mode-line-buffer-id nil :inherit 'mode-line-pink :weight 'bold)
-
+  (setq project-mode-line-face 'package-name)
+  (setq project-file-history-behavior 'relativize)
+  (setq project-files-relative-names t)
 
   (setq-default mode-line-format '("%e" mode-line-front-space
                                    (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
                                    ;; kbd macro info
-                                   (:eval (when defining-kbd-macro (concat mode-line-defining-kbd-macro
-                                                                           (propertize (format "@%s" (char-to-string evil-this-macro)) 'face 'success))))
-                                   mode-line-modified mode-line-remote " " mode-line-buffer-identification " "
+                                   (:eval (when defining-kbd-macro
+                                            (concat mode-line-defining-kbd-macro
+                                                    (propertize (format "@%s" (char-to-string evil-this-macro)) 'face 'success))))
+                                   mode-line-window-dedicated
+                                   mode-line-modified mode-line-remote
+                                   (project-mode-line project-mode-line-format) " "
+                                   mode-line-buffer-identification " "
                                    mode-line-position "<" (:eval (format "%d" (line-number-at-pos (point-max))))
                                    (:eval (when (buffer-narrowed-p) (format " >%d:%d<" narrowed-pos1 narrowed-pos2))) " "
                                    ;; selection position info

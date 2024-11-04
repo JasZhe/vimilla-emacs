@@ -75,6 +75,8 @@
 (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
 (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
 
+(define-key viper-insert-basic-map (kbd "M-<tab>") #'completion-at-point)
+
 (setq viper-want-ctl-h-help 't)
 (setq viper-fast-keyseq-timeout 100)
 
@@ -391,7 +393,7 @@ Prefer it to behave more like vim/evil mode's version."
 (define-key viper-vi-basic-map "v" #'my/set-mark-command)
 (define-key viper-vi-basic-map "V" nil)
 (define-key viper-vi-basic-map "V" #'my/select-lines)
-(define-key viper-vi-basic-map [C-v] #'my/visual-block)
+(define-key viper-vi-basic-map (kbd "C-v") #'my/visual-block)
 
 ;;(advice-mapc `(lambda (fun props) (advice-remove 'viper-ex fun)) 'viper-ex)
 (advice-add 'viper-ex :around
