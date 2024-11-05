@@ -580,6 +580,56 @@ luckily this is built in lol
     (viper-modify-major-mode 'xref--xref-buffer-mode 'vi-state my/xref-vi-state-modify-map))
 #+end_src
 
+* blah
+#+begin_src elisp
+(defun indent-current-line ()
+  "Indent the line. Stolen from the middle section of `indent-for-tab-command'."
+  (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
+      (indent--default-inside-comment)
+      (when (or (lt= (current-column) (current-indentation))
+                (not (eq tab-always-indent 'complete)))
+        (indent--funcall-widened (default-value 'indent-line-function)))))
+
+;; want backtab to undo our indents basically but not do completion
+(defun indent-for-backtab-command ()
+  "Want backtab to reindent the line if we've overintended with tab.
+Otheriwse, shift backwards by tab-width."
+  (interactive)
+  (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+        ;; get the would be indented column then undo the changes and restore point
+        (indented-column (catch 'done (save-excursion
+                                        (atomic-change-group
+                                          (indent-current-line)
+                                          (throw 'done (current-column)))))))
+
+    ;; only deindent if we're equal to or before the would-be indented column
+    ;; otherwise, go back to the intended indented position
+    (if (lt= (current-column) indented-column)
+        (indent-rigidly (if (region-active-p) (region-beginning) (line-beginning-position))
+                        (if (region-active-p) (region-end) (line-end-position))
+                        (- tab-width))
+      (indent-current-line))))
+
+(defun indent-for-tab-check-empty-before-point (orig-fun &rest args)
+  "Around advice for `indent-for-tab-command'.
+Insert tabs DWIM style if the current position is already indented and
+we're at the beginning of the text on the current line.
+ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
+  (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+        ;; get the would be indented column then undo the changes and restore point
+        (indented-column (catch 'done (save-excursion
+                                        (atomic-change-group
+                                          (indent-current-line)
+                                          (throw 'done (current-column)))))))
+    ;; only indent if we're equal to or past the would-be indented column
+    (if (and (gt= (current-column) indented-column)
+             (string-blank-p text-before-pt))
+        (insert-tab current-prefix-arg)
+      (apply orig-fun args))))
+
+(advice-add 'indent-for-tab-command :around #'indent-for-tab-check-empty-before-point)
+#+end_src
+
 ** in buffer completion
 from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
@@ -2694,6 +2744,8 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 
       (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
       (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
+      (define-key my/org-vi-state-modify-map " msk" #'org-move-subtree-up)
+      (define-key my/org-vi-state-modify-map " msj" #'org-move-subtree-down)
 
       (define-key my/org-vi-state-modify-map " maa" #'org-attach)
       (define-key my/org-vi-state-modify-map " mA" #'org-archive-subtree)
