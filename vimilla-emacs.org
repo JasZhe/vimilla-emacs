@@ -781,9 +781,16 @@ this might be nice if we need to set env vars without direnv
 idea is to maybe pass some shell command to cd into a folder
 and source some.envrc, then using that same shell, just copy all the environment vars from there using =setenv=
 #+begin_src elisp
+  (defun split-string-at-first-match (string regex)
+    (let ((pos (string-match regex string)))
+      (if pos
+          (list (substring string 0 pos)
+                (substring string (+ pos (length (match-string 0 string)))))
+        (list string))))
+                               
   (defun copy-env-vars-from-shell-1 (cmd)
     (mapc (lambda (env-var-string)
-            (let* ((split (split-string env-var-string "="))
+            (let* ((split (split-string-at-first-match env-var-string "="))
                    (name (cl-first split))
                    (val (cl-second split)))
               (when (and name val)
@@ -799,6 +806,12 @@ and source some.envrc, then using that same shell, just copy all the environment
   (defun copy-env-vars-from-shell ()
     (interactive)
     (copy-env-vars-from-shell-1 "bash --login -i -c printenv"))
+
+  (defun copy-env-vars-from-shell-virtual-env ()
+    (interactive)
+    (let ((venv-name (read-directory-name "venv folder:" nil nil nil nil)))
+      (copy-env-vars-from-shell-1 (format "bash --login -i -c \". %s && printenv\""
+                                          (concat venv-name "bin/activate")))))
 #+end_src
 
 ** tramp environment variables

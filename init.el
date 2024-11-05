@@ -578,9 +578,16 @@ See notes:emacs-notes-and-tips for more details."
             (insert prefix))))
     (call-interactively 'bookmark-jump)))
 
+(defun split-string-at-first-match (string regex)
+  (let ((pos (string-match regex string)))
+    (if pos
+        (list (substring string 0 pos)
+              (substring string (+ pos (length (match-string 0 string)))))
+      (list string))))
+                             
 (defun copy-env-vars-from-shell-1 (cmd)
   (mapc (lambda (env-var-string)
-          (let* ((split (split-string env-var-string "="))
+          (let* ((split (split-string-at-first-match env-var-string "="))
                  (name (cl-first split))
                  (val (cl-second split)))
             (when (and name val)
@@ -601,8 +608,7 @@ See notes:emacs-notes-and-tips for more details."
   (interactive)
   (let ((venv-name (read-directory-name "venv folder:" nil nil nil nil)))
     (copy-env-vars-from-shell-1 (format "bash --login -i -c \". %s && printenv\""
-                                        (concat venv-name "bin/activate")))
-    ))
+                                        (concat venv-name "bin/activate")))))
 
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
