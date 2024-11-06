@@ -2959,7 +2959,7 @@ disable native comp warnings buffer from popping up
 The classic minibuffer trifecta, should we not want to use the built in facilities
 *** vertico
 #+begin_src elisp
-  (use-package vertico :ensure t :pin gnu
+  (use-package vertico :ensure t :pin gnu :after (icomplete)
     :config
     (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     (setq vertico-cycle t)
@@ -2968,7 +2968,7 @@ The classic minibuffer trifecta, should we not want to use the built in faciliti
     (fido-vertical-mode -1)
     (icomplete-mode -1)
     (define-key vertico-map (kbd "RET") #'vertico-exit)
-    (define-key my/leader-prefix-map "'" #'vertico-repeat)
+    (viper-map! :leader "'" #'vertico-repeat)
     (vertico-mode))
 #+end_src
 
@@ -2976,7 +2976,7 @@ The classic minibuffer trifecta, should we not want to use the built in faciliti
 https://github.com/oantolin/orderless
 The default custom partial-completion stuff we have works well enough that we might not need orderless anymore but meh
 #+begin_src elisp
-  (use-package orderless :ensure t :pin gnu :after icomplete
+  (use-package orderless :ensure t :pin gnu :after (icomplete)
     :config
     ;; stolen from doom
     (defun +vertico-orderless-dispatch (pattern _index _total)
@@ -3025,13 +3025,13 @@ The default custom partial-completion stuff we have works well enough that we mi
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref
           completion-in-region-function #'consult-completion-in-region)
-    (define-key my/leader-prefix-map "," #'consult-project-buffer)
-    (define-key my/leader-prefix-map "G"
+    (viper-map! :leader "," #'consult-project-buffer
+                "G"
                 (lambda () (interactive)
-                  (call-interactively (if (executable-find "rg") #'consult-ripgrep #'consult-grep))))
-    (define-key my/leader-prefix-map "cx" #'consult-flymake)
-    (define-key my/leader-prefix-map "ss" #'consult-line)
-    (define-key my/leader-prefix-map "si" #'consult-imenu))
+                  (call-interactively (if (executable-find "rg") #'consult-ripgrep #'consult-grep)))
+                "cx" #'consult-flymake
+                "ss" #'consult-line
+                "si" #'consult-imenu))
 #+end_src
 
 *** embark
@@ -3055,19 +3055,6 @@ The default custom partial-completion stuff we have works well enough that we mi
 *** wgrep
 #+begin_src elisp
   (use-package wgrep :ensure t)
-#+end_src
-
-** comany completion
-#+begin_src elisp
-  (use-package company :ensure t :pin gnu
-    :config
-    ;; window-stool overlays + company are broken
-    (add-hook 'company-mode-hook (lambda () (when window-stool-use-overlays (setq window-stool-use-overlays nil) (revert-buffer))))
-
-    (setq company-require-match nil
-          company-dabbrev-other-buffers nil
-          company-dabbrev-ignore-case nil
-          company-dabbrev-downcase nil))
 #+end_src
 
 ** corfu completion
@@ -3148,6 +3135,8 @@ Otherwise we just use isearch and standard vi f/F motions
 ** my own hurl mode :)
 well this oen is self explanatory
 #+begin_src elisp
+  (use-package json-mode :ensure t :pin gnu)
+
   (when (fboundp 'package-vc-install)
     (unless (require 'hurl-mode nil 'noerrror) (package-vc-install "https://github.com/JasZhe/hurl-mode"))
     (use-package hurl-mode :mode "\\.hurl\\'"
@@ -3173,35 +3162,29 @@ well this oen is self explanatory
 ** magit
 I want to actually learn how to use the built in vc mode a lot more, but there are some cases where having magit is really nice i.e. rebasing or staging specific lines rather than the whole file.
 #+begin_src elisp
-  (use-package magit :ensure t :pin nongnu :defer 3
+  (use-package magit :after (vc-dir) :ensure t :pin nongnu
     :config
     (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . git-rebase-mode))
 
-    (define-key my/leader-prefix-map "gg" #'magit)
-    (setq my/magit-vi-state-modify-map
-          (make-composed-keymap
-           nil
-           (make-composed-keymap 
-            (list my/viper-vi-basic-motion-keymap
-                  my/viper-vi-motion-g-keymap
-                  my/viper-vi-motion-leader-keymap)
-            magit-mode-map)))
-    (define-key my/magit-vi-state-modify-map (kbd "C-w") my-window-map)
-    (define-key my/magit-vi-state-modify-map "x" #'magit-discard)
-    (define-key my/magit-vi-state-modify-map "`" #'magit-process-buffer)
-    (define-key my/magit-vi-state-modify-map "E" #'magit-ediff)
-    (define-key my/magit-vi-state-modify-map (kbd "C-l") #'magit-log)
-    (define-key my/magit-vi-state-modify-map (kbd "C-b") #'magit-branch)
-    (define-key my/magit-vi-state-modify-map "p" #'magit-push)
-    (define-key my/magit-vi-state-modify-map "F" #'magit-pull)
-    (define-key my/magit-vi-state-modify-map " gF" #'magit-fetch)
-    ;; for terminal issues with C-i
-    (define-key my/magit-vi-state-modify-map [C-i]
-                (lambda ()
-                  (interactive) (call-interactively (lookup-key magit-mode-map "\t"))))
+    (viper-map! :leader "gg" #'magit
 
-    (viper-modify-major-mode 'magit-status-mode 'vi-state my/magit-vi-state-modify-map)
-    (define-key magit-diff-mode-map (kbd "C-w") my-window-map)
+                :mode 'magit-status-mode
+                :n "C-w" my-window-map
+                "x" #'magit-discard
+                "`" #'magit-process-buffer
+                "E" #'magit-ediff
+                "C-l" #'magit-log
+                "C-b" #'magit-branch
+                "p" #'magit-push
+                "F" #'magit-pull
+                "SPC gF" #'magit-fetch
+                ;; for terminal issues with C-i
+                "<tab>" (lambda () (interactive) (call-interactively (lookup-key magit-mode-map "\t")))
+
+                :mode 'magit-diff-mode
+                :n
+                "C-w" #'my-window-map
+                )
 
     (add-to-list 'display-buffer-alist
                  '("magit:.*"
@@ -3222,8 +3205,9 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
     (add-to-list 'display-buffer-alist
                  '("\\*diff-hl\\*" (display-buffer-in-side-window)))
 
-    (define-key my/leader-prefix-map "gr" #'diff-hl-revert-hunk)
-    (define-key my/leader-prefix-map "gs" #'diff-hl-show-hunk)
+    (viper-map! :leader "gr" #'diff-hl-revert-hunk
+                "gs" #'diff-hl-show-hunk)
+
     (add-to-list 'brac-char-cmd-alist '(?d . (lambda () (interactive) (diff-hl-previous-hunk))))
     (add-to-list 'brac-char-cmd-alist '(?D . (lambda () (interactive) (diff-hl-show-hunk-previous))))
 
@@ -3239,10 +3223,10 @@ I want to actually learn how to use the built in vc mode a lot more, but there a
   (use-package denote :ensure t :pin gnu :defer 2
     :config
     (setq denote-directory "~/orgmode/notes")
-    (define-key my/leader-prefix-map "do" #'denote-open-or-create)
-    (define-key my/leader-prefix-map "dd" #'denote-open-or-create)
-    (define-key my/leader-prefix-map "dt" #'denote-type)
-    (define-key my/leader-prefix-map "dn" #'denote))
+    (viper-map! :leader "do" #'denote-open-or-create
+                "dd" #'denote-open-or-create
+                "dt" #'denote-type
+                "dn" #'denote))
 #+end_src
 
 
@@ -3252,8 +3236,7 @@ https://github.com/Fuco1/dired-hacks
   (when (fboundp 'package-vc-install)
     (unless (require 'dired-subtree nil 'noerror)
       (package-vc-install '(dired-subtree :url "https://github.com/JasZhe/dired-hacks")))
-    (define-key my/dired-vi-state-modify-map (kbd "<tab>") #'dired-subtree-toggle)
-    (define-key my/dired-vi-state-modify-map [C-i] #'dired-subtree-toggle))
+    (viper-map! :mode 'dired-mode "<tab>" #'dired-subtree-toggle))
 #+end_src
 
 ** coterm
@@ -3270,23 +3253,8 @@ https://github.com/Fuco1/dired-hacks
     (eat-exec . (lambda (&rest _) (eat-line-mode)))
     :config
     (setq eat-enable-auto-line-mode t)
-    (define-key my/leader-prefix-map "ot" #'eat))
+    (viper-map! :leader "ot" #'eat))
 #+end_src
-
-** ligatures                                                    :external:
-#+begin_src elisp
-  (when (fboundp 'package-vc-install)
-    (unless (require 'ligature nil 'noerror) (package-vc-install "https://github.com/mickeynp/ligature.el"))
-    (use-package ligature
-      :config
-
-      (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
-                                           "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
-                                           "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
-                                           ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-      (global-ligature-mode)))
-#+end_src
-
 
 
 * external language packages
