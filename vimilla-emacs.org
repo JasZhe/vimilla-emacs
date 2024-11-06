@@ -1639,23 +1639,13 @@ leader commands
                  )
                 (current-map-sym
                  (let ((cmd (pop rest)))
-                   (message "%s %s %s" current-map-sym key (viper--unquote cmd))
-                   (define-key (symbol-value current-map-sym) (kbd key)
-                               (viper--unquote cmd))
+                   (when (commandp cmd)
+                     (define-key (symbol-value current-map-sym) (kbd key) cmd))
                    )))
           ))))
 
-  ;;(viper-map! :mode blah-mode :n "M-m" #'diff-hunk-prev "M-w" #'recenter-top-bottom)
-
-  ;;(viper-map! :leader "GG" nil)
-
-  (defmacro viper-map! (&rest rest)
+  (defun viper-map! (&rest rest)
     (viper--map-process rest))
-
-  (define-derived-mode blah-mode text-mode "blah")
-  (define-key blah-mode-map (kbd "M-n") #'diff-hunk-next)
-
-  (viper-map! :leader "GG" #'indent-line)
 #+end_src
 
 ** mode-line
