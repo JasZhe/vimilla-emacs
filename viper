@@ -181,9 +181,18 @@
 (add-hook 'activate-mark-hook (lambda () (define-key input-decode-map "\C-i" nil)))
 (add-hook 'deactivate-mark-hook (lambda () (define-key input-decode-map "\C-i" [C-i])))
 
-(define-key viper-vi-basic-map "\C-i" #'my/mark-ring-backward)
-(define-key viper-vi-basic-map "\t" nil)
-(define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+(if (display-graphic-p)
+    (progn
+      (keyboard-translate ?\C-i ?\H-i)
+      (define-key viper-vi-basic-map (kbd "H-i") #'my/mark-ring-backward)
+      (define-key viper-vi-basic-map "\t" nil)
+      (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+      )
+  (progn
+    (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
+    (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+    )
+  )
 
 (defun viper-previous-line (arg)
   "Go to previous line."
@@ -253,14 +262,20 @@
   "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'.
    If the underlying command is like an \"insert-command\" then we either do nothing or execute ALT-CMD."
   (interactive)
-  (viper-change-state-to-emacs)
-  (when-let ((local-cmd (key-binding (this-command-keys))))
-    (if (string-match-p "\\(.*insert-command\\|newline\\)" (symbol-name local-cmd))
-        (when (commandp alt-cmd) (call-interactively alt-cmd))
-      (call-interactively local-cmd))
-    )
-  (viper-change-state-to-vi)
-  )
+  (let ((curr-state my/global-viper-state))
+    (viper-change-state-to-emacs)
+    (setq my/global-viper-state curr-state)
+    (when-let ((local-cmd (key-binding (this-command-keys))))
+      ;; need to call this BEFORE the local-cmd
+      ;; in the case where local-cmd is debugger-quit
+      ;; which will exit out of this function so we stay in emacs state
+      (set-global-viper-state)
+      (if (string-match-p "\\(.*insert-command\\|newline\\)" (symbol-name local-cmd))
+          (when (commandp alt-cmd) (call-interactively alt-cmd))
+        
+        (call-interactively local-cmd))
+      )
+    ))
 
 (defun maybe-open-url-at-pt ()
   (interactive)
@@ -423,8 +438,7 @@ Prefer it to behave more like vim/evil mode's version."
         (if rectangle-mark-mode
             (progn 
               (setq my/line-yank-p nil)
-              ;; like vim, we want to include the current cursor char
-              (kill-rectangle start (1+ end) arg))
+              (kill-rectangle start end arg))
           (progn
             ;; this hacky bit is because when we move backwards from point, we want to include the position we started the mark on like in vim
             ;; even though visually we won't see it, functionally it'll behave the same
@@ -446,7 +460,7 @@ Prefer it to behave more like vim/evil mode's version."
         (if rectangle-mark-mode
             (progn 
               (setq my/line-yank-p nil)
-              (copy-rectangle-as-kill start (1+ end)))
+              (copy-rectangle-as-kill start end))
           (progn
             (if (> (point) (mark-marker))
                 (forward-char)
@@ -505,9 +519,9 @@ respects rectangle mode in a similar way to vim/doom"
 
 (defun dumb-change-surrounding ()
   "Basic surrounding change function.
-      The first char read, is the surrounding to find.
-      The second char read, is the new surrounding character.
-      Some DWIM here regarding parentheses and brackets."
+        The first char read, is the surrounding to find.
+        The second char read, is the new surrounding character.
+        Some DWIM here regarding parentheses and brackets."
   (interactive)
   (let* ((delim (char-to-string (read-char "find")))
          (replace-start-1 (char-to-string (read-char "replace")))
@@ -607,9 +621,11 @@ respects rectangle mode in a similar way to vim/doom"
 
 (setq my/leader-prefix-map (make-sparse-keymap))
 (define-key viper-vi-basic-map " " my/leader-prefix-map)
+(define-key viper-insert-basic-map (kbd "M-SPC") my/leader-prefix-map)
 
 (define-key my/leader-prefix-map ","
-            (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
+            (lambda () (interactive)
+              (project-switch-to-buffer (project--read-project-buffer))))
 (define-key my/leader-prefix-map "<" #'switch-to-buffer)
 
 (define-key my/leader-prefix-map "u" #'universal-argument)
@@ -647,6 +663,7 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "cX" #'flymake-show-buffer-diagnostics)
 
 (define-key my/leader-prefix-map "hk" #'describe-key)
+(define-key my/leader-prefix-map "hK" #'describe-keymap)
 (define-key my/leader-prefix-map "hf" #'describe-function)
 (define-key my/leader-prefix-map "hv" #'describe-variable)
 (define-key my/leader-prefix-map "hm" #'describe-mode)
@@ -698,6 +715,23 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key my/leader-prefix-map "Nt" #'newsticker-treeview)
 
 (define-key my/leader-prefix-map "ff" #'find-file)
+
+(define-key my/leader-prefix-map "gg" (lambda (arg) (interactive "P")
+                                        (vc-dir
+                                         (if arg
+                                             (file-truename
+                                              (read-directory-name "VC status for directory: "
+                                                                   default-directory nil t nil))
+                                           (vc-root-dir))
+                                         (when (equal arg '(16))
+                                           (intern
+                                            (completing-read
+                                             "Use VC backend: "
+                                             (mapcar (lambda (b) (list (symbol-name b)))
+                                                     vc-handled-backends)
+                                             nil t nil nil))
+                                           )
+                                         )))
 
 (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
 (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
@@ -921,6 +955,8 @@ position of the outside of the paren.  Otherwise return nil."
   (define-key my/diff-mode-vi-state-map (kbd "<backtab>") #'outline-cycle-buffer)
   (define-key my/diff-mode-vi-state-map (kbd "C-j") #'diff-hunk-next)
   (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
+  (define-key my/diff-mode-vi-state-map (kbd "C-S-j") #'diff-file-next)
+  (define-key my/diff-mode-vi-state-map (kbd "C-S-k") #'diff-file-prev)
   (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
 
 (use-package vc-annotate :defer t

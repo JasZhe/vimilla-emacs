@@ -1277,6 +1277,8 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 
     (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
     (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
+    (define-key my/org-vi-state-modify-map " msk" #'org-move-subtree-up)
+    (define-key my/org-vi-state-modify-map " msj" #'org-move-subtree-down)
 
     (define-key my/org-vi-state-modify-map " maa" #'org-attach)
     (define-key my/org-vi-state-modify-map " mA" #'org-archive-subtree)

@@ -1750,9 +1750,19 @@ Delete side windows if any
   (add-hook 'activate-mark-hook (lambda () (define-key input-decode-map "\C-i" nil)))
   (add-hook 'deactivate-mark-hook (lambda () (define-key input-decode-map "\C-i" [C-i])))
 
-  (define-key viper-vi-basic-map "\C-i" #'my/mark-ring-backward)
-  (define-key viper-vi-basic-map "\t" nil)
-  (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+  (if (display-graphic-p)
+      (progn
+        (keyboard-translate ?\C-i ?\H-i)
+        (define-key viper-vi-basic-map (kbd "H-i") #'my/mark-ring-backward)
+        (define-key viper-vi-basic-map "\t" nil)
+        (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+        )
+    (progn
+      (define-key viper-vi-basic-map [C-i] #'my/mark-ring-backward)
+      (define-key viper-vi-basic-map "\C-o" #'my/mark-ring-forward)
+      )
+    )
+
 #+end_src
 
 ** respect visual lines cursor movement
@@ -1847,14 +1857,20 @@ https://endlessparentheses.com/define-context-aware-keys-in-emacs.html
     "Temporarily change to emacs state, and see what the underlying keybinding is for `show-invoking-keys'.
      If the underlying command is like an \"insert-command\" then we either do nothing or execute ALT-CMD."
     (interactive)
-    (viper-change-state-to-emacs)
-    (when-let ((local-cmd (key-binding (this-command-keys))))
-      (if (string-match-p "\\(.*insert-command\\|newline\\)" (symbol-name local-cmd))
-          (when (commandp alt-cmd) (call-interactively alt-cmd))
-        (call-interactively local-cmd))
-      )
-    (viper-change-state-to-vi)
-    )
+    (let ((curr-state my/global-viper-state))
+      (viper-change-state-to-emacs)
+      (setq my/global-viper-state curr-state)
+      (when-let ((local-cmd (key-binding (this-command-keys))))
+        ;; need to call this BEFORE the local-cmd
+        ;; in the case where local-cmd is debugger-quit
+        ;; which will exit out of this function so we stay in emacs state
+        (set-global-viper-state)
+        (if (string-match-p "\\(.*insert-command\\|newline\\)" (symbol-name local-cmd))
+            (when (commandp alt-cmd) (call-interactively alt-cmd))
+          
+          (call-interactively local-cmd))
+        )
+      ))
 
   (defun maybe-open-url-at-pt ()
     (interactive)
@@ -2062,8 +2078,7 @@ still kinda WIP need to think about this one
           (if rectangle-mark-mode
               (progn 
                 (setq my/line-yank-p nil)
-                ;; like vim, we want to include the current cursor char
-                (kill-rectangle start (1+ end) arg))
+                (kill-rectangle start end arg))
             (progn
               ;; this hacky bit is because when we move backwards from point, we want to include the position we started the mark on like in vim
               ;; even though visually we won't see it, functionally it'll behave the same
@@ -2085,7 +2100,7 @@ still kinda WIP need to think about this one
           (if rectangle-mark-mode
               (progn 
                 (setq my/line-yank-p nil)
-                (copy-rectangle-as-kill start (1+ end)))
+                (copy-rectangle-as-kill start end))
             (progn
               (if (> (point) (mark-marker))
                   (forward-char)
@@ -2270,12 +2285,15 @@ need to remap isearch-backward since i wanna use C-r for redo
 :VISIBILITY: children
 :END:
 
+
 #+begin_src elisp
   (setq my/leader-prefix-map (make-sparse-keymap))
   (define-key viper-vi-basic-map " " my/leader-prefix-map)
+  (define-key viper-insert-basic-map (kbd "M-SPC") my/leader-prefix-map)
 
   (define-key my/leader-prefix-map ","
-              (lambda () (interactive) (project-switch-to-buffer (project--read-project-buffer))))
+              (lambda () (interactive)
+                (project-switch-to-buffer (project--read-project-buffer))))
   (define-key my/leader-prefix-map "<" #'switch-to-buffer)
 
   (define-key my/leader-prefix-map "u" #'universal-argument)
@@ -2328,6 +2346,7 @@ need to remap isearch-backward since i wanna use C-r for redo
 *** "help" prefix
 #+begin_src elisp
   (define-key my/leader-prefix-map "hk" #'describe-key)
+  (define-key my/leader-prefix-map "hK" #'describe-keymap)
   (define-key my/leader-prefix-map "hf" #'describe-function)
   (define-key my/leader-prefix-map "hv" #'describe-variable)
   (define-key my/leader-prefix-map "hm" #'describe-mode)
@@ -2399,6 +2418,29 @@ pretty handy tbh
 *** pseudo "files" "f" prefix
 #+begin_src elisp
   (define-key my/leader-prefix-map "ff" #'find-file)
+#+end_src
+
+*** git prefix
+magit has a :defer in the use-package declaration so that should override this binding if we choose to install magit
+
+usually want to call it from the vc root directory, unless we want something specific we can do that ourselves
+#+begin_src elisp
+  (define-key my/leader-prefix-map "gg" (lambda (arg) (interactive "P")
+                                          (vc-dir
+                                           (if arg
+                                               (file-truename
+                                                (read-directory-name "VC status for directory: "
+                                                                     default-directory nil t nil))
+                                             (vc-root-dir))
+                                           (when (equal arg '(16))
+                                             (intern
+                                              (completing-read
+                                               "Use VC backend: "
+                                               (mapcar (lambda (b) (list (symbol-name b)))
+                                                       vc-handled-backends)
+                                               nil t nil nil))
+                                             )
+                                           )))
 #+end_src
 
 ** viper motion keymap
@@ -2699,6 +2741,8 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
     (define-key my/diff-mode-vi-state-map (kbd "<backtab>") #'outline-cycle-buffer)
     (define-key my/diff-mode-vi-state-map (kbd "C-j") #'diff-hunk-next)
     (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
+    (define-key my/diff-mode-vi-state-map (kbd "C-S-j") #'diff-file-next)
+    (define-key my/diff-mode-vi-state-map (kbd "C-S-k") #'diff-file-prev)
     (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
 #+end_src
 
