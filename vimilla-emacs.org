@@ -1629,7 +1629,25 @@ leader commands
           (viper-base-mappings (list my/viper-vi-basic-motion-keymap
                                      my/viper-vi-motion-g-keymap
                                      my/viper-vi-motion-leader-keymap)))
-      (set modified-map-sym (make-composed-keymap viper-base-mappings major-mode-map))
+      ;; without the extra make-composed-keymap indirection
+      ;; we will either modify the base mappings which is bad because then
+      ;; p will do magit-push instead of yank for instance
+      ;; in the case where viper-base-mappings is the second argument
+      ;; (set modified-map-sym (make-composed-keymap viper-base-mappings major-mode-map))
+      
+      ;; or in the other case, we won't be able to override the viper base mappings
+      ;; i.e. having p only do magit-push in magit buffers
+
+      ;; this indirection way lets us basically make a sparse-keymap
+      ;; so that any define-keys just go into the sparse keymap without changing our viper-base-mappings
+      ;; with a parent thats a combination of major-mode + viper-base
+      ;; where viper-base has precendence over major-mode
+      ;; i.e. we want viper movement in magit, not the magit command for j
+      (set modified-map-sym (make-composed-keymap nil
+                                                  (make-composed-keymap
+                                                   viper-base-mappings
+                                                   major-mode-map)))
+      
       (viper-modify-major-mode mode 'vi-state (symbol-value modified-map-sym))
       modified-map-sym))
 
