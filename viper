@@ -1,6 +1,53 @@
+(setq my/g-prefix-map (make-sparse-keymap))
+(define-key viper-vi-basic-map "g" my/g-prefix-map)
+(define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
+
+(define-key my/g-prefix-map "k" #'viper-previous-line)
+(define-key my/g-prefix-map "j" #'viper-next-line)
+
+(define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
+(define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
+
+(define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
+
 (defvar viper-leader-map (make-sparse-keymap))
 (define-key viper-vi-basic-map " " viper-leader-map)
 (define-key viper-insert-basic-map (kbd "M-SPC") viper-leader-map)
+
+
+(setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
+(define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
+(define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
+(define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
+(define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
+(define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
+(define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
+(define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+(define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
+(define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
+(define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
+(define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+(define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
+(define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
+(define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
+(define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
+
+(setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
+(define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
+(define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
+(define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
+
+(define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
+(define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
+(define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
+(define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+
+(setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
+(define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
+(define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
+
+(setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
+(define-key my/viper-vi-motion-leader-keymap " " viper-leader-map)
 
 (defun viper--create-and-set-mode (mode)
   "Create a major-mode modification map in viper for MODE.
@@ -665,18 +712,6 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map (kbd "M-r")  #'isearch-backward) 
 (define-key viper-vi-basic-map (kbd "C-M-r") #'isearch-backward-regexp)
 
-(setq my/g-prefix-map (make-sparse-keymap))
-(define-key viper-vi-basic-map "g" my/g-prefix-map)
-(define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
-
-(define-key my/g-prefix-map "k" #'viper-previous-line)
-(define-key my/g-prefix-map "j" #'viper-next-line)
-
-(define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
-(define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
-
-(define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
-
 (setq my/leader-prefix-map (make-sparse-keymap))
 (define-key viper-vi-basic-map " " my/leader-prefix-map)
 (define-key viper-insert-basic-map (kbd "M-SPC") my/leader-prefix-map)
@@ -790,40 +825,6 @@ respects rectangle mode in a similar way to vim/doom"
                                              nil t nil nil))
                                            )
                                          )))
-
-(setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
-(define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
-(define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
-(define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
-(define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
-(define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
-(define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
-(define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
-(define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
-(define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
-(define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
-(define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
-(define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
-(define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
-(define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
-(define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
-
-(setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
-(define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
-(define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
-(define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
-
-(define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
-(define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
-(define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
-(define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
-
-(setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
-(define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
-(define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
-
-(setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
-(define-key my/viper-vi-motion-leader-keymap " " my/leader-prefix-map)
 
 (define-key my/leader-prefix-map "cd" #'xref-find-definitions)
 (define-key viper-vi-basic-map "gd" #'xref-find-definitions)

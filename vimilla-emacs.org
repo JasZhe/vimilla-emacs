@@ -1512,12 +1512,97 @@ display eww in side window with a large height
 :END:
 
 viper is the only built in thing that handles /some/ of the Doom/Vim stuff that I want (since it emulates Vi and not Vim)
-** viper keymap macro
+
+** "g" prefix commands
+*** beginning of buffer
+#+begin_src elisp
+  (setq my/g-prefix-map (make-sparse-keymap))
+  (define-key viper-vi-basic-map "g" my/g-prefix-map)
+  (define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
+#+end_src
+
+*** movement since we have visual lines
+#+begin_src elisp
+  (define-key my/g-prefix-map "k" #'viper-previous-line)
+  (define-key my/g-prefix-map "j" #'viper-next-line)
+#+end_src
+*** tab bar movement
+#+begin_src elisp
+  (define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
+  (define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
+#+end_src
+
+*** cua mode for multiple cursors
+#+begin_src elisp
+  (define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
+#+end_src
+
+
+** viper motion keymap
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
+There's some weird thing with make-composed-keymap where for some reason the original keymaps might be modified if we use define-key.
+Found a solution here: https://emacs.stackexchange.com/questions/3963/use-two-major-mode-maps-in-the-same-buffer
+which says to just wrap make-composed-keymap around the original make-composed-keymap
+
+TBD for use in specific major mode keymaps so we at least keep motions
+in special modes
 #+begin_src elisp
   (defvar viper-leader-map (make-sparse-keymap))
   (define-key viper-vi-basic-map " " viper-leader-map)
   (define-key viper-insert-basic-map (kbd "M-SPC") viper-leader-map)
 
+
+  (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
+  (define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
+  (define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
+  (define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
+  (define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
+  (define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
+  (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
+  (define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
+  (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
+  (define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
+  (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
+  (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
+  (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
+  (define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
+  (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
+#+end_src
+
+I might be able to live without these ones so they can be overriden
+#+begin_src elisp
+  (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
+  (define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
+  (define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
+  (define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
+
+  (define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
+  (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
+  (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
+  (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
+
+#+end_src
+
+"g" commands like beginning of buffer and change tab
+#+begin_src elisp
+  (setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
+  (define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
+#+end_src
+
+leader commands
+#+begin_src elisp
+  (setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
+  (define-key my/viper-vi-motion-leader-keymap " " viper-leader-map)
+#+end_src
+
+
+** viper keymap macro
+#+begin_src elisp
   (defun viper--create-and-set-mode (mode)
     "Create a major-mode modification map in viper for MODE.
   Should not overwrite existing modifications to major mode.
@@ -2318,36 +2403,10 @@ need to remap isearch-backward since i wanna use C-r for redo
   (define-key viper-vi-basic-map (kbd "C-M-r") #'isearch-backward-regexp)
 #+end_src
 
-** "g" prefix commands
-*** beginning of buffer
-#+begin_src elisp
-  (setq my/g-prefix-map (make-sparse-keymap))
-  (define-key viper-vi-basic-map "g" my/g-prefix-map)
-  (define-key my/g-prefix-map "g" (lambda () (interactive) (viper-goto-line 1)))
-#+end_src
-
-*** movement since we have visual lines
-#+begin_src elisp
-  (define-key my/g-prefix-map "k" #'viper-previous-line)
-  (define-key my/g-prefix-map "j" #'viper-next-line)
-#+end_src
-*** tab bar movement
-#+begin_src elisp
-  (define-key my/g-prefix-map "t" #'tab-bar-switch-to-next-tab)
-  (define-key my/g-prefix-map "T" #'tab-bar-switch-to-prev-tab)
-#+end_src
-
-*** cua mode for multiple cursors
-#+begin_src elisp
-  (define-key my/g-prefix-map "zz" #'cua-rectangle-mark-mode)
-#+end_src
-
 ** pseudo "leader" prefix
 :PROPERTIES:
 :VISIBILITY: children
 :END:
-
-
 #+begin_src elisp
   (setq my/leader-prefix-map (make-sparse-keymap))
   (define-key viper-vi-basic-map " " my/leader-prefix-map)
@@ -2503,63 +2562,6 @@ usually want to call it from the vc root directory, unless we want something spe
                                                nil t nil nil))
                                              )
                                            )))
-#+end_src
-
-** viper motion keymap
-:PROPERTIES:
-:VISIBILITY: folded
-:END:
-
-There's some weird thing with make-composed-keymap where for some reason the original keymaps might be modified if we use define-key.
-Found a solution here: https://emacs.stackexchange.com/questions/3963/use-two-major-mode-maps-in-the-same-buffer
-which says to just wrap make-composed-keymap around the original make-composed-keymap
-
-TBD for use in specific major mode keymaps so we at least keep motions
-in special modes
-#+begin_src elisp
-  (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
-  (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
-  (define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
-  (define-key my/viper-vi-basic-motion-keymap "j" #'next-line)
-  (define-key my/viper-vi-basic-motion-keymap "k" #'previous-line)
-  (define-key my/viper-vi-basic-motion-keymap "w" #'viper-forward-word)
-  (define-key my/viper-vi-basic-motion-keymap "b" #'viper-backward-word)
-  (define-key my/viper-vi-basic-motion-keymap "e" #'viper-end-of-word)
-  (define-key my/viper-vi-basic-motion-keymap "v" #'my/set-mark-command)
-  (define-key my/viper-vi-basic-motion-keymap "V" #'my/select-lines)
-  (define-key my/viper-vi-basic-motion-keymap (kbd "C-v") #'my/visual-block)
-  (define-key my/viper-vi-basic-motion-keymap "y" #'viper-copy-region-or-motion-command)
-  (define-key my/viper-vi-basic-motion-keymap "^" #'viper-bol-and-skip-white)
-  (define-key my/viper-vi-basic-motion-keymap "$" #'viper-goto-eol)
-  (define-key my/viper-vi-basic-motion-keymap (kbd "C-d") #'viper-scroll-up)
-  (define-key my/viper-vi-basic-motion-keymap "\C-w" my-window-map)
-#+end_src
-
-I might be able to live without these ones so they can be overriden
-#+begin_src elisp
-  (setq my/viper-vi-extra-motion-keymap my/viper-vi-basic-motion-keymap)
-  (define-key my/viper-vi-extra-motion-keymap "W" #'viper-forward-Word)
-  (define-key my/viper-vi-extra-motion-keymap "B" #'viper-backward-Word)
-  (define-key my/viper-vi-extra-motion-keymap "E" #'viper-end-of-Word)
-
-  (define-key my/viper-vi-extra-motion-keymap "f" #'viper-find-char-forward)
-  (define-key my/viper-vi-extra-motion-keymap "F" #'viper-find-char-backward)
-  (define-key my/viper-vi-extra-motion-keymap "t" #'viper-goto-char-forward)
-  (define-key my/viper-vi-extra-motion-keymap "T" #'viper-goto-char-backward)
-
-#+end_src
-
-"g" commands like beginning of buffer and change tab
-#+begin_src elisp
-  (setq my/viper-vi-motion-g-keymap (make-sparse-keymap))
-  (define-key my/viper-vi-motion-g-keymap "g" my/g-prefix-map)
-  (define-key my/viper-vi-motion-g-keymap "G" #'viper-goto-line)
-#+end_src
-
-leader commands
-#+begin_src elisp
-  (setq my/viper-vi-motion-leader-keymap (make-sparse-keymap))
-  (define-key my/viper-vi-motion-leader-keymap " " my/leader-prefix-map)
 #+end_src
 
 ** eglot/xref
