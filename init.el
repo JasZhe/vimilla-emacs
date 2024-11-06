@@ -487,6 +487,7 @@ See notes:emacs-notes-and-tips for more details."
 (setq completions-max-height 20)
 (setq completions-header-format nil)
 
+(define-error 'no-completions "completing-read-in-region: No completions")
 (defun completing-read-in-region (start end collection &optional predicate)
   "Prompt for completion of region in the minibuffer if non-unique.
       Use as a value for `completion-in-region-function'."
@@ -508,16 +509,63 @@ See notes:emacs-notes-and-tips for more details."
                                         (completing-read "Completion: " collection predicate nil initial)))
                                    (throw 'done completion)))))))))
     (cond (completion (completion--replace start end completion) t)
-          (t (message "No completion") nil))))
+          (t (signal 'no-completions nil)))))
 (setq completion-in-region-function #'completing-read-in-region)
 ;; (setq completion-in-region-function #'completion--in-region)
 
-;; (advice-add 'indent-for-tab-command
-;;             :after (lambda (&optional arg)
-;;                      (when (memq (get-char-code-property (char-before) 'general-category)
-;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
-;;                        (complete-symbol arg))))
 (setq tab-always-indent 'complete)
+
+(defun indent-current-line ()
+  "Indent the line. Stolen from the middle section of `indent-for-tab-command'."
+  (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
+      (indent--default-inside-comment)
+      (when (or (lt= (current-column) (current-indentation))
+                (not (eq tab-always-indent 'complete)))
+        (indent--funcall-widened (default-value 'indent-line-function)))))
+
+;; want backtab to undo our indents basically but not do completion
+(defun indent-for-backtab-command ()
+  "Want backtab to reindent the line if we've overintended with tab.
+Otheriwse, shift backwards by tab-width."
+  (interactive)
+  (if-let ((cmd (ignore-errors
+                  (lookup-key (symbol-value (intern (concat (symbol-name major-mode) "-map")))
+                              [backtab]))))
+      (call-interactively cmd)
+    (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+          ;; get the would be indented column then undo the changes and restore point
+          (indented-column (catch 'done (save-excursion
+                                          (atomic-change-group
+                                            (indent-current-line)
+                                            (throw 'done (current-column)))))))
+
+      ;; only deindent if we're equal to or before the would-be indented column
+      ;; otherwise, go back to the intended indented position
+      (if (lt= (current-column) indented-column)
+          (indent-rigidly (if (region-active-p) (region-beginning) (line-beginning-position))
+                          (if (region-active-p) (region-end) (line-end-position))
+                          (- tab-width))
+        (indent-current-line)))))
+
+(defun indent-for-tab-check-empty-before-point (orig-fun &rest args)
+  "Around advice for `indent-for-tab-command'.
+Insert tabs DWIM style if the current position is already indented and
+we're at the beginning of the text on the current line.
+ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
+  (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+        ;; get the would be indented column then undo the changes and restore point
+        (indented-column (catch 'done (save-excursion
+                                        (atomic-change-group
+                                          (indent-current-line)
+                                          (throw 'done (current-column)))))))
+    ;; only indent if we're equal to or past the would-be indented column
+    (if (and (gt= (current-column) indented-column)
+             (string-blank-p text-before-pt))
+        (insert-tab current-prefix-arg)
+      (apply orig-fun args))))
+
+(advice-add 'indent-for-tab-command :around #'indent-for-tab-check-empty-before-point)
+(define-key viper-insert-basic-map [backtab] #'indent-for-backtab-command)
 
 (use-package vc :config
   (setq-default vc-handled-backends '(SVN Git Hg))
@@ -1205,6 +1253,21 @@ See notes:emacs-notes-and-tips for more details."
                  '("\\*Org Src.*\\*"
                    (display-buffer-in-side-window)
                    (window-height . 0.4)))
+
+    ;; fix newline and indent in src blocks, took this from doom
+    (defun org-fix-newline-and-indent-in-src-blocks-ad (&rest _args)
+      (when (and org-src-tab-acts-natively
+                 (org-in-src-block-p t))
+        (save-window-excursion
+          (save-excursion
+            (org-babel-do-in-edit-buffer
+             (set-mark (point-min))
+             (goto-char (point-max))
+             (let ((inhibit-message t))
+               (call-interactively #'indent-region))))))
+      )
+    (advice-add #'org-return :after #'org-fix-newline-and-indent-in-src-blocks-ad)
+    
 
     (setq my/org-vi-state-modify-map (make-sparse-keymap))
 

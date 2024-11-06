@@ -590,56 +590,6 @@ luckily this is built in lol
     (viper-modify-major-mode 'xref--xref-buffer-mode 'vi-state my/xref-vi-state-modify-map))
 #+end_src
 
-* blah
-#+begin_src elisp
-(defun indent-current-line ()
-  "Indent the line. Stolen from the middle section of `indent-for-tab-command'."
-  (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
-      (indent--default-inside-comment)
-      (when (or (lt= (current-column) (current-indentation))
-                (not (eq tab-always-indent 'complete)))
-        (indent--funcall-widened (default-value 'indent-line-function)))))
-
-;; want backtab to undo our indents basically but not do completion
-(defun indent-for-backtab-command ()
-  "Want backtab to reindent the line if we've overintended with tab.
-Otheriwse, shift backwards by tab-width."
-  (interactive)
-  (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
-        ;; get the would be indented column then undo the changes and restore point
-        (indented-column (catch 'done (save-excursion
-                                        (atomic-change-group
-                                          (indent-current-line)
-                                          (throw 'done (current-column)))))))
-
-    ;; only deindent if we're equal to or before the would-be indented column
-    ;; otherwise, go back to the intended indented position
-    (if (lt= (current-column) indented-column)
-        (indent-rigidly (if (region-active-p) (region-beginning) (line-beginning-position))
-                        (if (region-active-p) (region-end) (line-end-position))
-                        (- tab-width))
-      (indent-current-line))))
-
-(defun indent-for-tab-check-empty-before-point (orig-fun &rest args)
-  "Around advice for `indent-for-tab-command'.
-Insert tabs DWIM style if the current position is already indented and
-we're at the beginning of the text on the current line.
-ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
-  (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
-        ;; get the would be indented column then undo the changes and restore point
-        (indented-column (catch 'done (save-excursion
-                                        (atomic-change-group
-                                          (indent-current-line)
-                                          (throw 'done (current-column)))))))
-    ;; only indent if we're equal to or past the would-be indented column
-    (if (and (gt= (current-column) indented-column)
-             (string-blank-p text-before-pt))
-        (insert-tab current-prefix-arg)
-      (apply orig-fun args))))
-
-(advice-add 'indent-for-tab-command :around #'indent-for-tab-check-empty-before-point)
-#+end_src
-
 ** in buffer completion
 from:
 https://www.reddit.com/r/emacs/comments/zl6amy/completionatpoint_using_completingread_icomplete/
@@ -667,6 +617,7 @@ no idea how necessary that is
   (setq completions-max-height 20)
   (setq completions-header-format nil)
 
+  (define-error 'no-completions "completing-read-in-region: No completions")
   (defun completing-read-in-region (start end collection &optional predicate)
     "Prompt for completion of region in the minibuffer if non-unique.
         Use as a value for `completion-in-region-function'."
@@ -688,16 +639,94 @@ no idea how necessary that is
                                           (completing-read "Completion: " collection predicate nil initial)))
                                      (throw 'done completion)))))))))
       (cond (completion (completion--replace start end completion) t)
-            (t (message "No completion") nil))))
+            (t (signal 'no-completions nil)))))
   (setq completion-in-region-function #'completing-read-in-region)
   ;; (setq completion-in-region-function #'completion--in-region)
 
-  ;; (advice-add 'indent-for-tab-command
-  ;;             :after (lambda (&optional arg)
-  ;;                      (when (memq (get-char-code-property (char-before) 'general-category)
-  ;;                                  '(Po Ll Lu Lo Lt Lm Mn Mc Me Nl))
-  ;;                        (complete-symbol arg))))
   (setq tab-always-indent 'complete)
+#+end_src
+
+*** better indent-for-tab-command and backtab behavior
+#+begin_src elisp
+  (defun indent-current-line ()
+    "Indent the line. Stolen from the middle section of `indent-for-tab-command'."
+    (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
+        (indent--default-inside-comment)
+        (when (or (lt= (current-column) (current-indentation))
+                  (not (eq tab-always-indent 'complete)))
+          (indent--funcall-widened (default-value 'indent-line-function)))))
+
+  ;; want backtab to undo our indents basically but not do completion
+  (defun indent-for-backtab-command ()
+    "Want backtab to reindent the line if we've overintended with tab.
+  Otheriwse, shift backwards by tab-width."
+    (interactive)
+    (if-let ((cmd (ignore-errors
+                    (lookup-key (symbol-value (intern (concat (symbol-name major-mode) "-map")))
+                                [backtab]))))
+        (call-interactively cmd)
+      (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+            ;; get the would be indented column then undo the changes and restore point
+            (indented-column (catch 'done (save-excursion
+                                            (atomic-change-group
+                                              (indent-current-line)
+                                              (throw 'done (current-column)))))))
+
+        ;; only deindent if we're equal to or before the would-be indented column
+        ;; otherwise, go back to the intended indented position
+        (if (lt= (current-column) indented-column)
+            (indent-rigidly (if (region-active-p) (region-beginning) (line-beginning-position))
+                            (if (region-active-p) (region-end) (line-end-position))
+                            (- tab-width))
+          (indent-current-line)))))
+
+  (defun indent-for-tab-check-empty-before-point (orig-fun &rest args)
+    "Around advice for `indent-for-tab-command'.
+  Insert tabs DWIM style if the current position is already indented and
+  we're at the beginning of the text on the current line.
+  ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
+    (let ((text-before-pt (buffer-substring-no-properties (line-beginning-position) (point)))
+          ;; get the would be indented column then undo the changes and restore point
+          (indented-column (catch 'done (save-excursion
+                                          (atomic-change-group
+                                            (indent-current-line)
+                                            (throw 'done (current-column)))))))
+      ;; only indent if we're equal to or past the would-be indented column
+      (if (and (gt= (current-column) indented-column)
+               (string-blank-p text-before-pt))
+          (insert-tab current-prefix-arg)
+        (apply orig-fun args))))
+
+  (advice-add 'indent-for-tab-command :around #'indent-for-tab-check-empty-before-point)
+  (define-key viper-insert-basic-map [backtab] #'indent-for-backtab-command)
+#+end_src
+
+**** Unused
+an alternative method that we won't be using in favor of the above
+but this would insert a tab character upon 2 consecutive no-completion signals
+#+begin_src elisp :tangle no
+  (setq no-completion-count 0)
+
+  (defun reset-no-completions-count ()
+    (unless (eq this-command 'indent-for-tab-command)
+      (setq no-completion-count 0)
+      (remove-hook 'post-command-hook #'reset-no-completions-count) 
+      )
+    )
+  (defun indent-for-tab-command-ad (orig-fun &rest args)
+    (condition-case err
+        (apply orig-fun args)
+      (no-completions
+       (setq no-completion-count (1+ no-completion-count))
+       (add-hook 'post-command-hook #'reset-no-completions-count)
+       (when (= no-completion-count 2)
+         (insert-tab)
+         (setq no-completion-count 0)
+         )
+       )
+      )
+    )
+
 #+end_src
 
 * vc settings
@@ -1122,7 +1151,7 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 
     (font-lock-add-keywords 'emacs-lisp-mode `((+emacs-lisp-highlight-vars-and-faces . +emacs-lisp--face)) 'append))
 #+end_src
-           
+                
 ** eshell
 #+begin_src elisp
   (defun my/eshell-in-bottom-side-window (arg)
@@ -2118,9 +2147,9 @@ still kinda WIP need to think about this one
 #+begin_src elisp
   (defun dumb-change-surrounding ()
     "Basic surrounding change function.
-        The first char read, is the surrounding to find.
-        The second char read, is the new surrounding character.
-        Some DWIM here regarding parentheses and brackets."
+          The first char read, is the surrounding to find.
+          The second char read, is the new surrounding character.
+          Some DWIM here regarding parentheses and brackets."
     (interactive)
     (let* ((delim (char-to-string (read-char "find")))
            (replace-start-1 (char-to-string (read-char "replace")))
@@ -2152,11 +2181,15 @@ still kinda WIP need to think about this one
 
   (defun viper-command-advice (orig-fun &rest args)
     "Frontload one of the read-char calls so we can attach our own functions.
-    Subsequent calls to read-char use the original implementation.
-  See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-function-in-a-cl-letf-overridden-function"
+      Subsequent calls to read-char use the original implementation.
+    See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-function-in-a-cl-letf-overridden-function"
     (let ((char (read-char))
           (num-read-char-calls 0))
       (cond ((and (eq last-command-event ?c) (viper= ?s char)) (dumb-change-surrounding))
+            ((and (eq last-command-event ?<) (viper= ?< char))
+             (indent-rigidly (line-beginning-position) (line-end-position) (- tab-width)))
+            ((and (eq last-command-event ?>) (viper= ?> char))
+             (indent-rigidly (line-beginning-position) (line-end-position) tab-width))
             (t
              (cl-letf ((old-read-char (symbol-function 'read-char))
                        ((symbol-function 'read-char)
@@ -2169,6 +2202,29 @@ still kinda WIP need to think about this one
                               char)))))
                (apply orig-fun args))
              ))))
+
+  (define-key viper-vi-basic-map (kbd ">") (lambda ()
+                                             (interactive)
+                                             (if (region-active-p)
+                                                 (let ((beg (region-beginning))
+                                                       (end (region-end))
+                                                       (deactivate-mark nil))
+                                                   (indent-rigidly (region-beginning)
+                                                                   (region-end) 
+                                                                   tab-width))
+                                               (call-interactively #'viper-command-argument))))
+
+  (define-key viper-vi-basic-map (kbd "<") (lambda ()
+                                             (interactive)
+                                             (if (region-active-p)
+                                                 (let ((beg (region-beginning))
+                                                       (end (region-end))
+                                                       (deactivate-mark nil))
+                                                   (indent-rigidly (region-beginning)
+                                                                   (region-end) 
+                                                                   (- tab-width)))
+                                               (call-interactively #'viper-command-argument))))
+
 
   (advice-add 'viper-command-argument :around #'viper-command-advice)
 #+end_src
@@ -2799,6 +2855,21 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
                    '("\\*Org Src.*\\*"
                      (display-buffer-in-side-window)
                      (window-height . 0.4)))
+
+      ;; fix newline and indent in src blocks, took this from doom
+      (defun org-fix-newline-and-indent-in-src-blocks-ad (&rest _args)
+        (when (and org-src-tab-acts-natively
+                   (org-in-src-block-p t))
+          (save-window-excursion
+            (save-excursion
+              (org-babel-do-in-edit-buffer
+               (set-mark (point-min))
+               (goto-char (point-max))
+               (let ((inhibit-message t))
+                 (call-interactively #'indent-region))))))
+        )
+      (advice-add #'org-return :after #'org-fix-newline-and-indent-in-src-blocks-ad)
+      
 
       (setq my/org-vi-state-modify-map (make-sparse-keymap))
 

@@ -539,11 +539,15 @@ respects rectangle mode in a similar way to vim/doom"
 
 (defun viper-command-advice (orig-fun &rest args)
   "Frontload one of the read-char calls so we can attach our own functions.
-  Subsequent calls to read-char use the original implementation.
-See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-function-in-a-cl-letf-overridden-function"
+    Subsequent calls to read-char use the original implementation.
+  See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-function-in-a-cl-letf-overridden-function"
   (let ((char (read-char))
         (num-read-char-calls 0))
     (cond ((and (eq last-command-event ?c) (viper= ?s char)) (dumb-change-surrounding))
+          ((and (eq last-command-event ?<) (viper= ?< char))
+           (indent-rigidly (line-beginning-position) (line-end-position) (- tab-width)))
+          ((and (eq last-command-event ?>) (viper= ?> char))
+           (indent-rigidly (line-beginning-position) (line-end-position) tab-width))
           (t
            (cl-letf ((old-read-char (symbol-function 'read-char))
                      ((symbol-function 'read-char)
@@ -556,6 +560,29 @@ See: https://stackoverflow.com/questions/67850020/how-to-call-the-original-funct
                             char)))))
              (apply orig-fun args))
            ))))
+
+(define-key viper-vi-basic-map (kbd ">") (lambda ()
+                                           (interactive)
+                                           (if (region-active-p)
+                                               (let ((beg (region-beginning))
+                                                     (end (region-end))
+                                                     (deactivate-mark nil))
+                                                 (indent-rigidly (region-beginning)
+                                                                 (region-end) 
+                                                                 tab-width))
+                                             (call-interactively #'viper-command-argument))))
+
+(define-key viper-vi-basic-map (kbd "<") (lambda ()
+                                           (interactive)
+                                           (if (region-active-p)
+                                               (let ((beg (region-beginning))
+                                                     (end (region-end))
+                                                     (deactivate-mark nil))
+                                                 (indent-rigidly (region-beginning)
+                                                                 (region-end) 
+                                                                 (- tab-width)))
+                                             (call-interactively #'viper-command-argument))))
+
 
 (advice-add 'viper-command-argument :around #'viper-command-advice)
 
