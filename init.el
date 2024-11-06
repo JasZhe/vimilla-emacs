@@ -343,7 +343,7 @@
         (lambda () (insert my-icomplete-prev-input))
       (call-interactively my-icomplete-prev-command))))
 
-(define-key my/leader-prefix-map "'" #'my-icomplete-repeat)
+(viper-map! :leader "'" #'my-icomplete-repeat)
 
 ;; insert * at the beginning so we don't have to match exactly at the beginning
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
@@ -725,7 +725,7 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
               (electric-pair-local-mode))))
 (add-hook 'prog-mode-hook #'hs-minor-mode)
 
-(use-package which-key :pin gnu :defer 2
+(use-package which-key :defer 2
   :config
   (which-key-mode))
 
@@ -1090,6 +1090,17 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 (advice-add 'tab-bar-close-tab :after #'get-tab-names)
 (advice-add 'tab-bar-select-tab :after #'get-tab-names)
 
+(viper-map! :leader "<tab><tab>" #'get-tab-names
+            "<tab>{" (lambda (arg)
+                       (interactive "P")
+                       (tab-bar-move-tab (if arg (- arg) -1))
+                       (get-tab-names))
+            "<tab>}" (lambda (arg)
+                       (interactive "P")
+                       (tab-bar-move-tab (if arg arg 1))
+                       (get-tab-names))
+            )
+
 (setq tab-bar-show nil)
 (tab-bar-mode)
 
@@ -1268,48 +1279,23 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
       )
     (advice-add #'org-return :after #'org-fix-newline-and-indent-in-src-blocks-ad)
     
-
-    (setq my/org-vi-state-modify-map (make-sparse-keymap))
-
-    (define-key my/org-vi-state-modify-map "zi" #'org-toggle-inline-images)
-    (define-key my/org-vi-state-modify-map " si" #'org-goto)
-    (define-key my/org-vi-state-modify-map " oaa" #'org-agenda)
-
-    (define-key my/org-vi-state-modify-map " msl" #'org-demote-subtree)
-    (define-key my/org-vi-state-modify-map " msh" #'org-promote-subtree)
-    (define-key my/org-vi-state-modify-map " msk" #'org-move-subtree-up)
-    (define-key my/org-vi-state-modify-map " msj" #'org-move-subtree-down)
-
-    (define-key my/org-vi-state-modify-map " maa" #'org-attach)
-    (define-key my/org-vi-state-modify-map " mA" #'org-archive-subtree)
-
-    (define-key my/org-vi-state-modify-map " mds" #'org-schedule)
-    (define-key my/org-vi-state-modify-map " mdd" #'org-deadline)
-
-    (define-key my/org-vi-state-modify-map " msr" #'org-refile)
-
-    (define-key my/org-vi-state-modify-map " mll" #'org-insert-link)
-    (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
-
-    (define-key my/org-vi-state-modify-map " nl" #'org-store-link)
-
-    (define-key org-mode-map "\t"
-                (lambda (arg)
-                  (interactive "P")
-                  (if (and (not (line-before-point-empty-p)) (string= viper-current-state "insert-state"))
-                      (dabbrev-expand arg)
-                    (org-cycle arg))))
-
-    ;; for terminal issues with C-i
-    (define-key my/org-vi-state-modify-map [C-i]
-                (lambda ()
-                  (interactive)
-                  ;; want org cycle if region active for indenting, or heading for collapsing
-                  (if (or (org-at-heading-p) (region-active-p) (org-at-property-block-p) (org-at-property-drawer-p))
-                      (call-interactively (lookup-key org-mode-map "\t"))
-                    (call-interactively (lookup-key viper-vi-basic-map [C-i])))))
-
-    (viper-modify-major-mode 'org-mode 'vi-state my/org-vi-state-modify-map)))
+    (viper-map! :mode 'org-mode
+                :n "zi" #'org-toggle-inline-images
+                "SPC si" #'org-goto "SPC oaa" #'org-agenda
+                "SPC msl" #'org-demote-subtree "SPC msh" #'org-promote-subtree
+                "SPC msk" #'org-move-subtree-up "SPC msj" #'org-move-subtree-down
+                "SPC maa" #'org-attach "SPC mA" #'org-archive-subtree
+                "SPC mds" #'org-schedule "SPC mdd" #'org-deadline
+                "SPC msr" #'org-refile "SPC mll" #'org-insert-link
+                "SPC nl" #'org-store-link
+                "<tab>" (lambda ()
+                          (interactive)
+                          ;; want org cycle if region active for indenting, or heading for collapsing
+                          (if (or (org-at-heading-p) (region-active-p) (org-at-property-block-p) (org-at-property-drawer-p))
+                              (call-interactively (lookup-key org-mode-map "\t"))
+                            (call-interactively (lookup-key viper-vi-basic-map [C-i]))))
+                )
+    ))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

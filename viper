@@ -14,7 +14,6 @@
 (define-key viper-vi-basic-map " " viper-leader-map)
 (define-key viper-insert-basic-map (kbd "M-SPC") viper-leader-map)
 
-
 (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
 (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
 (define-key my/viper-vi-basic-motion-keymap "l" #'viper-forward-char)
@@ -51,8 +50,8 @@
 
 (defun viper--create-and-set-mode (mode)
   "Create a major-mode modification map in viper for MODE.
-Should not overwrite existing modifications to major mode.
-MODE is a major mode symbol."
+  Should not overwrite existing modifications to major mode.
+  MODE is a major mode symbol."
   (let ((modified-map-sym (intern (concat "viper-modified-" (symbol-name mode) "-map" )))
         (major-mode-map (symbol-value (intern (concat (symbol-name mode) "-map"))))
         (viper-base-mappings (list my/viper-vi-basic-motion-keymap
@@ -80,9 +79,12 @@ MODE is a major mode symbol."
                  (:mode
                   (setq normal-state-map-sym (viper--create-and-set-mode (pop rest)))
                   (message "mode %s" normal-state-map-sym))
-                 (:n (setq current-map-sym normal-state-map-sym))
-                 )
-               )
+                 (:n
+                  (if normal-state-map-sym 
+                      (setq current-map-sym normal-state-map-sym)
+                    (setq current-map-sym 'viper-vi-basic-map))
+                  )
+                 ))
               (current-map-sym
                (let ((cmd (pop rest)))
                  (when (commandp cmd)
@@ -702,104 +704,81 @@ respects rectangle mode in a similar way to vim/doom"
 (define-key viper-vi-basic-map (kbd "M-r")  #'isearch-backward) 
 (define-key viper-vi-basic-map (kbd "C-M-r") #'isearch-backward-regexp)
 
-(setq my/leader-prefix-map (make-sparse-keymap))
-(define-key viper-vi-basic-map " " my/leader-prefix-map)
-(define-key viper-insert-basic-map (kbd "M-SPC") my/leader-prefix-map)
-
-(define-key my/leader-prefix-map ","
+(viper-map! :leader ","
             (lambda () (interactive)
-              (project-switch-to-buffer (project--read-project-buffer))))
-(define-key my/leader-prefix-map "<" #'switch-to-buffer)
+              (project-switch-to-buffer (project--read-project-buffer)))
+            "<" #'switch-to-buffer
+            "u" #'universal-argument
+            "F" #'project-find-file "G" #'project-find-regexp
+            "X" #'org-capture
+            "x" (lambda () (interactive)
+                  (split-window-vertically)
+                  (windmove-down)
+                  (scratch-buffer)))
 
-(define-key my/leader-prefix-map "u" #'universal-argument)
-(define-key universal-argument-map " u" #'universal-argument-more)
+(viper-map! :leader
+            "oe" #'my/eshell-in-bottom-side-window "oE" #'eshell
+            "os" #'my/shell-in-bottom-side-window "oS" #'shell)
 
-(define-key my/leader-prefix-map "F" #'project-find-file)
-(define-key my/leader-prefix-map "G" #'project-find-regexp)
-(define-key my/leader-prefix-map "X" #'org-capture)
+(viper-map! :leader
+            "pp" #'project-switch-project "pd" #'project-forget-project
+            "pe" #'project-eshell "ps" #'project-shell 
+            "px" #'flymake-show-project-diagnostics)
 
-(define-key my/leader-prefix-map "x"
-            (lambda () (interactive)
-              (split-window-vertically)
-              (windmove-down)
-              (scratch-buffer)))
-
-(define-key my/leader-prefix-map "oe" #'my/eshell-in-bottom-side-window)
-(define-key my/leader-prefix-map "oE" #'eshell)
-
-(define-key my/leader-prefix-map "os" #'my/shell-in-bottom-side-window)
-(define-key my/leader-prefix-map "oS" #'shell)
-
-(define-key my/leader-prefix-map "pp" #'project-switch-project)
-(define-key my/leader-prefix-map "pe" #'project-eshell)
-(define-key my/leader-prefix-map "ps" #'project-shell)
-(define-key my/leader-prefix-map "pd" #'project-forget-project)
-(define-key my/leader-prefix-map "px" #'flymake-show-project-diagnostics)
-
-(define-key my/leader-prefix-map "'"
+(viper-map! :leader "'"
             (lambda () (interactive)
               (minibuffer-with-setup-hook
                   (lambda () (previous-history-element 1))
                 (call-interactively 'project-find-regexp))))
 
-(define-key my/leader-prefix-map "cx" #'my/flymake-diagnostics-at-point)
-(define-key my/leader-prefix-map "cX" #'flymake-show-buffer-diagnostics)
+(viper-map! :leader
+            "cx" #'my/flymake-diagnostics-at-point
+            "cX" #'flymake-show-buffer-diagnostics)
 
-(define-key my/leader-prefix-map "hk" #'describe-key)
-(define-key my/leader-prefix-map "hK" #'describe-keymap)
-(define-key my/leader-prefix-map "hf" #'describe-function)
-(define-key my/leader-prefix-map "hv" #'describe-variable)
-(define-key my/leader-prefix-map "hm" #'describe-mode)
-(define-key my/leader-prefix-map "ho" #'describe-symbol)
+(viper-map! :leader
+            "hk" #'describe-key
+            "hK" #'describe-keymap
+            "hf" #'describe-function
+            "hv" #'describe-variable
+            "hm" #'describe-mode
+            "ho" #'describe-symbol)
 
-(define-key my/leader-prefix-map "br" #'revert-buffer)
-(define-key my/leader-prefix-map "bp" #'previous-buffer)
-(define-key my/leader-prefix-map "bn" #'next-buffer)
-(define-key my/leader-prefix-map "bi" #'ibuffer)
+(viper-map! :leader
+            "br" #'revert-buffer
+            "bp" #'previous-buffer
+            "bn" #'next-buffer
+            "bi" #'ibuffer)
 
-(setq my/tab-prefix-map (make-sparse-keymap))
-(define-key my/leader-prefix-map "\t" my/tab-prefix-map)
-(define-key my/leader-prefix-map [C-i] my/tab-prefix-map) ;; so it works in terminal
+(viper-map! :leader
+            "<tab>n" #'tab-bar-new-tab
+            "<tab>d" #'tab-bar-close-tab
+            "<tab>r" #'tab-bar-rename-tab
+            "<tab>." #'tab-bar-switch-to-tab
+            "<tab>[" #'tab-bar-switch-to-next-tab
+            "<tab>]" #'tab-bar-switch-to-prev-tab)
 
-(define-key my/tab-prefix-map "n" #'tab-bar-new-tab)
-(define-key my/tab-prefix-map "d" #'tab-bar-close-tab)
-(define-key my/tab-prefix-map "r" #'tab-bar-rename-tab)
-(define-key my/tab-prefix-map "." #'tab-bar-switch-to-tab)
+(viper-map! :leader
+            "ss" #'my/ioccur
+            ;; not sure why but we need to rescan the imenu for our igrep xref buffer
+            "si" (lambda () (interactive)
+                   (imenu--menubar-select imenu--rescan-item)
+                   (call-interactively 'imenu))
+            )
 
-(define-key my/tab-prefix-map "{" (lambda (arg)
-                                    (interactive "P")
-                                    (tab-bar-move-tab (if arg (- arg) -1))
-                                    (get-tab-names)))
-(define-key my/tab-prefix-map "}" (lambda (arg)
-                                    (interactive "P")
-                                    (tab-bar-move-tab (if arg arg 1))
-                                    (get-tab-names)))
-(define-key my/tab-prefix-map "]" #'tab-bar-switch-to-next-tab)
-(define-key my/tab-prefix-map "[" #'tab-bar-switch-to-prev-tab)
+(viper-map! :leader 
+            "nrf" #'my/jump-to-project-bookmark
+            "nrl" #'list-bookmarks
+            "nri" #'bookmark-set
+            "nrn" #'bookmark-set
+            "nrd" #'bookmark-delete
+            "bmm" #'my/set-project-bookmark
+            "bmj" #'my/jump-to-project-bookmark)
 
-(define-key my/tab-prefix-map "\t" #'get-tab-names)
-(define-key my/tab-prefix-map [C-i] #'get-tab-names)
+(viper-map! :leader "Nt" #'newsticker-treeview)
 
-(define-key my/leader-prefix-map "ss" #'my/ioccur)
-;; not sure why but we need to rescan the imenu for our igrep xref buffer
-(define-key my/leader-prefix-map "si"
-            (lambda () (interactive)
-              (imenu--menubar-select imenu--rescan-item)
-              (call-interactively 'imenu)))
+(viper-map! :leader "ff" #'find-file)
 
-(define-key my/leader-prefix-map "nrf" #'my/jump-to-project-bookmark)
-(define-key my/leader-prefix-map "nrl" #'list-bookmarks)
-(define-key my/leader-prefix-map "nri" #'bookmark-set)
-(define-key my/leader-prefix-map "nrn" #'bookmark-set)
-(define-key my/leader-prefix-map "nrd" #'bookmark-delete)
-(define-key my/leader-prefix-map "bmm" #'my/set-project-bookmark)
-(define-key my/leader-prefix-map "bmj" #'my/jump-to-project-bookmark)
-
-(define-key my/leader-prefix-map "Nt" #'newsticker-treeview)
-
-(define-key my/leader-prefix-map "ff" #'find-file)
-
-(define-key my/leader-prefix-map "gg" (lambda (arg) (interactive "P")
+(viper-map! :leader "gg" (lambda (arg) (interactive "P")
                                         (vc-dir
                                          (if arg
                                              (file-truename
@@ -816,19 +795,24 @@ respects rectangle mode in a similar way to vim/doom"
                                            )
                                          )))
 
-(define-key my/leader-prefix-map "cd" #'xref-find-definitions)
-(define-key viper-vi-basic-map "gd" #'xref-find-definitions)
-(define-key viper-vi-basic-map "gI" #'eglot-find-implementation)
+(use-package xref :defer t
+  :config
+  (viper-map! :leader "cd" #'xref-find-definitions
+              "cD" #'xref-find-references
+              "cj" #'xref-find-apropos
 
-(define-key my/leader-prefix-map "cD" #'xref-find-references)
-(define-key viper-vi-basic-map "gD" #'xref-find-references)
+              :n "gd" #'xref-find-definitions
+              "gD" #'xref-find-references
+              )
+  )
+(use-package eglot :defer t
+  :config
+  (viper-map! :leader "cr" #'eglot-rename
+              "cf" #'eglot-format-buffer
+              "ca" #'eglot-code-actions
+              :n "gI" #'eglot-find-implementation
+              ))
 
-(define-key my/leader-prefix-map "cr" #'eglot-rename)
-(define-key my/leader-prefix-map "cf" #'eglot-format-buffer)
-(define-key my/leader-prefix-map "ca" #'eglot-code-actions)
-(define-key my/leader-prefix-map "cj" #'xref-find-apropos)
-
-(define-key viper-vi-basic-map "K" #'eldoc)
 (define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)
 
 (setq show-paren-highlight-openparen t)
@@ -848,15 +832,15 @@ position of the outside of the paren.  Otherwise return nil."
 
 (advice-add 'show-paren--locate-near-paren :around #'show-paren--locate-near-paren-ad)
 
-(define-key viper-vi-basic-map "H"
+(viper-map! :n "H"
             (lambda (arg) (interactive "P")
               (if arg (viper-window-top arg)
-                (viper-window-top (+ scroll-margin 1)))))
-(define-key viper-vi-basic-map "L"
+                (viper-window-top (+ scroll-margin 1))))
+            "L"
             (lambda (arg) (interactive "P")
               (if arg (viper-window-bottom arg)
-                (viper-window-bottom (+ scroll-margin 1)))))
-(define-key viper-vi-basic-map "zz" #'recenter-top-bottom)
+                (viper-window-bottom (+ scroll-margin 1))))
+            "zz" #'recenter-top-bottom)
 
 (advice-mapc `(lambda (fun props) (advice-remove 'viper-goto-line fun)) 'viper-goto-line)
 
@@ -881,11 +865,9 @@ position of the outside of the paren.  Otherwise return nil."
 
 (advice-add 'viper-goto-line :around #'my/advise-viper-goto-line)
 
-(define-key viper-vi-basic-map "zC" #'hs-hide-all)
-(define-key viper-vi-basic-map "zO" #'hs-show-all)
-(define-key viper-vi-basic-map "zo" #'hs-show-block)
-(define-key viper-vi-basic-map "zc" #'hs-hide-block)
-(define-key viper-vi-basic-map "za" #'hs-toggle-hiding)
+(viper-map! :n "zC" #'hs-hide-all "zO" #'hs-show-all
+            "zo" #'hs-show-block "zc" #'hs-hide-block
+            "za" #'hs-toggle-hiding)
 
 ;; local alist that can be used as part of a major mode hook to
 ;; add pseudo keybinds to brac and ket
@@ -970,93 +952,49 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package vc-dir :defer t
   :config
-  (setq my/vc-dir-vi-state-modify-map
-        (make-composed-keymap
-         nil 
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          vc-dir-mode-map)))
-  (define-key my/vc-dir-vi-state-modify-map "x" #'vc-dir-hide-state)
-  (viper-modify-major-mode 'vc-dir-mode 'vi-state my/vc-dir-vi-state-modify-map))
+  (viper-map! :mode 'vc-dir-mode
+              :n "x" #'vc-dir-hide-state)
+  )
 
 (use-package diff-mode :defer t
   :config
-  (setq my/diff-mode-vi-state-map
-        (make-composed-keymap
-         nil 
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          diff-mode-map)))
+  (viper-map! :mode 'diff-mode
+              :n "<tab>" #'outline-cycle
+              "<backtab>" #'outline-cycle-buffer
+              "C-j" #'diff-hunk-next
+              "C-k" #'diff-hunk-prev
+              "C-S-j" #'diff-file-next
+              "C-S-k" #'diff-file-prev)
+
   (add-hook 'diff-mode-hook #'outline-minor-mode)
   (set-face-foreground 'diff-refine-added "green1")
   (set-face-background 'diff-refine-added "green4")
 
   (set-face-foreground 'diff-refine-removed "red1")
   (set-face-background 'diff-refine-removed "red4")
-
-  (define-key my/diff-mode-vi-state-map [C-i] #'outline-cycle)
-  (define-key my/diff-mode-vi-state-map (kbd "<tab>") #'outline-cycle)
-  (define-key my/diff-mode-vi-state-map (kbd "S-<tab>") #'outline-cycle-buffer)
-  (define-key my/diff-mode-vi-state-map (kbd "<backtab>") #'outline-cycle-buffer)
-  (define-key my/diff-mode-vi-state-map (kbd "C-j") #'diff-hunk-next)
-  (define-key my/diff-mode-vi-state-map (kbd "C-k") #'diff-hunk-prev)
-  (define-key my/diff-mode-vi-state-map (kbd "C-S-j") #'diff-file-next)
-  (define-key my/diff-mode-vi-state-map (kbd "C-S-k") #'diff-file-prev)
-  (viper-modify-major-mode 'diff-mode 'vi-state my/diff-mode-vi-state-map))
+  )
 
 (use-package vc-annotate :defer t
   :config
-  (setq my/vc-annotate-mode-vi-state-map
-        (make-composed-keymap
-         nil 
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          vc-annotate-mode-map)))
-  (define-key my/vc-annotate-mode-vi-state-map (kbd "C-j") #'vc-annotate-next-revision)
-  (define-key my/vc-annotate-mode-vi-state-map (kbd "C-k") #'vc-annotate-prev-revision)
-  (define-key my/vc-annotate-mode-vi-state-map (kbd "L") #'vc-annotate-show-log-revision-at-line)
-  (viper-modify-major-mode 'vc-annotate-mode 'vi-state my/vc-annotate-mode-vi-state-map))
+  (viper-map! :mode 'vc-annotate-mode
+              :n "C-j" #'vc-annotate-next-revision
+              "C-k" #'vc-annotate-prev-revision
+              "L" #'vc-annotate-show-log-revision-at-line))
 (add-hook 'vc-annotate-mode-hook #'viper-mode)
 
 (use-package dired :defer t
   :config
   (add-hook 'dired-mode-hook #'auto-revert-mode)
-  (setq my/dired-vi-state-modify-map
-        (make-composed-keymap
-         nil
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          dired-mode-map)))
-  (define-key my/dired-vi-state-modify-map "-" #'dired-up-directory)
-  (define-key my/dired-vi-state-modify-map "C" #'dired-do-copy)
-  (define-key my/dired-vi-state-modify-map "K" #'dired-kill-subdir)
-  (viper-modify-major-mode 'dired-mode 'vi-state my/dired-vi-state-modify-map))
+  (viper-map! :mode 'dired-mode
+              :n "-" #'dired-up-directory
+              "C" #'dired-do-copy
+              "K" #'dired-kill-subdir))
 
 (use-package ibuffer :defer t
   :config
-  (setq my/ibuffer-vi-state-modify-map
-        (make-composed-keymap
-         nil
-         (make-composed-keymap
-          (list my/viper-vi-basic-motion-keymap
-                my/viper-vi-motion-g-keymap
-                my/viper-vi-motion-leader-keymap)
-          ibuffer-mode-map)))
-  (define-key my/ibuffer-vi-state-modify-map "sp" #'ibuffer-pop-filter)
-  (define-key my/ibuffer-vi-state-modify-map "sn" #'ibuffer-filter-by-name)
-  (viper-modify-major-mode 'ibuffer-mode 'vi-state my/ibuffer-vi-state-modify-map))
+  (viper-map! :mode 'ibuffer-mode :n "sp" #'ibuffer-pop-filter "sn" #'ibuffer-filter-by-name))
 
-(setq my/elisp-vi-state-modify-map (make-sparse-keymap))
-(define-key my/elisp-vi-state-modify-map " meb" #'eval-buffer)
-(viper-modify-major-mode 'emacs-lisp-mode 'vi-state my/elisp-vi-state-modify-map)
+(viper-map! :mode 'emacs-lisp-mode :n "SPC meb" #'eval-buffer)
 
 (use-package comint :defer t
   :config
