@@ -497,23 +497,7 @@ M-j to exit minibuffer with whatever is in the input
       (occur-1 (read-regexp my/ioccur-prompt-string)
                my/ioccur-nlines-arg
                (list my/occur-buffer))))
-#+end_src
 
-* advice for various search commands =project-find-regexp=, =xref-find-apropos=
-nice quality of life similar to how we do partial completion
-#+begin_src elisp
-  (defun search-advice (orig-fun regexp)
-    (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
-      (minibuffer-with-setup-hook
-          (lambda ()
-            ;; for some reason this doesn't apply in xref find apropos but that's honestly ok
-            ;; cause it uses a space separated list of words anyways
-            (local-set-key (kbd "M-SPC") (lambda () (interactive) (insert " ")))
-            (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*"))))
-        (funcall orig-fun regexp))))
-  (advice-add 'project-find-regexp :around #'search-advice)
-  (advice-add 'xref-find-apropos :around #'search-advice)
-  (advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
 #+end_src
 
 * ripgrep wrapper
@@ -568,17 +552,34 @@ nice quality of life similar to how we do partial completion
 #+end_src
 
 ** xref completion settings
-luckily this is built in lol
+advice for various search commands =project-find-regexp=, =xref-find-apropos=
+nice quality of life similar to how we do partial completion
 #+begin_src elisp
-  (setq xref-search-program
-        (cond ((executable-find "rg") 'ripgrep)
-              ((executable-find "ugrep") 'ugrep)
-              (t 'grep)))
-  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-
-  (use-package xref :defer t
+  (use-package xref
     :config
+    (setq xref-search-program
+          (cond ((executable-find "rg") 'ripgrep)
+                ((executable-find "ugrep") 'ugrep)
+                (t 'grep)))
+    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
+   
+  (defun search-advice (orig-fun regexp)
+    (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            ;; for some reason this doesn't apply in xref find apropos but that's honestly ok
+            ;; cause it uses a space separated list of words anyways
+            (local-set-key (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+            (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*"))))
+        (funcall orig-fun regexp))))
+  (advice-add 'project-find-regexp :around #'search-advice)
+  (advice-add 'xref-find-apropos :around #'search-advice)
+  (advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
+
+
+
     (setq my/xref-vi-state-modify-map
           (make-composed-keymap
            nil

@@ -398,18 +398,6 @@ With a prefix-arg run normally and specfiy a directory"
              my/ioccur-nlines-arg
              (list my/occur-buffer))))
 
-(defun search-advice (orig-fun regexp)
-  (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          ;; for some reason this doesn't apply in xref find apropos but that's honestly ok
-          ;; cause it uses a space separated list of words anyways
-          (local-set-key (kbd "M-SPC") (lambda () (interactive) (insert " ")))
-          (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*"))))
-      (funcall orig-fun regexp))))
-(advice-add 'project-find-regexp :around #'search-advice)
-(advice-add 'xref-find-apropos :around #'search-advice)
-(advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
 
 (defun ripgrep ()
   (interactive)
@@ -454,15 +442,31 @@ See notes:emacs-notes-and-tips for more details."
 (advice-add #'dabbrev-capf :before #'dabbrev--reset-global-variables)
 (add-hook 'completion-at-point-functions #'dabbrev-capf 100)
 
-(setq xref-search-program
-      (cond ((executable-find "rg") 'ripgrep)
-            ((executable-find "ugrep") 'ugrep)
-            (t 'grep)))
-(setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-
-(use-package xref :defer t
+(use-package xref
   :config
+  (setq xref-search-program
+        (cond ((executable-find "rg") 'ripgrep)
+              ((executable-find "ugrep") 'ugrep)
+              (t 'grep)))
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
+ 
+(defun search-advice (orig-fun regexp)
+  (let ((xref-show-xrefs-function #'xref--show-xref-buffer))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          ;; for some reason this doesn't apply in xref find apropos but that's honestly ok
+          ;; cause it uses a space separated list of words anyways
+          (local-set-key (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+          (local-set-key (kbd "SPC") (lambda () (interactive) (insert ".*"))))
+      (funcall orig-fun regexp))))
+(advice-add 'project-find-regexp :around #'search-advice)
+(advice-add 'xref-find-apropos :around #'search-advice)
+(advice-add 'previous-history-element :after #'end-of-line) ;; usually we want to go to end of line
+
+
+
   (setq my/xref-vi-state-modify-map
         (make-composed-keymap
          nil
