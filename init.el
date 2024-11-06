@@ -398,6 +398,12 @@ With a prefix-arg run normally and specfiy a directory"
              my/ioccur-nlines-arg
              (list my/occur-buffer))))
 
+(viper-map! :leader
+            "ss" #'my/ioccur
+            ;; not sure why but we need to rescan the imenu for our igrep xref buffer
+            "si" (lambda () (interactive)
+                   (imenu--menubar-select imenu--rescan-item)
+                   (call-interactively 'imenu)))
 
 (defun ripgrep ()
   (interactive)

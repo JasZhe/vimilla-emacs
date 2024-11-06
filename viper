@@ -757,14 +757,6 @@ respects rectangle mode in a similar way to vim/doom"
             "<tab>[" #'tab-bar-switch-to-next-tab
             "<tab>]" #'tab-bar-switch-to-prev-tab)
 
-(viper-map! :leader
-            "ss" #'my/ioccur
-            ;; not sure why but we need to rescan the imenu for our igrep xref buffer
-            "si" (lambda () (interactive)
-                   (imenu--menubar-select imenu--rescan-item)
-                   (call-interactively 'imenu))
-            )
-
 (viper-map! :leader 
             "nrf" #'my/jump-to-project-bookmark
             "nrl" #'list-bookmarks

@@ -498,6 +498,12 @@ M-j to exit minibuffer with whatever is in the input
                my/ioccur-nlines-arg
                (list my/occur-buffer))))
 
+  (viper-map! :leader
+              "ss" #'my/ioccur
+              ;; not sure why but we need to rescan the imenu for our igrep xref buffer
+              "si" (lambda () (interactive)
+                     (imenu--menubar-select imenu--rescan-item)
+                     (call-interactively 'imenu)))
 #+end_src
 
 * ripgrep wrapper
@@ -2487,17 +2493,6 @@ need to remap isearch-backward since i wanna use C-r for redo
               "<tab>[" #'tab-bar-switch-to-next-tab
               "<tab>]" #'tab-bar-switch-to-prev-tab)
 #+end_src 
-
-*** "search" prefix
-#+begin_src elisp
-  (viper-map! :leader
-              "ss" #'my/ioccur
-              ;; not sure why but we need to rescan the imenu for our igrep xref buffer
-              "si" (lambda () (interactive)
-                     (imenu--menubar-select imenu--rescan-item)
-                     (call-interactively 'imenu))
-              )
-#+end_src
 
 *** "notes" prefix (bookmarks)
 in lieu of org-roam, use bookmarks
