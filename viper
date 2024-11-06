@@ -1,3 +1,61 @@
+(defvar viper-leader-map (make-sparse-keymap))
+(define-key viper-vi-basic-map " " viper-leader-map)
+(define-key viper-insert-basic-map (kbd "M-SPC") viper-leader-map)
+
+(defun viper--create-and-set-mode (mode)
+  "Create a major-mode modification map in viper for MODE.
+Should not overwrite existing modifications to major mode.
+MODE is a major mode symbol."
+  (let ((modified-map-sym (intern (concat "viper-modified-" (symbol-name mode) "-map" )))
+        (major-mode-map (symbol-value (intern (concat (symbol-name mode) "-map"))))
+        (viper-base-mappings (list my/viper-vi-basic-motion-keymap
+                                   my/viper-vi-motion-g-keymap
+                                   my/viper-vi-motion-leader-keymap)))
+    (set modified-map-sym (make-composed-keymap viper-base-mappings major-mode-map))
+    (viper-modify-major-mode mode 'vi-state (symbol-value modified-map-sym))
+    modified-map-sym))
+
+
+(defun viper--unquote (form)
+  (while (memq (car-safe form) '(quote function))
+    (setq form (cadr form)))
+  form)
+
+(defun viper--map-process (rest)
+  (let ((normal-state-map-sym)
+        (insert-state-map-sym)
+        (current-map-sym))
+    (while rest
+      (let ((key (pop rest)))
+        (cond ((keywordp key)
+               (pcase key
+                 (:leader (setq current-map-sym 'viper-leader-map))
+                 (:mode
+                  (setq normal-state-map-sym (viper--create-and-set-mode (pop rest)))
+                  (message "mode %s" normal-state-map-sym))
+                 (:n (setq current-map-sym normal-state-map-sym))
+                 )
+               )
+              (current-map-sym
+               (let ((cmd (pop rest)))
+                 (message "%s %s %s" current-map-sym key (viper--unquote cmd))
+                 (define-key (symbol-value current-map-sym) (kbd key)
+                             (viper--unquote cmd))
+                 )))
+        ))))
+
+;;(viper-map! :mode blah-mode :n "M-m" #'diff-hunk-prev "M-w" #'recenter-top-bottom)
+
+;;(viper-map! :leader "GG" nil)
+
+(defmacro viper-map! (&rest rest)
+  (viper--map-process rest))
+
+(define-derived-mode blah-mode text-mode "blah")
+(define-key blah-mode-map (kbd "M-n") #'diff-hunk-next)
+
+(viper-map! :leader "GG" #'indent-line)
+
 (defface mode-line-green
   (if (facep 'modus-themes-fg-green-warmer)
       '((t :inherit modus-themes-fg-green-warmer))
