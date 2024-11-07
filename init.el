@@ -303,6 +303,13 @@
 (setq auto-save-visited-interval 7)
 (auto-save-visited-mode)
 
+(setq backup-directory-alist `(("." . "~/.emacs.d/save-backups")))
+(setq backup-by-copying t)
+(setq delete-old-versions t
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)
+
 (fido-vertical-mode)
 
 (use-package savehist

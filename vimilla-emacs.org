@@ -389,6 +389,16 @@ stole the completing read stuff from:
   (auto-save-visited-mode)
 #+end_src
 
+* better backup file behavior
+#+begin_srC elisp
+  (setq backup-directory-alist `(("." . "~/.emacs.d/save-backups")))
+  (setq backup-by-copying t)
+  (setq delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+#+end_srC 
+
 * minibuffer setup
 
 Use partial-completion by default, most similar to orderless
