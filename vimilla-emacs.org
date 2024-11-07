@@ -274,6 +274,7 @@ need to set the window map before viper loads cause we use it in the motion keym
         (and arg (not (string-empty-p arg)))
         (set-frame-parameter nil 'alpha-background  (string-to-number arg))
       (set-frame-parameter nil 'alpha-background 90)))
+  (set-frame-parameter nil 'alpha-background 80)
 
   (setq my-window-map (make-sparse-keymap))
 
@@ -817,6 +818,12 @@ use as a dummy file viewer
             (when (project-name (project-current))
               (insert prefix))))
       (call-interactively 'bookmark-jump)))
+
+
+  (viper-map! :leader 
+              "nrf" #'my/jump-to-project-bookmark
+              "bmm" #'my/set-project-bookmark
+              "bmj" #'my/jump-to-project-bookmark)
 #+end_src
 
 
@@ -954,6 +961,11 @@ This is built into emacs30 now
                               (flymake-diagnostics (point))
                               :initial-value ""))
         (message "No diagnostics at point."))))
+
+  (viper-map! :leader
+              "cx" #'my/flymake-diagnostics-at-point
+              "cX" #'flymake-show-buffer-diagnostics)
+  (viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point) 
 #+end_src
 
 *** compilaton mode in side window
@@ -1092,6 +1104,8 @@ This is built into emacs30 now
   (defun copy-pipenv-vars-from-shell ()
     (interactive)
     (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
+  (add-hook 'python-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
+  (add-hook 'python-ts-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
 #+end_src
 
 ** javascript/typescript
@@ -1218,6 +1232,9 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
 
   (use-package eshell :after consult :config
     (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'consult-history))
+
+  (viper-map! :leader "oe" #'my/eshell-in-bottom-side-window "oE" #'eshell)
+
 #+end_src
 
 ** shell mode
@@ -1226,11 +1243,14 @@ https://github.com/doomemacs/doomemacs/blob/03d692f129633e3bf0bd100d91b3ebf3f77d
     (interactive "P")
     (let ((shell-buffer (save-window-excursion (shell))))
       (select-window (display-buffer-in-side-window shell-buffer '()))))
+
+  (viper-map! :leader "os" #'my/shell-in-bottom-side-window "oS" #'shell)
 #+end_src
 
 #+begin_src elisp
   (use-package shell :defer t
     :config
+    
     (setq my/shell-insert-state-modify-map (make-sparse-keymap))
 
     (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
@@ -2459,13 +2479,6 @@ need to remap isearch-backward since i wanna use C-r for redo
                     (scratch-buffer)))
 #+end_src
 
-*** "open" prefix
-#+begin_src elisp
-  (viper-map! :leader
-              "oe" #'my/eshell-in-bottom-side-window "oE" #'eshell
-              "os" #'my/shell-in-bottom-side-window "oS" #'shell)
-#+end_src
-
 *** "project" prefix
 #+begin_src elisp
   (viper-map! :leader
@@ -2484,13 +2497,6 @@ need to remap isearch-backward since i wanna use C-r for redo
                   (call-interactively 'project-find-regexp))))
 #+end_src
 
-*** "code" prefix
-#+begin_src elisp
-  (viper-map! :leader
-              "cx" #'my/flymake-diagnostics-at-point
-              "cX" #'flymake-show-buffer-diagnostics)
-#+end_src
-        
 *** "help" prefix
 #+begin_src elisp
   (viper-map! :leader
@@ -2527,13 +2533,10 @@ in lieu of org-roam, use bookmarks
 pretty handy tbh
 #+begin_src elisp
   (viper-map! :leader 
-              "nrf" #'my/jump-to-project-bookmark
               "nrl" #'list-bookmarks
               "nri" #'bookmark-set
               "nrn" #'bookmark-set
-              "nrd" #'bookmark-delete
-              "bmm" #'my/set-project-bookmark
-              "bmj" #'my/jump-to-project-bookmark)
+              "nrd" #'bookmark-delete)
 #+end_src
 
 *** news prefix
@@ -2784,21 +2787,22 @@ note after doing =vc-next-action=, running =vc-git-log-edit-toggle-amend= toggle
 #+begin_src elisp
   (use-package diff-mode :defer t
     :config
+    (add-hook 'diff-mode-hook #'outline-minor-mode)
+    (set-face-foreground 'diff-refine-added "green1")
+    (set-face-background 'diff-refine-added "green4")
+
+    (set-face-foreground 'diff-refine-removed "red1")
+    (set-face-background 'diff-refine-removed "red4"))
+
+  (use-package diff-mode :after outline
+    :config
     (viper-map! :mode 'diff-mode
                 :n "<tab>" #'outline-cycle
                 "<backtab>" #'outline-cycle-buffer
                 "C-j" #'diff-hunk-next
                 "C-k" #'diff-hunk-prev
                 "C-S-j" #'diff-file-next
-                "C-S-k" #'diff-file-prev)
-
-    (add-hook 'diff-mode-hook #'outline-minor-mode)
-    (set-face-foreground 'diff-refine-added "green1")
-    (set-face-background 'diff-refine-added "green4")
-
-    (set-face-foreground 'diff-refine-removed "red1")
-    (set-face-background 'diff-refine-removed "red4")
-    )
+                "C-S-k" #'diff-file-prev))
 #+end_src
 
 *** annotate

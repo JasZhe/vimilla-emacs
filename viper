@@ -735,10 +735,6 @@ respects rectangle mode in a similar way to vim/doom"
                   (scratch-buffer)))
 
 (viper-map! :leader
-            "oe" #'my/eshell-in-bottom-side-window "oE" #'eshell
-            "os" #'my/shell-in-bottom-side-window "oS" #'shell)
-
-(viper-map! :leader
             "pp" #'project-switch-project "pd" #'project-forget-project
             "pe" #'project-eshell "ps" #'project-shell 
             "px" #'flymake-show-project-diagnostics)
@@ -748,10 +744,6 @@ respects rectangle mode in a similar way to vim/doom"
               (minibuffer-with-setup-hook
                   (lambda () (previous-history-element 1))
                 (call-interactively 'project-find-regexp))))
-
-(viper-map! :leader
-            "cx" #'my/flymake-diagnostics-at-point
-            "cX" #'flymake-show-buffer-diagnostics)
 
 (viper-map! :leader
             "hk" #'describe-key
@@ -776,13 +768,10 @@ respects rectangle mode in a similar way to vim/doom"
             "<tab>]" #'tab-bar-switch-to-prev-tab)
 
 (viper-map! :leader 
-            "nrf" #'my/jump-to-project-bookmark
             "nrl" #'list-bookmarks
             "nri" #'bookmark-set
             "nrn" #'bookmark-set
-            "nrd" #'bookmark-delete
-            "bmm" #'my/set-project-bookmark
-            "bmj" #'my/jump-to-project-bookmark)
+            "nrd" #'bookmark-delete)
 
 (viper-map! :leader "Nt" #'newsticker-treeview)
 
@@ -968,21 +957,22 @@ position of the outside of the paren.  Otherwise return nil."
 
 (use-package diff-mode :defer t
   :config
+  (add-hook 'diff-mode-hook #'outline-minor-mode)
+  (set-face-foreground 'diff-refine-added "green1")
+  (set-face-background 'diff-refine-added "green4")
+
+  (set-face-foreground 'diff-refine-removed "red1")
+  (set-face-background 'diff-refine-removed "red4"))
+
+(use-package diff-mode :after outline
+  :config
   (viper-map! :mode 'diff-mode
               :n "<tab>" #'outline-cycle
               "<backtab>" #'outline-cycle-buffer
               "C-j" #'diff-hunk-next
               "C-k" #'diff-hunk-prev
               "C-S-j" #'diff-file-next
-              "C-S-k" #'diff-file-prev)
-
-  (add-hook 'diff-mode-hook #'outline-minor-mode)
-  (set-face-foreground 'diff-refine-added "green1")
-  (set-face-background 'diff-refine-added "green4")
-
-  (set-face-foreground 'diff-refine-removed "red1")
-  (set-face-background 'diff-refine-removed "red4")
-  )
+              "C-S-k" #'diff-file-prev))
 
 (use-package vc-annotate :defer t
   :config

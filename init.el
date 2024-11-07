@@ -205,6 +205,7 @@
       (and arg (not (string-empty-p arg)))
       (set-frame-parameter nil 'alpha-background  (string-to-number arg))
     (set-frame-parameter nil 'alpha-background 90)))
+(set-frame-parameter nil 'alpha-background 80)
 
 (setq my-window-map (make-sparse-keymap))
 
@@ -643,6 +644,12 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
             (insert prefix))))
     (call-interactively 'bookmark-jump)))
 
+
+(viper-map! :leader 
+            "nrf" #'my/jump-to-project-bookmark
+            "bmm" #'my/set-project-bookmark
+            "bmj" #'my/jump-to-project-bookmark)
+
 (defun split-string-at-first-match (string regex)
   (let ((pos (string-match regex string)))
     (if pos
@@ -756,6 +763,11 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                             :initial-value ""))
       (message "No diagnostics at point."))))
 
+(viper-map! :leader
+            "cx" #'my/flymake-diagnostics-at-point
+            "cX" #'flymake-show-buffer-diagnostics)
+(viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point)
+
 (add-to-list 'display-buffer-alist '((major-mode . compilation-mode)
                                      (display-buffer-in-side-window)))
 
@@ -865,6 +877,8 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 (defun copy-pipenv-vars-from-shell ()
   (interactive)
   (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
+(add-hook 'python-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
+(add-hook 'python-ts-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
 
 (setq-default tab-width 4)
 
@@ -969,13 +983,18 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 (use-package eshell :after consult :config
   (define-key my/eshell-insert-state-modify-map (kbd "C-r") #'consult-history))
 
+(viper-map! :leader "oe" #'my/eshell-in-bottom-side-window "oE" #'eshell)
+
 (defun my/shell-in-bottom-side-window (arg)
   (interactive "P")
   (let ((shell-buffer (save-window-excursion (shell))))
     (select-window (display-buffer-in-side-window shell-buffer '()))))
 
+(viper-map! :leader "os" #'my/shell-in-bottom-side-window "oS" #'shell)
+
 (use-package shell :defer t
   :config
+  
   (setq my/shell-insert-state-modify-map (make-sparse-keymap))
 
   (define-key my/shell-insert-state-modify-map (kbd "<up>") #'comint-previous-input)
