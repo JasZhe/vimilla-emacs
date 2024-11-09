@@ -205,7 +205,7 @@
       (and arg (not (string-empty-p arg)))
       (set-frame-parameter nil 'alpha-background  (string-to-number arg))
     (set-frame-parameter nil 'alpha-background 90)))
-(set-frame-parameter nil 'alpha-background 80)
+(set-frame-parameter nil 'alpha-background 85)
 
 (setq my-window-map (make-sparse-keymap))
 
@@ -589,6 +589,175 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
   (setq-default vc-handled-backends '(SVN Git Hg))
   (setq vc-git-diff-switches '("--histogram" "--diff-algorithm=histogram"))
   )
+
+;; fallback to hunk based diff
+(setq diff-font-lock-syntax 'hunk-also)
+
+(defun diff-kill-hunk-a (og-fn &rest args)
+  (let* ((stage-buf (get-buffer-create "*vc-stage-diff*"))
+         (current-vc-revisions diff-vc-revisions)
+         (beg-of-file-and-junk (save-excursion (diff-beginning-of-file-and-junk) (point)))
+         (hunk-file-b (car (diff-hunk-file-names)))
+         (hunk-file-a (cadr (diff-hunk-file-names)))
+         (end-of-file-and-junk (save-excursion
+                                 (diff-beginning-of-file-and-junk)
+                                 (re-search-forward (concat "--- " hunk-file-a))
+                                 (re-search-forward (concat "+++ " hunk-file-b))
+                                 (point)))
+         (file-and-junk (buffer-substring beg-of-file-and-junk (1+ end-of-file-and-junk)))
+         (hunk-header-re (rx-to-string
+                          `(: bol "@@ -" (group (1+ digit)) "," (1+ digit)
+                              " +" (group (1+ digit)) "," (1+ digit) " @@")))
+         (hunk-header (save-excursion
+                        (re-search-backward hunk-header-re)
+                        (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position))))
+         (hunk-header-start (progn
+                              (string-match hunk-header-re hunk-header)
+                              (string-to-number
+                               (substring hunk-header (match-beginning 1) (match-end 1)))))
+         (hunk-bounds (diff-bounds-of-hunk))
+         (file-bounds (ignore-errors (diff-bounds-of-file)))
+         ;; If the current hunk is the only one for its file, kill the
+         ;; file header too.
+         (hunk-and-file-killed (save-excursion
+                                 (and file-bounds
+                                      (progn (goto-char (car file-bounds))
+                                             (= (progn (diff-hunk-next) (point))
+                                                (car hunk-bounds)))
+                                      (progn (goto-char (cadr hunk-bounds))
+                                             ;; bzr puts a newline after the last hunk.
+                                             (while (looking-at "^\n")
+                                               (forward-char 1))
+                                             (= (point) (cadr file-bounds))))))
+         )
+    ;;(message "killed hunk header start %s %s" hunk-header-start hunk-header)
+    (apply og-fn args)
+    (with-current-buffer stage-buf
+      (display-buffer stage-buf)
+      (diff-mode)
+
+      (ignore-errors
+        (setq-local diff-vc-backend (car (vc-deduce-fileset t)))
+        (setq-local diff-vc-revisions current-vc-revisions))
+      (diff-mode)
+
+      ;; if the file-headers already exist don't do anything
+      (let* ((found-file (condition-case nil
+                             (save-excursion
+                               (goto-char (point-min))
+                               (re-search-forward (concat "--- " hunk-file-a))
+                               (re-search-forward (concat "+++ " hunk-file-b))
+                               t)
+                           (error nil))))
+        (message "found-file %s %s" found-file file-and-junk)
+        (unless (or found-file hunk-and-file-killed)
+          (goto-char (point-max))
+          (insert file-and-junk))
+        
+        (goto-char (point-min))
+
+        (message "wee %s %s %s" (point) hunk-file-a hunk-file-b )
+        (condition-case nil
+            (progn 
+              (re-search-forward (concat "--- " hunk-file-a))
+              (re-search-forward (concat "+++ " hunk-file-b))
+              (message "wee %s %s %s" (point) hunk-file-a hunk-file-b )
+              (end-of-line))
+          (error (message "WTF %s %s" hunk-file-a hunk-file-b ))
+          )
+        
+
+        ;; we should be in the right file in the stage buffer now
+        (ignore-errors
+          (let ((start-of-next-file
+                 (save-excursion
+                   (condition-case nil
+                       (progn 
+                         (re-search-forward diff-file-header-re)
+                         (diff-beginning-of-file-and-junk)
+                         (point)
+                         )
+                     ;; no next file
+                     (error (point-max))
+                     )
+                   )
+                 ))
+            
+            ;; insert the hunk at the correct position
+            ;; using hunk headers eg: @@ -0,0 +1,3 @@
+            (while
+                (progn
+                  (message "before diff hunk next")
+                  (diff-hunk-next)
+                  ;;(message "after diff hunk next")
+                  ;; don't go past the expected file
+                  (if (> (point) start-of-next-file)
+                      (progn
+                        (message "after diff hunk next2a")
+                        (goto-char start-of-next-file) nil)
+                    ;;(message "after diff hunk next2")
+                    (let* ((stage-hunk-header (buffer-substring-no-properties
+                                               (line-beginning-position)
+                                               (line-end-position)))
+                           (stage-hunk-header-start
+                            (progn
+                              ;;(message "after diff hunk next2b")
+                              (string-match hunk-header-re stage-hunk-header)
+                              (string-to-number
+                               (substring stage-hunk-header (match-beginning 1) (match-end 1)))
+                              )
+                            ))
+                      (message "stage hunk header start %s %s %s" stage-hunk-header-start
+                               hunk-header-start
+                               (> hunk-header-start stage-hunk-header-start))
+                      (> hunk-header-start stage-hunk-header-start)
+                      )
+                    )
+                  )
+              ))
+          )
+        ;;(ignore-errors (diff-hunk-next))
+        (message "yanking after %s"
+                 (buffer-substring-no-properties (line-beginning-position)
+                                                 (line-end-position)))
+        (when (looking-at hunk-header-re)
+          (message "goto prev line %s"
+                   (buffer-substring-no-properties (line-beginning-position)
+                                                   (line-end-position)))
+          (previous-line))
+        (end-of-line)
+        (insert "\n")
+        (yank)
+        )
+      (run-hooks 'vc-diff-finish-functions)
+
+      (diff-setup-whitespace)
+      (diff-setup-buffer-type)
+
+      )
+    )
+  )
+
+;; (vc-call-backend 'git 'diff "/home/jason/.emacs.d/vimilla-emacs.org" "HEAD^" "HEAD" (current-buffer) 1)
+
+(add-to-list 'display-buffer-alist
+             '("\\*vc-stage-diff\\*"
+               (display-buffer-below-selected)))
+
+(defun vc-diff-internal-ad (&rest args)
+  (ignore-errors (kill-buffer "*vc-stage-diff*"))
+  (clone-buffer "*vc-stage-diff*")
+  (with-current-buffer (get-buffer-create "*vc-stage-diff*")
+    (read-only-mode -1)
+    (erase-buffer)
+    (vc-setup-buffer (current-buffer))
+    )
+  )
+
+(advice-add #'diff-hunk-kill :around #'diff-kill-hunk-a)
+(advice-add #'vc-diff-internal :after #'vc-diff-internal-ad)
 
 (use-package speedbar :defer t
   :config

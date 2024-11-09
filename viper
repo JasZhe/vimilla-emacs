@@ -13,6 +13,8 @@
 (defvar viper-leader-map (make-sparse-keymap))
 (define-key viper-vi-basic-map " " viper-leader-map)
 (define-key viper-insert-basic-map (kbd "M-SPC") viper-leader-map)
+(define-key viper-insert-basic-map (kbd "C-w") #'kill-region)
+
 
 (setq my/viper-vi-basic-motion-keymap (make-sparse-keymap))
 (define-key my/viper-vi-basic-motion-keymap "h" #'viper-backward-char)
@@ -783,7 +785,7 @@ respects rectangle mode in a similar way to vim/doom"
                                              (file-truename
                                               (read-directory-name "VC status for directory: "
                                                                    default-directory nil t nil))
-                                           (vc-root-dir))
+                                           (or (vc-root-dir) default-directory))
                                          (when (equal arg '(16))
                                            (intern
                                             (completing-read
@@ -812,6 +814,7 @@ respects rectangle mode in a similar way to vim/doom"
               :n "gI" #'eglot-find-implementation
               ))
 
+(viper-map! :n "K" #'eldoc)
 (define-key prog-mode-map (kbd "C-<return>") #'default-indent-new-line)
 
 (setq show-paren-highlight-openparen t)
@@ -969,6 +972,7 @@ position of the outside of the paren.  Otherwise return nil."
   (viper-map! :mode 'diff-mode
               :n "<tab>" #'outline-cycle
               "<backtab>" #'outline-cycle-buffer
+              "<return>" #'diff-goto-source
               "C-j" #'diff-hunk-next
               "C-k" #'diff-hunk-prev
               "C-S-j" #'diff-file-next
