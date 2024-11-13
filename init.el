@@ -853,12 +853,6 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
   (interactive)
   (copy-env-vars-from-shell-1 "bash --login -i -c printenv"))
 
-(defun copy-env-vars-from-shell-virtual-env ()
-  (interactive)
-  (let ((venv-name (read-directory-name "venv folder:" nil nil nil nil)))
-    (copy-env-vars-from-shell-1 (format "bash --login -i -c \". %s && printenv\""
-                                        (concat venv-name "bin/activate")))))
-
 (defun get-docker-env-vars ()
   "Gets the environment variables set by ENV in dockerfile by looking at /proc/1/environ.
     Meant for eshell in mind."
@@ -1054,11 +1048,61 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
   (define-key my/go-vi-state-modify-map " mtf" #'+go/test-file)
   (viper-modify-major-mode 'go-ts-mode 'vi-state my/go-vi-state-modify-map))
 
-(defun copy-pipenv-vars-from-shell ()
-  (interactive)
-  (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
 (add-hook 'python-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
 (add-hook 'python-ts-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
+
+(use-package python :defer t
+  :config
+  (add-to-list 'eglot-server-programs
+             '((python-mode python-ts-mode)
+               "basedpyright-langserver" "--stdio")))
+
+(defvar before-venv-process-environment nil
+  "Process environment with no venv")
+
+(defvar before-venv-exec-path nil
+  "Exec path with no venv")
+
+(defvar venv-mode-line-indicator "")
+
+
+(defun copy-pipenv-vars-from-shell ()
+  (interactive)
+  (if before-venv-process-environment
+      (setq process-environment before-venv-process-environment)
+    (setq before-venv-process-environment process-environment))
+
+  (copy-env-vars-from-shell-1 "bash --login -i -c \"pipenv run printenv\""))
+
+
+(defun copy-python-venv-vars-from-shell ()
+  (interactive)
+  (if before-venv-exec-path
+      (setq exec-path (copy-sequence exec-path))
+    (setq before-venv-exec-path (copy-sequence exec-path)))
+
+  (if before-venv-process-environment
+      (setq process-environment (copy-sequence before-venv-process-environment))
+    (setq before-venv-process-environment (copy-sequence process-environment)))
+
+  (let ((venv-name (read-directory-name "venv folder:" nil nil nil nil)))
+    (setq venv-mode-line-indicator (concat "venv:" (project-name (project-current nil venv-name))))
+    (add-to-list 'mode-line-misc-info '(t venv-mode-line-indicator)) 
+    (copy-env-vars-from-shell-1 (format "bash --login -i -c \". %s && printenv\""
+                                        (concat venv-name "bin/activate")))))
+
+
+(defun deactivate-python-venv ()
+  (interactive)
+  (setq exec-path before-venv-exec-path)
+  (setq process-environment before-venv-process-environment)
+  (setq before-venv-process-environment nil
+        before-venv-exec-path nil) 
+
+  (setq-default eshell-path-env (mapconcat #'identity before-venv-exec-path ":"))
+  (when (fboundp 'eshell-set-path)
+    (eshell-set-path (mapconcat #'identity before-venv-exec-path ":")))
+  (setq mode-line-misc-info (delete '(t venv-mode-line-indicator) mode-line-misc-info)))
 
 (setq-default tab-width 4)
 
