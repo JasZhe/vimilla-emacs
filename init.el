@@ -932,10 +932,13 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                             :initial-value ""))
       (message "No diagnostics at point."))))
 
-(viper-map! :leader
-            "cx" #'my/flymake-diagnostics-at-point
-            "cX" #'flymake-show-buffer-diagnostics)
-(viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point)
+(use-package flymake :defer t
+  :config
+  (viper-map! :leader
+              "cx" #'my/flymake-diagnostics-at-point
+              "cX" #'flymake-show-buffer-diagnostics)
+  (viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point)
+  )
 
 (add-to-list 'display-buffer-alist '((major-mode . compilation-mode)
                                      (display-buffer-in-side-window)))

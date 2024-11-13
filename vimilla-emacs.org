@@ -1150,10 +1150,13 @@ This is built into emacs30 now
                               :initial-value ""))
         (message "No diagnostics at point."))))
 
-  (viper-map! :leader
-              "cx" #'my/flymake-diagnostics-at-point
-              "cX" #'flymake-show-buffer-diagnostics)
-  (viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point) 
+  (use-package flymake :defer t
+    :config
+    (viper-map! :leader
+                "cx" #'my/flymake-diagnostics-at-point
+                "cX" #'flymake-show-buffer-diagnostics)
+    (viper-map! :n "C-c x" #'my/flymake-diagnostics-at-point)
+    )
 #+end_src
 
 *** compilaton mode in side window
