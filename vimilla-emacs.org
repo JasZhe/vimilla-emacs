@@ -457,17 +457,25 @@ M-j to exit minibuffer with whatever is in the input
 
   (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
 
+  (defvar icomplete-current-command nil)
   ;; insert wild card to sorta emulate orderless
+
   (defun icomplete-partial-completion-insert-wildcard ()
     (interactive)
-    (unless (eq last-command 'viper-ex)
+    (if (memq icomplete-current-command
+              (list 'viper-ex
+                    'eww))
+        (insert " ")
       (insert "*")))
 
   (define-key icomplete-minibuffer-map " " #'icomplete-partial-completion-insert-wildcard)
   ;; this allows us to still insert spaces
-  (define-key icomplete-minibuffer-map (kbd "M-SPC") (lambda () (interactive) (insert " ")))
+  (define-key viper-insert-basic-map (kbd "M-SPC SPC") (lambda () (interactive) (insert " ")))
 
-  (add-hook 'minibuffer-setup-hook (lambda () (setq-local icomplete-show-matches-on-no-input nil)) 100)
+  (add-hook 'minibuffer-setup-hook (lambda ()
+                                     (setq icomplete-current-command this-command)
+                                     (setq-local icomplete-show-matches-on-no-input nil))
+            100)
 #+end_src
 
 * in-buffer searching
