@@ -641,7 +641,14 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                                              (= (point) (cadr file-bounds))))))
          )
     ;;(message "killed hunk header start %s %s" hunk-header-start hunk-header)
-    (apply og-fn args)
+    ;; kill-ring-deindent-mode can mess with whitespace in killed hunks
+    ;; which can cause patches to not apply
+    (if (and (boundp kill-ring-deindent-mode) kill-ring-deindent-mode)
+        (progn
+          (kill-ring-deindent-mode -1)
+          (apply og-fn args)
+          (kill-ring-deindent-mode))
+      (apply og-fn args))
     (with-current-buffer stage-buf
       (display-buffer stage-buf)
       (diff-mode)
@@ -672,7 +679,8 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
               (re-search-forward (concat "--- " hunk-file-a))
               (re-search-forward (concat "+++ " hunk-file-b))
               (message "wee %s %s %s" (point) hunk-file-a hunk-file-b )
-              (end-of-line))
+              (forward-line)
+              (beginning-of-line))
           (error (message "WTF %s %s" hunk-file-a hunk-file-b ))
           )
         
@@ -736,14 +744,22 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                                                    (line-end-position)))
           (previous-line))
         (end-of-line)
-        (insert "\n")
+        
         (yank)
+        (save-excursion
+          (diff-hunk-prev)
+
+          ;; don't want to deal with the headers and they sometimes cause
+          ;; "patch fragment without header" errors
+          ;; not sure, maybe something to do with our ordering?
+          (re-search-forward hunk-header-re)
+          (delete-region (point) (line-end-position)) 
+          )
         )
       (run-hooks 'vc-diff-finish-functions)
 
       (diff-setup-whitespace)
       (diff-setup-buffer-type)
-
       )
     )
   )
