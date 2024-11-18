@@ -276,7 +276,7 @@
   (setq visual-wrap-extra-indent 4))
 
 (when (fboundp #'kill-ring-deindent-mode)
-  (kill-ring-deindent-mode) )
+  (kill-ring-deindent-mode))
 
 (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
@@ -502,13 +502,14 @@ See notes:emacs-notes-and-tips for more details."
 (setq enable-recursive-minibuffers t)
 (setq icomplete-in-buffer t)
 (setq minibuffer-visible-completions t)
-(global-completion-preview-mode)
+(when (fboundp 'global-completion-preview-mode) (global-completion-preview-mode))
 
 ;; for default completion behavior in the *completions* buffer, should we decide to use it
 (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
 (define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
-(define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
-(define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion)
+(when (boundp 'minibuffer-visible-completions-map)
+  (define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
+  (define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion))
 (setq completions-format 'one-column)
 (setq completions-max-height 20)
 (setq completions-header-format nil)
@@ -643,7 +644,7 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
     ;;(message "killed hunk header start %s %s" hunk-header-start hunk-header)
     ;; kill-ring-deindent-mode can mess with whitespace in killed hunks
     ;; which can cause patches to not apply
-    (if (and (boundp kill-ring-deindent-mode) kill-ring-deindent-mode)
+    (if (and (boundp 'kill-ring-deindent-mode) kill-ring-deindent-mode)
         (progn
           (kill-ring-deindent-mode -1)
           (apply og-fn args)

@@ -351,7 +351,7 @@ stole the completing read stuff from:
     (setq visual-wrap-extra-indent 4))
 
   (when (fboundp #'kill-ring-deindent-mode)
-    (kill-ring-deindent-mode) )
+    (kill-ring-deindent-mode))
 
   (add-hook 'prog-mode-hook (lambda () (modify-syntax-entry ?_ "-") (modify-syntax-entry ?_ "_")))
 
@@ -632,13 +632,14 @@ no idea how necessary that is
   (setq enable-recursive-minibuffers t)
   (setq icomplete-in-buffer t)
   (setq minibuffer-visible-completions t)
-  (global-completion-preview-mode)
+  (when (fboundp 'global-completion-preview-mode) (global-completion-preview-mode))
 
   ;; for default completion behavior in the *completions* buffer, should we decide to use it
   (define-key completion-in-region-mode-map (kbd "C-n") #'minibuffer-next-completion)
   (define-key completion-in-region-mode-map (kbd "C-p") #'minibuffer-previous-completion)
-  (define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
-  (define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion)
+  (when (boundp 'minibuffer-visible-completions-map)
+    (define-key minibuffer-visible-completions-map (kbd "C-n") #'minibuffer-next-completion)
+    (define-key minibuffer-visible-completions-map (kbd "C-p") #'minibuffer-previous-completion))
   (setq completions-format 'one-column)
   (setq completions-max-height 20)
   (setq completions-header-format nil)
@@ -646,7 +647,7 @@ no idea how necessary that is
   (define-error 'no-completions "completing-read-in-region: No completions")
   (defun completing-read-in-region (start end collection &optional predicate)
     "Prompt for completion of region in the minibuffer if non-unique.
-        Use as a value for `completion-in-region-function'."
+    Use as a value for `completion-in-region-function'."
     (let* ((initial (buffer-substring-no-properties start end))
            (limit (car (completion-boundaries initial collection predicate "")))
            (all (completion-all-completions initial collection predicate (length initial)))
@@ -827,7 +828,7 @@ diff buffer that we can then commit
       ;;(message "killed hunk header start %s %s" hunk-header-start hunk-header)
       ;; kill-ring-deindent-mode can mess with whitespace in killed hunks
       ;; which can cause patches to not apply
-      (if (and (boundp kill-ring-deindent-mode) kill-ring-deindent-mode)
+      (if (and (boundp 'kill-ring-deindent-mode) kill-ring-deindent-mode)
           (progn
             (kill-ring-deindent-mode -1)
             (apply og-fn args)
