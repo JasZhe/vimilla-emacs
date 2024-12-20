@@ -775,6 +775,20 @@ respects rectangle mode in a similar way to vim/doom"
             "nrn" #'bookmark-set
             "nrd" #'bookmark-delete)
 
+(setq notes-directory "~/notes/")
+
+(defun my/open-simple-notes ()
+  (interactive)
+  (let* ((files (directory-files notes-directory t directory-files-no-dot-files-regexp))
+         (open-or-create (completing-read "open/create note:" files)))
+    (if (memq open-or-create files)
+        (find-file open-or-create)
+      (find-file (concat notes-directory open-or-create))
+      )
+    )
+  )
+(viper-map! :leader "do" #'my/open-simple-notes)
+
 (viper-map! :leader "Nt" #'newsticker-treeview)
 
 (viper-map! :leader "ff" #'find-file)
@@ -867,9 +881,11 @@ position of the outside of the paren.  Otherwise return nil."
 
 (advice-add 'viper-goto-line :around #'my/advise-viper-goto-line)
 
-(viper-map! :n "zC" #'hs-hide-all "zO" #'hs-show-all
-            "zo" #'hs-show-block "zc" #'hs-hide-block
-            "za" #'hs-toggle-hiding)
+(use-package hideshow
+  :config
+  (viper-map! :n "zC" #'hs-hide-all "zO" #'hs-show-all
+              "zo" #'hs-show-block "zc" #'hs-hide-block
+              "za" #'hs-toggle-hiding))
 
 ;; local alist that can be used as part of a major mode hook to
 ;; add pseudo keybinds to brac and ket

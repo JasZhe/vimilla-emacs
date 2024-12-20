@@ -357,7 +357,9 @@
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
 ;; NOTE: command category can slow down M-x
 (defun icomplete-partial-completion-setup ()
-  (unless (or (eq (icomplete--category) 'file))
+  (unless (or 
+           (eq (icomplete--category) 'file)
+           )
     (insert "*")))
 
 (add-hook 'icomplete-minibuffer-setup-hook #'icomplete-partial-completion-setup)
@@ -377,10 +379,12 @@
 ;; this allows us to still insert spaces
 (define-key viper-insert-basic-map (kbd "M-SPC SPC") (lambda () (interactive) (insert " ")))
 
-(add-hook 'minibuffer-setup-hook (lambda ()
-                                   (setq icomplete-current-command this-command)
-                                   (setq-local icomplete-show-matches-on-no-input nil))
-          100)
+(defun my/minibuffer-setup-hook ()
+  (setq icomplete-current-command this-command)
+  ;; (setq-local icomplete-show-matches-on-no-input nil)
+  )
+
+(add-hook 'minibuffer-setup-hook #'my/minibuffer-setup-hook 100)
 
 (advice-add #'viper-search :after
             (lambda (string &rest args)
@@ -537,10 +541,43 @@ See notes:emacs-notes-and-tips for more details."
                                    (throw 'done completion)))))))))
     (cond (completion (completion--replace start end completion) t)
           (t (signal 'no-completions nil)))))
-(setq completion-in-region-function #'completing-read-in-region)
-;; (setq completion-in-region-function #'completion--in-region)
+;;(setq completion-in-region-function #'completing-read-in-region)
+(setq completion-in-region-function #'completion--in-region) ;; this is default
 
 (setq tab-always-indent 'complete)
+
+(use-package icomplete
+  :bind (:map icomplete-minibuffer-map
+              ("C-n" . icomplete-forward-completions)
+              ("C-p" . icomplete-backward-completions)
+              ("RET" . icomplete-force-complete-and-exit)
+              )
+  :hook
+  (after-init . (lambda ()
+                  (fido-mode -1)
+                  (icomplete-mode 1)
+                  ;; (icomplete-vertical-mode 1)
+                  ))
+  :config
+  (setq tab-always-indent 'complete)  ;; Starts completion with TAB
+  (setq icomplete-delay-completions-threshold 0)
+  (setq icomplete-compute-delay 0)
+  (setq icomplete-show-matches-on-no-input t)
+  (setq icomplete-hide-common-prefix nil)
+  (setq icomplete-prospects-height 10)
+  (setq icomplete-separator " . ")
+  (setq icomplete-with-completion-tables t)
+  (setq icomplete-in-buffer t)
+  (setq icomplete-max-delay-chars 0)
+  (setq icomplete-scroll t)
+  (advice-add 'completion-at-point
+              :after
+              (lambda ()
+                (if (minibufferp (current-buffer) t)
+                    (setq-local completion-in-region-function #'completing-read-in-region) 
+                  (minibuffer-hide-completions))
+                )
+              ))
 
 (defun indent-current-line ()
   "Indent the line. Stolen from the middle section of `indent-for-tab-command'."
@@ -1068,12 +1105,6 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 (add-hook 'python-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
 (add-hook 'python-ts-mode-hook (lambda () (setq-local tab-width python-indent-offset)))
 
-(use-package python :defer t
-  :config
-  (add-to-list 'eglot-server-programs
-             '((python-mode python-ts-mode)
-               "basedpyright-langserver" "--stdio")))
-
 (defvar before-venv-process-environment nil
   "Process environment with no venv")
 
@@ -1437,7 +1468,6 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
   (set-face-attribute 'mode-line-buffer-id nil :inherit 'mode-line-pink :weight 'bold)
   (setq project-mode-line-face 'package-name)
   (setq project-file-history-behavior 'relativize)
-  (setq project-files-relative-names t)
 
   (setq-default mode-line-format '("%e" mode-line-front-space
                                    (:eval (propertize viper-mode-string)) ;; not sure why we need this, but otherwise the props don't show up
@@ -1568,7 +1598,7 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                 "<tab>" (lambda ()
                           (interactive)
                           ;; want org cycle if region active for indenting, or heading for collapsing
-                          (if (or (org-at-heading-p) (region-active-p) (org-at-property-block-p) (org-at-property-drawer-p))
+                          (if (or (org-at-heading-p) (region-active-p) (org-at-property-block-p) (org-at-property-drawer-p) (org-at-block-p) (org-at-drawer-p))
                               (call-interactively (lookup-key org-mode-map "\t"))
                             (call-interactively (lookup-key viper-vi-basic-map [C-i]))))
                 )
