@@ -418,6 +418,9 @@ With a prefix-arg run normally and specfiy a directory"
              my/ioccur-nlines-arg
              (list my/occur-buffer))))
 
+(viper-map! :mode 'occur-mode
+            :n "i" #'occur-edit-mode)
+
 (viper-map! :leader
             "ss" #'my/ioccur
             ;; not sure why but we need to rescan the imenu for our igrep xref buffer
