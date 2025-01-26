@@ -19,6 +19,35 @@
   )
   )
 
+;; Main use is to have my key bindings have the highest priority
+;; https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+
+(defvar my-mode-map (make-sparse-keymap)
+  "Keymap for `my-mode'.")
+
+;;;###autoload
+(define-minor-mode my-mode
+  "A minor mode so that my key settings override annoying major modes."
+  ;; If init-value is not set to t, this mode does not get enabled in
+  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+  ;; More info: http://emacs.stackexchange.com/q/16693/115
+  :init-value t
+  :lighter " my-mode"
+  :keymap my-mode-map)
+
+;;;###autoload
+(define-globalized-minor-mode global-my-mode my-mode my-mode)
+
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; The keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists `((my-mode . ,my-mode-map)))
+
+;; Turn off the minor mode in the minibuffer
+(defun turn-off-my-mode ()
+  "Turn off my-mode."
+  (my-mode -1))
+
 (defun my/vc-git-editor-command (command)
   "command is a git subcommand that requires an editor.
  example usage: (my/vc-git-editor-command \"rebase -i HEAD~3\")"
@@ -758,41 +787,12 @@ See notes:emacs-notes-and-tips for more details."
 (define-key my-mode-map (kbd "M-<tab>")
             (lambda ()
               (interactive)
-              (message "yes")
-              (let ((completion-in-region-function #'completing-read-in-region))
-                (call-interactively #'complete-symbol))
-              (my-mode -1)))
+              (unwind-protect 
+                  (let ((completion-in-region-function #'completing-read-in-region))
+                    (call-interactively #'complete-symbol))
+                (my-mode -1))))
 
 (setq tab-always-indent 'complete)
-
-;; Main use is to have my key bindings have the highest priority
-;; https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-
-(defvar my-mode-map (make-sparse-keymap)
-  "Keymap for `my-mode'.")
-
-;;;###autoload
-(define-minor-mode my-mode
-  "A minor mode so that my key settings override annoying major modes."
-  ;; If init-value is not set to t, this mode does not get enabled in
-  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-  ;; More info: http://emacs.stackexchange.com/q/16693/115
-  :init-value t
-  :lighter " my-mode"
-  :keymap my-mode-map)
-
-;;;###autoload
-(define-globalized-minor-mode global-my-mode my-mode my-mode)
-
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; The keymaps in `emulation-mode-map-alists' take precedence over
-;; `minor-mode-map-alist'
-(add-to-list 'emulation-mode-map-alists `((my-mode . ,my-mode-map)))
-
-;; Turn off the minor mode in the minibuffer
-(defun turn-off-my-mode ()
-  "Turn off my-mode."
-  (my-mode -1))
 
 (defun indent-current-line ()
   "Indent the line. Stolen from the middle section of `indent-for-tab-command'."

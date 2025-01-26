@@ -35,6 +35,38 @@ Otherwise we do some hacky thing to make the rest of the config somewhat work
 I do enjoy having everything in the one file though and a lot of this stuff is not /just/ setting keybinds,
 its also doing a lot of elisp stuff that work /with/ the keybinds
 
+* having my own minor mode for keymaps just for the M-<tab> to normal minibuffer optionally after icomplete
+#+begin_src elisp
+;; Main use is to have my key bindings have the highest priority
+;; https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
+
+(defvar my-mode-map (make-sparse-keymap)
+  "Keymap for `my-mode'.")
+
+;;;###autoload
+(define-minor-mode my-mode
+  "A minor mode so that my key settings override annoying major modes."
+  ;; If init-value is not set to t, this mode does not get enabled in
+  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
+  ;; More info: http://emacs.stackexchange.com/q/16693/115
+  :init-value t
+  :lighter " my-mode"
+  :keymap my-mode-map)
+
+;;;###autoload
+(define-globalized-minor-mode global-my-mode my-mode my-mode)
+
+;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
+;; The keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists `((my-mode . ,my-mode-map)))
+
+;; Turn off the minor mode in the minibuffer
+(defun turn-off-my-mode ()
+  "Turn off my-mode."
+  (my-mode -1))
+#+end_src
+
 * WIP other git commands that VC doesn't handle like git rebase and stuff
 something like this
 
@@ -895,44 +927,12 @@ no idea how necessary that is
   (define-key my-mode-map (kbd "M-<tab>")
               (lambda ()
                 (interactive)
-                (message "yes")
-                (let ((completion-in-region-function #'completing-read-in-region))
-                  (call-interactively #'complete-symbol))
-                (my-mode -1)))
+                (unwind-protect 
+                    (let ((completion-in-region-function #'completing-read-in-region))
+                      (call-interactively #'complete-symbol))
+                  (my-mode -1))))
 
   (setq tab-always-indent 'complete)
-#+end_src
-
-*** having my own minor mode for keymaps just for the M-<tab> to normal minibuffer optionally after icomplete
-#+begin_src elisp
-;; Main use is to have my key bindings have the highest priority
-;; https://github.com/kaushalmodi/.emacs.d/blob/master/elisp/modi-mode.el
-
-(defvar my-mode-map (make-sparse-keymap)
-  "Keymap for `my-mode'.")
-
-;;;###autoload
-(define-minor-mode my-mode
-  "A minor mode so that my key settings override annoying major modes."
-  ;; If init-value is not set to t, this mode does not get enabled in
-  ;; `fundamental-mode' buffers even after doing \"(global-my-mode 1)\".
-  ;; More info: http://emacs.stackexchange.com/q/16693/115
-  :init-value t
-  :lighter " my-mode"
-  :keymap my-mode-map)
-
-;;;###autoload
-(define-globalized-minor-mode global-my-mode my-mode my-mode)
-
-;; https://github.com/jwiegley/use-package/blob/master/bind-key.el
-;; The keymaps in `emulation-mode-map-alists' take precedence over
-;; `minor-mode-map-alist'
-(add-to-list 'emulation-mode-map-alists `((my-mode . ,my-mode-map)))
-
-;; Turn off the minor mode in the minibuffer
-(defun turn-off-my-mode ()
-  "Turn off my-mode."
-  (my-mode -1))
 #+end_src
 
 *** better indent-for-tab-command and backtab behavior
