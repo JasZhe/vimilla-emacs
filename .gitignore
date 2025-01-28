@@ -5,3 +5,7 @@ transient*
 tree-sitter*
 bookmarks
 tramp
+save-backups/**
+org-persist/**
+eshell/**
+.local/**
