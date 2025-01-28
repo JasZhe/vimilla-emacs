@@ -816,7 +816,14 @@ respects rectangle mode in a similar way to vim/doom"
               "cD" #'xref-find-references
               "cj" #'xref-find-apropos
 
-              :n "gd" #'xref-find-definitions
+              :n "gd" (lambda () (interactive)
+                        (condition-case err (call-interactively #'xref-find-definitions)
+                          (error
+                           ;; fallback to dumb jump
+                           (let ((xref-backend-functions #'dumb-jump-xref-activate))
+                             (call-interactively #'xref-find-definitions))
+                           )
+                          ))
               "gD" #'xref-find-references
               )
   )

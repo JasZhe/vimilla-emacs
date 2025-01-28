@@ -594,7 +594,8 @@ by `icomplete-vertical-unselected-prefix-marker'."
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
 ;; NOTE: command category can slow down M-x
 (defun icomplete-partial-completion-setup ()
-  (unless (or 
+  (unless (or
+           (eq (icomplete--category) 'eglot-capf)
            (eq (icomplete--category) 'file)
            )
     (insert "*")))
@@ -1821,6 +1822,32 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                             (call-interactively (lookup-key viper-vi-basic-map [C-i]))))
                 )
     ))
+
+(require 'dash "~/.emacs.d/vendor/dash.el")
+(require 's "~/.emacs.d/vendor/s.el")
+(require 'dumb-jump "~/.emacs.d/vendor/dumb-jump.el")
+(require 'coterm "~/.emacs.d/vendor/coterm.el")
+(require 'wgrep "~/.emacs.d/vendor/wgrep.el")
+(require 'vundo "~/.emacs.d/vendor/vundo.el")
+(require 'avy "~/.emacs.d/vendor/avy.el")
+
+(coterm-mode)
+
+(use-package avy
+  :config
+  (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
+  (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+  (define-key viper-vi-basic-map "gs " #'avy-goto-char-timer))
+
+(use-package vundo
+  :config
+  (setq vundo-vi-modify-map vundo-mode-map)
+  (define-key vundo-vi-modify-map "h" #'vundo-backward)
+  (define-key vundo-vi-modify-map "l" #'vundo-forward)
+  (define-key vundo-vi-modify-map "k" #'vundo-previous)
+  (define-key vundo-vi-modify-map "j" #'vundo-next)
+  (define-key vundo-vi-modify-map "d" #'vundo-diff)
+  (viper-modify-major-mode 'vundo-mode 'vi-state vundo-vi-modify-map))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

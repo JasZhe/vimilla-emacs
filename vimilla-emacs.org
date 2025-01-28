@@ -3120,7 +3120,14 @@ usually want to call it from the vc root directory, unless we want something spe
                 "cD" #'xref-find-references
                 "cj" #'xref-find-apropos
 
-                :n "gd" #'xref-find-definitions
+                :n "gd" (lambda () (interactive)
+                          (condition-case err (call-interactively #'xref-find-definitions)
+                            (error
+                             ;; fallback to dumb jump
+                             (let ((xref-backend-functions #'dumb-jump-xref-activate))
+                               (call-interactively #'xref-find-definitions))
+                             )
+                            ))
                 "gD" #'xref-find-references
                 )
     )
@@ -3506,6 +3513,48 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
                               (call-interactively (lookup-key viper-vi-basic-map [C-i]))))
                   )
       ))
+#+end_src
+
+* "vendored" packages
+#+begin_src elisp
+  (require 'dash "~/.emacs.d/vendor/dash.el")
+  (require 's "~/.emacs.d/vendor/s.el")
+  (require 'dumb-jump "~/.emacs.d/vendor/dumb-jump.el")
+  (require 'coterm "~/.emacs.d/vendor/coterm.el")
+  (require 'wgrep "~/.emacs.d/vendor/wgrep.el")
+  (require 'vundo "~/.emacs.d/vendor/vundo.el")
+  (require 'avy "~/.emacs.d/vendor/avy.el")
+#+end_src
+
+** coterm
+#+begin_src elisp
+(coterm-mode)
+#+end_src
+
+** avy
+avy jumping is so nice
+https://github.com/abo-abo/avy
+
+Otherwise we just use isearch and standard vi f/F motions
+#+begin_src elisp
+  (use-package avy
+    :config
+    (define-key viper-vi-basic-map "gss" #'avy-goto-char-2)
+    (define-key viper-vi-basic-map "gs/" #'avy-goto-char-timer)
+    (define-key viper-vi-basic-map "gs " #'avy-goto-char-timer))
+#+end_src
+
+** vundo
+#+begin_src elisp
+  (use-package vundo
+    :config
+    (setq vundo-vi-modify-map vundo-mode-map)
+    (define-key vundo-vi-modify-map "h" #'vundo-backward)
+    (define-key vundo-vi-modify-map "l" #'vundo-forward)
+    (define-key vundo-vi-modify-map "k" #'vundo-previous)
+    (define-key vundo-vi-modify-map "j" #'vundo-next)
+    (define-key vundo-vi-modify-map "d" #'vundo-diff)
+    (viper-modify-major-mode 'vundo-mode 'vi-state vundo-vi-modify-map))
 #+end_src
 
 * (blasphemy) external packages                                    :external:
