@@ -3120,13 +3120,20 @@ usually want to call it from the vc root directory, unless we want something spe
                 "cD" #'xref-find-references
                 "cj" #'xref-find-apropos
 
-                :n "gd" (lambda () (interactive)
-                          (condition-case err (call-interactively #'xref-find-definitions)
+                :n "gd" (lambda ()
+                          (interactive)
+                          (condition-case err
+                              (xref-find-definitions
+                               (let ((thing (thing-at-point 'symbol)))
+                                 (and thing (substring-no-properties thing))))
                             (error
                              ;; fallback to dumb jump
-                             (let ((xref-backend-functions #'dumb-jump-xref-activate))
-                               (call-interactively #'xref-find-definitions))
-                             )
+                             (message "%s fallback" err)
+                             (unless (member 'dumb-jump-xref-activate xref-backend-functions)
+                               (let ((xref-backend-functions '(dumb-jump-xref-activate)))
+                                 (xref-find-definitions
+                                  (xref-backend-identifier-at-point 'dumb-jump-xref-activate)))
+                               ))
                             ))
                 "gD" #'xref-find-references
                 )
