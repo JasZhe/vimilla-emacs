@@ -784,13 +784,16 @@ See notes:emacs-notes-and-tips for more details."
 ;;(setq completion-in-region-function #'completing-read-in-region)
 (setq completion-in-region-function #'completion--in-region) ;; this is default
 
+
+;; similar to doom's +corfu/move-to-minibuffer
 (define-key my-mode-map (kbd "M-<tab>")
             (lambda ()
               (interactive)
-              (unwind-protect 
-                  (let ((completion-in-region-function #'completing-read-in-region))
+              (unwind-protect
+                  (let ((completion-in-region-function
+                         (if completion-in-region--data #'completing-read-in-region #'completion--in-region)))
                     (call-interactively #'complete-symbol))
-                (my-mode -1))))
+                )))
 
 (setq tab-always-indent 'complete)
 
