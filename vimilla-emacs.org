@@ -3114,6 +3114,7 @@ usually want to call it from the vc root directory, unless we want something spe
 
 ** eglot/xref
 #+begin_src elisp
+  
   (use-package xref :defer t
     :config
     (viper-map! :leader "cd" #'xref-find-definitions
@@ -3524,13 +3525,15 @@ Just a bunch of convenience keymaps, some faces, and some basic settings
 
 * "vendored" packages
 #+begin_src elisp
-  (require 'dash "~/.emacs.d/vendor/dash.el")
-  (require 's "~/.emacs.d/vendor/s.el")
-  (require 'dumb-jump "~/.emacs.d/vendor/dumb-jump.el")
-  (require 'coterm "~/.emacs.d/vendor/coterm.el")
-  (require 'wgrep "~/.emacs.d/vendor/wgrep.el")
-  (require 'vundo "~/.emacs.d/vendor/vundo.el")
-  (require 'avy "~/.emacs.d/vendor/avy.el")
+  (require 'dash (concat user-emacs-directory "vendor/dash.el"))
+  (require 's (concat user-emacs-directory "vendor/s.el"))
+  (require 'dumb-jump (concat user-emacs-directory "vendor/dumb-jump.el"))
+  (require 'coterm (concat user-emacs-directory "vendor/coterm.el"))
+  (require 'wgrep (concat user-emacs-directory "vendor/wgrep.el"))
+  (require 'vundo (concat user-emacs-directory "vendor/vundo.el"))
+  (require 'avy (concat user-emacs-directory "vendor/avy.el"))
+
+  (setq dumb-jump-force-searcher 'rg)
 #+end_src
 
 ** coterm

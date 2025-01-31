@@ -594,8 +594,7 @@ by `icomplete-vertical-unselected-prefix-marker'."
 ;; but only in the icomplete minibuffer so we don't clash with viper minibuffer and stuff
 ;; NOTE: command category can slow down M-x
 (defun icomplete-partial-completion-setup ()
-  (unless (or
-           (eq (icomplete--category) 'eglot-capf)
+  (unless (or 
            (eq (icomplete--category) 'file)
            )
     (insert "*")))
@@ -762,7 +761,7 @@ See notes:emacs-notes-and-tips for more details."
 (define-error 'no-completions "completing-read-in-region: No completions")
 (defun completing-read-in-region (start end collection &optional predicate)
   "Prompt for completion of region in the minibuffer if non-unique.
-      Use as a value for `completion-in-region-function'."
+  Use as a value for `completion-in-region-function'."
   (let* ((initial (buffer-substring-no-properties start end))
          (limit (car (completion-boundaries initial collection predicate "")))
          (all (completion-all-completions initial collection predicate (length initial)))
@@ -1823,13 +1822,15 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                 )
     ))
 
-(require 'dash "~/.emacs.d/vendor/dash.el")
-(require 's "~/.emacs.d/vendor/s.el")
-(require 'dumb-jump "~/.emacs.d/vendor/dumb-jump.el")
-(require 'coterm "~/.emacs.d/vendor/coterm.el")
-(require 'wgrep "~/.emacs.d/vendor/wgrep.el")
-(require 'vundo "~/.emacs.d/vendor/vundo.el")
-(require 'avy "~/.emacs.d/vendor/avy.el")
+(require 'dash (concat user-emacs-directory "vendor/dash.el"))
+(require 's (concat user-emacs-directory "vendor/s.el"))
+(require 'dumb-jump (concat user-emacs-directory "vendor/dumb-jump.el"))
+(require 'coterm (concat user-emacs-directory "vendor/coterm.el"))
+(require 'wgrep (concat user-emacs-directory "vendor/wgrep.el"))
+(require 'vundo (concat user-emacs-directory "vendor/vundo.el"))
+(require 'avy (concat user-emacs-directory "vendor/avy.el"))
+
+(setq dumb-jump-force-searcher 'rg)
 
 (coterm-mode)
 
