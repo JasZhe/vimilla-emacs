@@ -350,6 +350,13 @@ need to set the window map before viper loads cause we use it in the motion keym
   (define-key global-map (kbd "\C-w") my-window-map)
 #+end_src
 
+** prevent annoying scroll wheel behaviour on trackpads
+#+begin_src elisp
+(global-set-key (kbd "<pinch>") 'ignore)
+(global-set-key (kbd "<C-wheel-up>") 'ignore)
+(global-set-key (kbd "<C-wheel-down>") 'ignore)
+#+end_src
+
 * misc startup tasks
 viper mode, global hl and visual lines
 stole the completing read stuff from:
@@ -424,12 +431,23 @@ stole the completing read stuff from:
 
 * better backup file behavior
 #+begin_srC elisp
-  (setq backup-directory-alist `(("." . "~/.emacs.d/save-backups")))
+  (setq backup-directory-alist `(("." . "~/.emacs.d/emacs-backup")))
   (setq backup-by-copying t)
   (setq delete-old-versions t
         kept-new-versions 6
         kept-old-versions 2
         version-control t)
+
+(defun bedrock--backup-file-name (fpath)
+  "Return a new file path of a given file path.
+If the new path's directories does not exist, create them."
+  (let* ((backupRootDir (concat user-emacs-directory "emacs-backup/"))
+         (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
+         (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
+    (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
+    backupFilePath))
+(setopt make-backup-file-name-function 'bedrock--backup-file-name)
+
 #+end_srC 
 
 * enhancing icomplete inbuffer completions
@@ -2012,14 +2030,14 @@ display eww in side window with a large height
     (defface mode-line-pink
       (if (facep 'modus-themes-fg-magenta-cooler)
           '((t :inherit modus-themes-fg-magenta-cooler))
-      '((t :foreground "magenta")))
+        '((t :foreground "magenta")))
       "face used for modeline"
       :group 'basic-faces)
 
     (defface mode-line-cyan
       (if (facep 'modus-themes-fg-cyan-cooler)
           '((t :inherit modus-themes-fg-cyan-cooler))
-      '((t :foreground "cyan1")))
+        '((t :foreground "cyan1")))
       "face used for modeline"
       :group 'basic-faces)
 
@@ -2064,7 +2082,9 @@ display eww in side window with a large height
                                                            (number-to-string (1+ (abs (- (line-number-at-pos (point)) (line-number-at-pos (mark)))))) "L"
                                                            (number-to-string (1+ (abs (- (current-column) (save-excursion (goto-char (mark)) (current-column)))))) "C")
                                                           'face 'warning)))
-                                     " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " " mode-line-misc-info mode-line-end-spaces))
+                                     " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " "
+                                     vc-mode
+                                     mode-line-misc-info mode-line-end-spaces))
 
     (column-number-mode)
     (line-number-mode)
@@ -2073,6 +2093,18 @@ display eww in side window with a large height
 
   (add-hook 'after-make-frame-functions #'modeline-setup)
   (add-hook 'emacs-startup-hook #'modeline-setup)
+
+
+  (defun shorten-vc-mode-line (file &optional backend)
+    (when (stringp vc-mode)
+      (let ((nobackend (truncate-string-to-width
+                        (replace-regexp-in-string
+                         (format "^ %s:" (vc-backend buffer-file-name))
+                         " " vc-mode)
+                        15 0 nil nil)))
+        (setq vc-mode nobackend))))
+
+  (advice-add #'vc-mode-line :after #'shorten-vc-mode-line)
 #+end_src
 
 * Viper
@@ -3603,6 +3635,7 @@ The classic minibuffer trifecta, should we not want to use the built in faciliti
     (vertico-mode))
 #+end_src
 
+
 *** orderless
 https://github.com/oantolin/orderless
 The default custom partial-completion stuff we have works well enough that we might not need orderless anymore but meh
@@ -3886,6 +3919,11 @@ https://github.com/Fuco1/dired-hacks
     :config
     (setq eat-enable-auto-line-mode t)
     (viper-map! :leader "ot" #'eat))
+#+end_src
+
+** Fun
+#+begin_src elisp
+(package-vc-install '(snow :url "https://github.com/alphapapa/snow.el"))
 #+end_src
 
 

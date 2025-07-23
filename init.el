@@ -277,6 +277,10 @@
 (define-key global-map (kbd "\C-w") nil)
 (define-key global-map (kbd "\C-w") my-window-map)
 
+(global-set-key (kbd "<pinch>") 'ignore)
+(global-set-key (kbd "<C-wheel-up>") 'ignore)
+(global-set-key (kbd "<C-wheel-down>") 'ignore)
+
 (setq gc-cons-threshold most-positive-fixnum)
 
 ;; Lower threshold back to 8 MiB (default is 800kB)
@@ -333,12 +337,22 @@
 (setq auto-save-visited-interval 7)
 (auto-save-visited-mode)
 
-(setq backup-directory-alist `(("." . "~/.emacs.d/save-backups")))
-(setq backup-by-copying t)
-(setq delete-old-versions t
-      kept-new-versions 6
-      kept-old-versions 2
-      version-control t)
+(setq backup-directory-alist `(("." . "~/.emacs.d/emacs-backup")))
+  (setq backup-by-copying t)
+  (setq delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+
+(defun bedrock--backup-file-name (fpath)
+  "Return a new file path of a given file path.
+If the new path's directories does not exist, create them."
+  (let* ((backupRootDir (concat user-emacs-directory "emacs-backup/"))
+         (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
+         (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
+    (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
+    backupFilePath))
+(setopt make-backup-file-name-function 'bedrock--backup-file-name)
 
 ;;; ICOMPLETE
 (use-package icomplete
@@ -1653,14 +1667,14 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
   (defface mode-line-pink
     (if (facep 'modus-themes-fg-magenta-cooler)
         '((t :inherit modus-themes-fg-magenta-cooler))
-    '((t :foreground "magenta")))
+      '((t :foreground "magenta")))
     "face used for modeline"
     :group 'basic-faces)
 
   (defface mode-line-cyan
     (if (facep 'modus-themes-fg-cyan-cooler)
         '((t :inherit modus-themes-fg-cyan-cooler))
-    '((t :foreground "cyan1")))
+      '((t :foreground "cyan1")))
     "face used for modeline"
     :group 'basic-faces)
 
@@ -1705,7 +1719,9 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
                                                          (number-to-string (1+ (abs (- (line-number-at-pos (point)) (line-number-at-pos (mark)))))) "L"
                                                          (number-to-string (1+ (abs (- (current-column) (save-excursion (goto-char (mark)) (current-column)))))) "C")
                                                         'face 'warning)))
-                                   " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " " mode-line-misc-info mode-line-end-spaces))
+                                   " " (:propertize mode-name face (:weight bold :inherit mode-line-pink)) " "
+                                   vc-mode
+                                   mode-line-misc-info mode-line-end-spaces))
 
   (column-number-mode)
   (line-number-mode)
@@ -1714,6 +1730,18 @@ ORIG-FUN is `indent-for-tab-command' and ARGS is prefix-arg for that."
 
 (add-hook 'after-make-frame-functions #'modeline-setup)
 (add-hook 'emacs-startup-hook #'modeline-setup)
+
+
+(defun shorten-vc-mode-line (file &optional backend)
+  (when (stringp vc-mode)
+    (let ((nobackend (truncate-string-to-width
+                      (replace-regexp-in-string
+                       (format "^ %s:" (vc-backend buffer-file-name))
+                       " " vc-mode)
+                      15 0 nil nil)))
+      (setq vc-mode nobackend))))
+
+(advice-add #'vc-mode-line :after #'shorten-vc-mode-line)
 
 (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
