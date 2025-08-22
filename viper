@@ -192,7 +192,7 @@
 (viper-modify-major-mode 'minibuffer-mode 'insert-state my/minibuffer-modify-map)
 (viper-modify-major-mode 'minibuffer-mode 'emacs-state my/minibuffer-modify-map)
 
-(define-key viper-insert-basic-map (kbd "M-<tab>") #'completion-at-point)
+;; (define-key viper-insert-basic-map (kbd "M-<tab>") #'completion-at-point)
 
 (setq viper-want-ctl-h-help 't)
 (setq viper-fast-keyseq-timeout 100)
